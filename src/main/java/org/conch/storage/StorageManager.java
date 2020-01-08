@@ -27,7 +27,7 @@ import org.conch.storage.ipfs.IpfsService;
 public class StorageManager {
     public static void init() {
 
-        if (!Conch.getBooleanProperty("sharder.enableStorage")) return;
+        if (!Conch.getBooleanProperty("sharder.storage.enable")) return;
 
         //init and run daemon
         IpfsService.init();

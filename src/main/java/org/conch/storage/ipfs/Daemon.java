@@ -58,6 +58,7 @@ public class Daemon {
     private String swarmPort = Conch.getStringProperty("sharder.storage.ipfs.swarm.port");
     private String apiPort = Conch.getStringProperty("sharder.storage.ipfs.api.port");
     private String gatewayPort = Conch.getStringProperty("sharder.storage.ipfs.gateway.port");
+    private String accessPath = parseAccessPathByConfig();
 
     private String ipfsStorePathStr =
             Conch.getStringProperty("sharder.storage.ipfs.storepath", "storage/ipfs/.ipfs");
@@ -70,6 +71,16 @@ public class Daemon {
     private Consumer<Process> gobbler;
     private Consumer<String> printer;
     private File binpath = storepath;
+
+    /**
+     *   127.0.0.1 means can be accessed locally
+     *   0.0.0.0 means anyone can accessed
+     * @return
+     */
+    private static String parseAccessPathByConfig(){
+        boolean everyOneAccess = "all".equalsIgnoreCase(Conch.getStringProperty("sharder.storage.ipfs.access"));
+        return everyOneAccess ? "/ip4/0.0.0.0/tcp/" : "/ip4/127.0.0.1/tcp/";
+    }
 
     public static enum OS {
         WINDOWS,
@@ -137,127 +148,135 @@ public class Daemon {
 
     public void start() {
         if (thread != null && thread.isAlive()) thread.interrupt();
-        thread =
-                run(
-                        new Runnable() {
+        thread = run(
+            new Runnable() {
 
-                            Process init;
-                            Process daemon;
-                            Process config;
+                Process init;
+                Process daemon;
+                Process config;
 
-                            public void stop() {
-                                if (daemon.isAlive()) {
-                                    daemon.destroy();
-                                    print("Daemon stopped");
-                                    eventman.call(new DaemonEvent(DaemonEventType.DAEMON_STOPPED));
+                public void stop() {
+                    if (daemon.isAlive()) {
+                        daemon.destroy();
+                        print("Daemon stopped");
+                        eventman.call(new DaemonEvent(DaemonEventType.DAEMON_STOPPED));
+                    }
                 }
-                            }
 
-                            @Override
-                            public void run() {
-
-                                Runtime.getRuntime().addShutdownHook(new Thread(() -> stop()));
-
-                new File(getStorePath(), "repo.lock").delete();
-
-                try {
+                @Override
+                public void run() {
 
                     Runtime.getRuntime().addShutdownHook(new Thread(() -> stop()));
 
                     new File(getStorePath(), "repo.lock").delete();
 
-                    // if nodes with public IPv4 address (servers, VPSes, etc.), disables host and
-                    // content discovery in local networks.
-                    String profileParam = useServerProfile ? "--profile=server" : "";
-                    init = process("init", "-e", profileParam);
-                    gobble(init);
-                    eventman.call(new DaemonEvent(DaemonEventType.INIT_STARTED));
-                    init.waitFor();
-                    eventman.call(new DaemonEvent(DaemonEventType.INIT_DONE));
-
-                } catch (InterruptedException e) {
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                swarmKey = new File(getIpfsStorePath(), "swarm.key");
-                if (!swarmKey.exists()) {
-                    print(
-                            "move swarm key file from "
-                                    + getStorePath()
-                                    + " to "
-                                    + getIpfsStorePath()
-                                    + " ...");
                     try {
-                        FileUtils.copyFileToDirectory(
-                                new File(getStorePath(), "swarm.key"), swarmKey.getParentFile(), false);
+
+                        Runtime.getRuntime().addShutdownHook(new Thread(() -> stop()));
+
+                        new File(getStorePath(), "repo.lock").delete();
+
+                        // if nodes with public IPv4 address (servers, VPSes, etc.), disables host and
+                        // content discovery in local networks.
+                        String profileParam = useServerProfile ? "--profile=server" : "";
+                        init = process("init", "-e", profileParam);
+                        gobble(init);
+                        eventman.call(new DaemonEvent(DaemonEventType.INIT_STARTED));
+                        init.waitFor();
+                        eventman.call(new DaemonEvent(DaemonEventType.INIT_DONE));
+
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    /*  swarmKey = new File(getIpfsStorePath(), "swarm.key");
+                    if (!swarmKey.exists()) {
+                        print(
+                                "move swarm key file from "
+                                        + getStorePath()
+                                        + " to "
+                                        + getIpfsStorePath()
+                                        + " ...");
+                        try {
+                            FileUtils.copyFileToDirectory(
+                                    new File(getStorePath(), "swarm.key"), swarmKey.getParentFile(), false);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }*/
+
+                    if(os != OS.WINDOWS) {
+                        initIPFS4Linux();
+                    }
+
+                    // Config
+                    File configFile = new File(getIpfsStorePath(), "config");
+                    JsonNode configRootNode = null;
+                    ObjectMapper objMapper = new ObjectMapper();
+                    try {
+                        configRootNode = objMapper.readValue(configFile, ObjectNode.class);
+                        JsonNode bootstrapNode = configRootNode.path("Bootstrap");
+                        if (!bootstrapNode.isNull()) {
+                            List<String> defaultBootstrapNodes =
+                                    Constants.isTestnetOrDevnet()
+                                            ? Conch.getStringListProperty(
+                                            "sharder.storage.ipfs.bootstrap.defaultTestnetNodes")
+                                            : Conch.getStringListProperty(
+                                            "sharder.storage.ipfs.bootstrap.defaultNodes");
+                            ((ObjectNode) configRootNode)
+                                    .putPOJO("Bootstrap", defaultBootstrapNodes.toArray());
+                        }
+
+                        JsonNode addressNode = configRootNode.path("Addresses");
+                        JsonNode apiNode = addressNode.path("API");
+                        // 127.0.0.1 means can be accessed locally
+                        // 0.0.0.0 means anyone can accessed
+                        // API: call api; Gateway: get and view the file by ssid; Swarm : connect to other
+                        // node
+                        if (!apiNode.isNull()) {
+                            ((ObjectNode) addressNode).put("API", accessPath + apiPort);
+                        }
+                        JsonNode gatewayNode = addressNode.path("Gateway");
+                        if (!gatewayNode.isNull()) {
+                            ((ObjectNode) addressNode).put("Gateway", accessPath + gatewayPort);
+                        }
+                        JsonNode swarmNode = addressNode.path("Swarm");
+
+                        if (!swarmNode.isNull()) {
+                            ((ObjectNode) addressNode)
+                                    .putPOJO(
+                                            "Swarm",
+                                            new String[]{
+                                                    "/ip4/0.0.0.0/tcp/" + swarmPort, "/ip6/::/tcp/" + swarmPort
+                                            });
+                        }
+
+                        objMapper.writeValue(configFile, configRootNode);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    try {
+                        // enable-gc will auto delete unpin profile in storage network
+                        daemon =
+                                process(
+                                        "daemon", enableGc ? "--enable-gc" : "", "--enable-pubsub-experiment");
+                        gobble(daemon);
+                        eventman.call(new DaemonEvent(DaemonEventType.DAEMON_STARTED));
+                        daemon.waitFor();
+
+                    } catch (InterruptedException e) {
+
+                        stop();
+
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
-                                // Config
-                File configFile = new File(getIpfsStorePath(), "config");
-                JsonNode configRootNode = null;
-                ObjectMapper objMapper = new ObjectMapper();
-                try {
-                    configRootNode = objMapper.readValue(configFile, ObjectNode.class);
-                    JsonNode bootstrapNode = configRootNode.path("Bootstrap");
-                    if (!bootstrapNode.isNull()) {
-                        List<String> defaultBootstrapNodes =
-                                Constants.isTestnetOrDevnet()
-                                        ? Conch.getStringListProperty(
-                                        "sharder.storage.ipfs.bootstrap.defaultTestnetNodes")
-                                        : Conch.getStringListProperty(
-                                        "sharder.storage.ipfs.bootstrap.defaultNodes");
-                        ((ObjectNode) configRootNode)
-                                .putPOJO("Bootstrap", defaultBootstrapNodes.toArray());
-                    }
-                    JsonNode addressNode = configRootNode.path("Addresses");
-                    JsonNode apiNode = addressNode.path("API");
-                    // 127.0.0.1 means can be accessed locally
-                    // 0.0.0.0 means anyone can accessed
-                    // API: call api; Gateway: get and view the file by ssid; Swarm : connect to other
-                    // node
-                    if (!apiNode.isNull()) {
-                        ((ObjectNode) addressNode).put("API", "/ip4/127.0.0.1/tcp/" + apiPort);
-                    }
-                    JsonNode gatewayNode = addressNode.path("Gateway");
-                    if (!gatewayNode.isNull()) {
-                        ((ObjectNode) addressNode).put("Gateway", "/ip4/127.0.0.1/tcp/" + gatewayPort);
-                    }
-                    JsonNode swarmNode = addressNode.path("Swarm");
-
-                    if (!swarmNode.isNull()) {
-                        ((ObjectNode) addressNode)
-                                .putPOJO(
-                                        "Swarm",
-                                        new String[]{
-                                                "/ip4/0.0.0.0/tcp/" + swarmPort, "/ip6/::/tcp/" + swarmPort
-                                        });
-                    }
-
-                    objMapper.writeValue(configFile, configRootNode);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                try {
-                    // enable-gc will auto delete unpin profile in storage network
-                    daemon =
-                            process(
-                                    "daemon", enableGc ? "--enable-gc" : "", "--enable-pubsub-experiment");
-                    gobble(daemon);
-                    eventman.call(new DaemonEvent(DaemonEventType.DAEMON_STARTED));
-                    daemon.waitFor();
-
-                } catch (InterruptedException e) {
-
-                    stop();
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                            }
-                        });
+            });
     }
 
     public void getOS() {
@@ -379,20 +398,19 @@ public class Daemon {
     }
 
     public Thread run(boolean gobble, String... args) {
-        Thread t =
-                new Thread(
-                        new Runnable() {
-                            @Override
-                            public void run() {
-                try {
-                    Process p = process(args);
-                    if (gobble) gobble(p);
-                    p.waitFor();
-                } catch (IOException | InterruptedException e) {
-                    e.printStackTrace();
+        Thread t = new Thread(
+            new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Process p = process(args);
+                        if (gobble) gobble(p);
+                        p.waitFor();
+                    } catch (IOException | InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
-                            }
-                        });
+        });
 
         t.start();
         return t;
@@ -445,10 +463,11 @@ public class Daemon {
         this.attached = false;
         while (!attached) {
             try {
-                ipfs = new IPFS("/ip4/127.0.0.1/tcp/" + apiPort);
-                //                ipfs.refs.local();
+                ipfs = new IPFS(accessPath + apiPort);
+                //ipfs.refs.local();
                 attached = true;
             } catch (Exception e) {
+                e.printStackTrace();
             }
         }
         eventman.call(new DaemonEvent(DaemonEventType.ATTACHED));
@@ -456,16 +475,21 @@ public class Daemon {
     }
 
     /**
-     * If you can't inst the Daemon in the Mac OS, you can call this method manually. We'll fix this
+     * - If you can't inst the Daemon in the Mac OS, you can call this method manually. We'll fix this
      * environment problem later. xy-2018.10.18
+     *
+     * - Polyfill for the linux system. Aron-2020.01.07
      *
      * <p>This method will init the ipfs server and generate the related files into specified repo
      */
-    public static void initIPFS4Mac() {
-
-        File ipfsRepo =
-                new File(Conch.getStringProperty("sharder.storage.ipfs.storepath", "storage/ipfs/.ipfs"));
+    public static void initIPFS4Linux() {
+        File ipfsRepo = new File(Conch.getStringProperty("sharder.storage.ipfs.storepath", "storage/ipfs/.ipfs"));
         File ipfsCmd = new File("storage/ipfs/bin");
+
+        if(ipfsRepo.exists()) {
+            Logger.logInfoMessage("ipfs repo[ %s ] exist, no needs to manual init", ipfsRepo.getPath());
+            return;
+        }
 
         try {
             Runtime.getRuntime()
@@ -475,10 +499,10 @@ public class Daemon {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println("Manually init IPFS success.");
+        Logger.logInfoMessage("Manually init ipfs[ %s ] repo success.", ipfsRepo.getPath());
     }
 
     public static void main(String[] args) {
-        initIPFS4Mac();
+        initIPFS4Linux();
     }
 }
