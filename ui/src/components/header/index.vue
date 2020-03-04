@@ -1,6 +1,6 @@
 <template>
     <header class="header">
-        <div class="header_content">
+        <div class="header_content pc">
             <div id="logo">
                 <a href="#" class="logo">
                     <img src="../../assets/img/logo.svg"/>
@@ -92,6 +92,51 @@
                 </div>
             </nav>
         </div>
+        
+        <div class="mobile">
+            <div class="navbar">
+                <el-menu class="navbar_left el-menu-demo" :class="this.$i18n.locale === 'en'? 'en_menu' : ''"
+                         mode="horizontal" :router=isRouter @select="activeItem">
+                    <el-menu-item index="/account" :class="this.$route.path.indexOf('/account') >= 0 ? 'activeLi' : ''">
+                        {{$t('header.account')}}
+                    </el-menu-item>
+                    <el-menu-item index="/network" :class="this.$route.path.indexOf('/network') >= 0 ? 'activeLi' : ''">
+                        {{$t('header.network')}}
+                    </el-menu-item>
+                    <el-menu-item index="/mining" :class="this.$route.path.indexOf('/mining') >= 0 ? 'activeLi' : ''">
+                        {{$t('header.mining')}}
+                    </el-menu-item>
+                </el-menu>
+        
+        
+                <div class="nav-right">
+                    <div class="navbar_lang">
+                        <el-select v-model="selectLan">
+                            <el-option
+                                v-for="item in language"
+                                :key="item.value"
+                                :label="item.label"
+                                :value="item.value">
+                            </el-option>
+                        </el-select>
+                    </div>
+                    <div class="navbar_exit">
+                        <span class="csp" @click="exit"><a>{{$t('header.exit')}}</a></span>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="navbar_search">
+                    <div>
+                        <input class="navbar_search_input" :class="activeSearch ? 'navbar_search_input_active' : ''"
+                               :placeholder="placeholder" type="text" v-model="search_val"
+                               @focus="search_focus" @blur="search_blur" @keyup.enter="search_keydown"/>
+                        <img src="../../assets/img/search.svg" @click="search_keydown"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <dialogCommon :searchValue="search_val" :isSearch="isSearch" @isClose="isClose"></dialogCommon>
 
         <div class="modal" id="start_forging_modal" v-show="startForgingDialog">
@@ -267,6 +312,10 @@
             setInterval(() => {
                 _this.getData();
             }, SSO.downloadingBlockchain ? this.$global.cfg.soonInterval : this.$global.cfg.defaultInterval);
+    
+            if (/(iPhone|iPad|iPod|iOS|Android)/i.test(navigator.userAgent)) { //移动端
+                this.search_focus()
+            }
         },
         methods: {
             getAccountInfo:function(){

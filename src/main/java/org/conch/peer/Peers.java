@@ -156,7 +156,7 @@ public final class Peers {
     private static final ExecutorService sendingService = Executors.newFixedThreadPool(10);
 
     private static final boolean enableBizAPIs = Conch.getBooleanProperty("sharder.enableBizAPIs");
-    private static final boolean enableStorage = Conch.getBooleanProperty("sharder.enableStorage");
+    private static final boolean enableStorage = Conch.getBooleanProperty("sharder.storage.enable");
 
     private static List<String> loadPeersSetting() {
         return Constants.isTestnetOrDevnet() ? Conch.getStringListProperty("sharder.defaultTestnetPeers") : Conch.getStringListProperty("sharder.defaultPeers");

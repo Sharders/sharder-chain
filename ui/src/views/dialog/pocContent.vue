@@ -168,4 +168,12 @@
         font-weight: normal;
         text-align: center;
     }
+
+
+    @media only screen and (max-width: 780px) {
+        .pocContent .online-rate {
+            flex-direction: column;
+        }
+    }
+    
 </style>

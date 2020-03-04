@@ -123,29 +123,27 @@
                                 <th>{{$t('network.block_list_height')}}</th>
                                 <th class="w200">{{$t('network.block_list_time')}}</th>
                                 <th>{{$t('network.block_list_amount')}}</th>
-                                <th>{{$t('network.block_list_fee')}}</th>
-                                <th>{{$t('network.block_list_transaction')}}</th>
+                                <th class="pc-table">{{$t('network.block_list_fee')}}</th>
+                                <th class="pc-table">{{$t('network.block_list_transaction')}}</th>
                                 <th class="w200 ">{{$t('network.block_list_generator')}}</th>
-                                <th>{{$t('network.block_list_operating')}}</th>
+                                <th class="pc-table">{{$t('network.block_list_operating')}}</th>
+                                <th class="mobile"></th>
                             </tr>
                             </thead>
                             <tbody v-loading="loading">
-                            <tr v-for="block in blocklist">
+                            <tr v-for="block in blocklist" @click="openBlockInfoMobile(block.height)">
                                 <td class="pl0"><span>{{block.height}}</span></td>
                                 <td>
                                     <span>{{$global.myFormatTime(block.timestamp,'YMDHMS',true)}}</span><br>
                                     <span class="utc-time">{{$global.formatTime(block.timestamp)}} +UTC</span>
                                 </td>
-                                <td>
-                                    <span>{{$global.getBlocKTotalAmountNQT(block.totalAmountNQT)}}</span>
-                                </td>
-                                <td>
-                                    <span>{{$global.getBlockTotalFeeNQT(block.totalFeeNQT)}}</span>
-                                </td>
-                                <td><span>{{block.numberOfTransactions}}</span></td>
-                                <td class="linker" @click="openAccountInfo(block.generatorRS)">{{block.generatorRS}}
-                                </td>
-                                <td class="linker" @click="openBlockInfo(block.height)">{{$t('network.view_details')}}
+                                <td><span>{{$global.getBlocKTotalAmountNQT(block.totalAmountNQT)}}</span></td>
+                                <td class="pc-table"><span>{{$global.getBlockTotalFeeNQT(block.totalFeeNQT)}}</span></td>
+                                <td class="pc-table"><span>{{block.numberOfTransactions}}</span></td>
+                                <td class="linker" @click="openAccountInfo(block.generatorRS)">{{block.generatorRS | generatorRSFilter}}</td>
+                                <td class="linker pc-table" @click="openBlockInfo(block.height)">{{$t('network.view_details')}}</td>
+                                <td class="mobile icon-box">
+                                    <i class="el-icon-arrow-right"></i>
                                 </td>
                             </tr>
                             </tbody>
@@ -153,6 +151,7 @@
                     </div>
                     <div class="list_pagination">
                         <el-pagination
+                            :small="isMobile"
                             @size-change="handleSizeChange"
                             @current-change="handleCurrentChange"
                             :current-page.sync="currentPage"
@@ -171,7 +170,7 @@
                         <button class="close" @click="closeDialog"></button>
                         <h4 class="modal-title">{{$t("network.miners_roll")}}</h4>
                     </div>
-                    <div class="modal-body modal-miner">
+                    <div class="modal-body modal-miner pc">
                         <el-table
                             :data="minerlist"
                             style="width: 100%" >
@@ -312,7 +311,154 @@
                                 prop="hitTime"
                                 :formatter="dateFormat"
                                 :label="$t('network.mining_time')"
-                                width="160">
+                                width="160"
+                            >
+                            </el-table-column>
+                        </el-table>
+                    </div>
+                    <!-- mobile display -->
+                    <div class="modal-body modal-miner mobile">
+                        <el-table
+                            :data="minerlist"
+                            style="width: 100%" >
+                            <el-table-column type="expand">
+                                <template slot-scope="props">
+                                    <el-form label-position="left" inline>
+                                        <div class="hidden-md-and-up">
+                                            <el-row>
+                                                <el-col :sm="12" :xs="12">
+                                                    <el-form-item :label="$t('dialog.account_transaction_type')">
+                                                        <span>{{ props.row.bindPeerType }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                                <el-col :sm="12" :xs="12">
+                                                    <el-form-item :label="$t('network.poc_score')">
+                                                        <span>{{ props.row.pocScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                            </el-row>
+                                            <el-row>
+                                                <el-col :sm="12" :xs="12">
+                                                    <el-form-item :label="$t('network.mining_time')">
+                                                        <span>{{ dateFormat(props.row.hitTime) }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                                <el-col :sm="12" :xs="12">
+                                                    <el-form-item :label="$t('network.poc_score_ss')">
+                                                        <span>{{ props.row.detailedPocScore.ssScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                            </el-row>
+                                            <el-row>
+                                                <el-col :sm="12" :xs="12">
+                                                    <el-form-item :label="$t('network.poc_score_server')">
+                                                        <span>{{ props.row.detailedPocScore.serverScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                                <el-col :sm="12" :xs="12">
+                                                    <el-form-item :label="$t('network.poc_score_node_type')">
+                                                        <span>{{ props.row.detailedPocScore.nodeTypeScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                            </el-row>
+                                            <el-row>
+                                                <el-col :sm="12" :xs="12">
+                                                    <el-form-item :label="$t('network.poc_score_network')">
+                                                        <span>{{ props.row.detailedPocScore.networkScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                                <el-col :sm="12" :xs="12">
+                                                    <el-form-item :label="$t('network.poc_score_hardware')">
+                                                        <span>{{ props.row.detailedPocScore.hardwareScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                            </el-row>
+                                            <el-row>
+                                                <el-col :sm="12" :xs="12">
+                                                    <el-form-item :label="$t('network.poc_score_bc')">
+                                                        <span>{{ props.row.detailedPocScore.bcScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                                <el-col :sm="12" :xs="12">
+                                                    <el-form-item :label="$t('network.poc_score_performance')">
+                                                        <span>{{ props.row.detailedPocScore.performanceScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                            </el-row>
+                                            <el-row>
+                                                <el-col :sm="12" :xs="12">
+                                                    <el-form-item :label="$t('network.poc_score_online_rate')">
+                                                        <span>{{ props.row.detailedPocScore.onlineRateScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                                <el-col :sm="12" :xs="12">
+                                                    <el-form-item :label="$t('network.poc_score_block_missing')">
+                                                        <span>{{ props.row.detailedPocScore.blockMissScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                            </el-row>
+                                        </div>
+                                        <div class="hidden-sm-and-down">
+                                            <el-row>
+                                                <el-col :xl="8" :lg="8" :md="8">
+                                                    <el-form-item :label="$t('network.poc_score_ss')">
+                                                        <span>{{ props.row.detailedPocScore.ssScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                                <el-col :xl="8" :lg="8" :md="8">
+                                                    <el-form-item :label="$t('network.poc_score_node_type')">
+                                                        <span>{{ props.row.detailedPocScore.nodeTypeScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                                <el-col :xl="8" :lg="8" :md="8">
+                                                    <el-form-item :label="$t('network.poc_score_server')">
+                                                        <span>{{ props.row.detailedPocScore.serverScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                            </el-row>
+                                            <el-row>
+                                                <el-col :xl="8" :lg="8" :md="8">
+                                                    <el-form-item :label="$t('network.poc_score_hardware')">
+                                                        <span>{{ props.row.detailedPocScore.hardwareScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                                <el-col :xl="8" :lg="8" :md="8">
+                                                    <el-form-item :label="$t('network.poc_score_network')">
+                                                        <span>{{ props.row.detailedPocScore.networkScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                                <el-col :xl="8" :lg="8" :md="8">
+                                                    <el-form-item :label="$t('network.poc_score_performance')">
+                                                        <span>{{ props.row.detailedPocScore.performanceScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                            </el-row>
+                                            <el-row>
+                                                <el-col :xl="8" :lg="8" :md="24" :sm="24" :xs="24">
+                                                    <el-form-item :label="$t('network.poc_score_online_rate')">
+                                                        <span>{{ props.row.detailedPocScore.onlineRateScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                                <el-col :xl="8" :lg="8" :md="24" :sm="24" :xs="24">
+                                                    <el-form-item :label="$t('network.poc_score_block_missing')">
+                                                        <span>{{ props.row.detailedPocScore.blockMissScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                                <el-col :xl="8" :lg="8" :md="24" :sm="24" :xs="24">
+                                                    <el-form-item :label="$t('network.poc_score_bc')">
+                                                        <span>{{ props.row.detailedPocScore.bcScore }}</span>
+                                                    </el-form-item>
+                                                </el-col>
+                                            </el-row>
+                                        </div>
+                                    </el-form>
+                                </template>
+                            </el-table-column>
+                            <el-table-column :label="$t('dialog.account_info_account')">
+                                <template slot-scope="scope">
+                                    <div v-html="scope.row.accountRS" v-if="scope.row.accountRS === accountRS" style="color:#14c6fc;"></div>
+                                    <div v-html="scope.row.accountRS" v-if="scope.row.accountRS !== accountRS" style=""></div>
+                                </template>
                             </el-table-column>
                         </el-table>
                     </div>
@@ -365,6 +511,7 @@
                 poolCount: 0,
                 aliasCount: 0,
                 //分页信息
+                isMobile: false,
                 currentPage: 1,
                 totalSize: 0,
                 pageSize: 10,
@@ -374,6 +521,9 @@
         created() {
             let _this = this;
             _this.handleCurrentChange(_this.currentPage);
+            if (/(iPhone|iPad|iPod|iOS|Android)/i.test(navigator.userAgent)) { //移动端
+                this.isMobile = true
+            }
         },
         mounted() {
             let _this = this;
@@ -383,13 +533,37 @@
                 if (_this.$route.path === '/network') {
                     _this.networkUrlBlocks();
                     _this.httpGetNextBlockGenerators();
-                    _this.drawPeerMap(); 
+                    _this.drawPeerMap();
                 }else{
-                    clearInterval(networkDataLoader); 
+                    clearInterval(networkDataLoader);
                 }
             }, SSO.downloadingBlockchain ? this.$global.cfg.soonInterval : this.$global.cfg.defaultInterval);
+    
+            this.menuAdapter()
+        },
+        filters: {
+            generatorRSFilter(val) {
+                if (/(iPhone|iPad|iPod|iOS|Android)/i.test(navigator.userAgent)) { //移动端
+                    let temp = val
+                    return temp.slice(0, 4) + '...' + temp.slice(temp.length-4, temp.length-1)
+                }
+                return val
+            }
         },
         methods: {
+            menuAdapter() {
+                document.getElementsByClassName('header')[0].style.display = 'block'
+                var menuLi = document.querySelectorAll('.navbar .el-menu li')
+                for (let i = 0; i < menuLi.length; i++) {
+                    if (i === 1) {
+                        menuLi[i].setAttribute('class', 'el-menu-item is-active')
+                        menuLi[i].style.borderBottomColor = '#409EFF'
+                    } else {
+                        menuLi[i].setAttribute('class', 'el-menu-item')
+                        menuLi[i].style.borderBottomColor = 'transparent'
+                    }
+                }
+            },
             init() {
                 const _this = this;
                 _this.networkUrlBlocks();
@@ -436,7 +610,7 @@
                 _this.$global.fetch("GET", {startThis:"startThis"}, "getPeers").then(res => {
                     console.log(res.coordinates);
                     _this.peerNum = res.peers.length;
-                    this.$global.coordinatesMap = JSON.parse(res.coordinates);
+                    _this.$global.coordinatesMap = JSON.parse(res.coordinates);
                     return _this.$global.drawPeers();
                 }).catch(err => {
                     console.info("error", err);
@@ -516,6 +690,11 @@
                 const _this = this;
                 _this.blockInfoHeight = height;
                 _this.blockInfoDialog = true;
+            },
+            openBlockInfoMobile(height) {
+                if (/(iPhone|iPad|iPod|iOS|Android)/i.test(navigator.userAgent)) { //移动端
+                    this.openBlockInfo(height)
+                }
             },
             openAccountInfo(generatorRS) {
                 const _this = this;

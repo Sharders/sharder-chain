@@ -418,7 +418,8 @@
                 // if (_this.$router.currentRoute.name !== "mining") return;
             
             }, SSO.downloadingBlockchain ? this.$global.cfg.soonInterval : this.$global.cfg.defaultInterval);
-
+            
+            document.getElementsByClassName('header')[0].style.display = 'none'
         },
         created(){
             let _this = this;
