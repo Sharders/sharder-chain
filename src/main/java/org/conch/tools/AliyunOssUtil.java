@@ -177,11 +177,21 @@ public class AliyunOssUtil {
         for (OSSObjectSummary objectSummary : listing.getObjectSummaries()) {
             files.add(objectSummary.getKey());
         }
-
         // 遍历所有commonPrefix。
-        System.out.println();
         for (String commonPrefix : listing.getCommonPrefixes()) {
             getFile(commonPrefix, files);
+        }
+    }
+
+    public static void delByPath(String path) {
+        List<String> files = new ArrayList<>();
+        if (path != null){
+            AliyunOssUtil.getFile(path,files);
+        }else {
+           return;
+        }
+        if (files != null && files.size() > 0) {
+            AliyunOssUtil.delFile(files);
         }
     }
 

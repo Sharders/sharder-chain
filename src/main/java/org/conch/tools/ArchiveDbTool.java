@@ -88,6 +88,8 @@ public class ArchiveDbTool {
         }
 
         Logger.logInfoMessage("New a thread to archive and upload the archive to OSS...");
+        // set the archive height before processing to avoid the duplicate archiving
+        lastArchiveHeight = Conch.getHeight();
         Thread dbArchiveThread = new Thread(() -> {
             String[] dbArchiveArray = archiveDb(null);
             if(dbArchiveArray == null || dbArchiveArray.length == 0) {
@@ -133,7 +135,10 @@ public class ArchiveDbTool {
                 archiveArray[0] = dbArchivePath;
                 archiveArray[1] = generateArchiveMemoFile(pathStr);
 
-                deleteOldBackupFiles(pathStr, Lists.newArrayList(fileNameStr));
+                // upload to OSS
+                AliyunOssUtil.delFile(Lists.newArrayList(OSS_DB_ARCHIVE_MEMO_PATH));
+                AliyunOssUtil.uploadFile(archiveArray[0], dbArchivePath, true);
+                AliyunOssUtil.uploadFile(archiveArray[1], dbArchivePath, true);
 
                 return archiveArray;
             } finally {
