@@ -49,7 +49,7 @@ public class DbBackup {
             scheduler.start();
         }
 
-        // auto archive
+        // auto archive listener
         if(ArchiveDbTool.openAutoArchive()){
             // AFTER_BLOCK_APPLY event listener
             Conch.getBlockchainProcessor().addListener(block -> ArchiveDbTool.checkAndArchiveDB(block),

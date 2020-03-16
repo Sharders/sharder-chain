@@ -37,19 +37,12 @@ public class ArchiveDbTool {
     private static final String OSS_DB_ARCHIVE_MEMO_FILE_NAME = "cos-db-archive";
     private static final String OSS_DB_ARCHIVE_MEMO_PATH = "cos/client/release/" + OSS_DB_ARCHIVE_MEMO_FILE_NAME;
 
+    /**
+     * auto archive switch
+     * @return
+     */
     public static boolean openAutoArchive() {
         return AliyunOssUtil.openAutoBackDB();
-    }
-    /**
-     * zip and upload the db archive to OSS
-     */
-    public static void checkAndArchiveDB(Block block) {
-        String[] dbArchiveArray = archiveDb(null);
-        if(dbArchiveArray == null || dbArchiveArray.length == 0) {
-            System.out.println("zip db archive and memo file failed. EXIT the db archive operation.");
-        }
-        AliyunOssUtil.uploadFile(OSS_DB_ARCHIVE_PATH, dbArchiveArray[0], true);
-        AliyunOssUtil.uploadFile(OSS_DB_ARCHIVE_MEMO_PATH, dbArchiveArray[1], true);
     }
 
     private static long archiveIntervalHeight = calArchiveIntervalHeight();
@@ -80,6 +73,28 @@ public class ArchiveDbTool {
         return true;
     }
 
+
+    /**
+     * zip and upload the db archive to OSS
+     */
+    public static void checkAndArchiveDB(Block block) {
+        if(!bakNow()){
+            long archiveHeight = lastArchiveHeight + archiveIntervalHeight;
+            System.out.println("Not reach the backup height[" + archiveHeight + "], exit the zip and backup operation.");
+        }
+
+        System.out.println("New a thread to archive and upload the archive to OSS...");
+        Thread dbArchiveThread = new Thread(() -> {
+            String[] dbArchiveArray = archiveDb(null);
+            if(dbArchiveArray == null || dbArchiveArray.length == 0) {
+                System.out.println("zip db archive and memo file failed. EXIT the db archive operation.");
+            }
+            AliyunOssUtil.uploadFile(OSS_DB_ARCHIVE_PATH, dbArchiveArray[0], true);
+            AliyunOssUtil.uploadFile(OSS_DB_ARCHIVE_MEMO_PATH, dbArchiveArray[1], true);
+        });
+        dbArchiveThread.start();
+    }
+
     /**
      * archive the database
      * @param path
@@ -87,10 +102,6 @@ public class ArchiveDbTool {
      */
     private static String[] archiveDb(String path) {
             String[] archiveArray = new String[2];
-            if(!bakNow()){
-                long archiveHeight = lastArchiveHeight + archiveIntervalHeight;
-                System.out.println("Not reach the backup height[" + archiveHeight + "], exit the zip and backup operation.");
-            }
             String pathStr;
             String fileNameStr;
             try {
