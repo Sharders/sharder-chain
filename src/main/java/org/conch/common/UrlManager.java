@@ -63,19 +63,19 @@ public class UrlManager {
     /*=============================================HUB UPGRADE API START========================================*/
 
     private static final String ZIP_SUFFIX = ".zip";
-    private static final String LATEST_VERSION_ONLINE_URL = "https://oss.sharder.org/cos/client/release/cos-latest-version";
-    private static final String LATEST_VERSION_DEV_URL = "https://oss.sharder.org/cos/client/dev/cos-latest-version";
-    private static final String DOWNLOAD_PACKAGE_ONLINE_URL = "https://oss.sharder.org/cos/client/release/cos-";
-    private static final String DOWNLOAD_PACKAGE_DEV_URL = "https://oss.sharder.org/cos/client/dev/cos-";
+    private static final String LATEST_VERSION_ONLINE_URL = Constants.OSS_PREFIX + "cos/client/release/cos-latest-version";
+    private static final String LATEST_VERSION_DEV_URL = Constants.OSS_PREFIX + "cos/client/dev/cos-latest-version";
+    private static final String DOWNLOAD_PACKAGE_ONLINE_URL = Constants.OSS_PREFIX + "cos/client/release/cos-";
+    private static final String DOWNLOAD_PACKAGE_DEV_URL = Constants.OSS_PREFIX + "cos/client/dev/cos-";
 
-    private static final String ARCHIVE_DB_ONLINE_URL = "https://oss.sharder.org/cos/client/release/cos-db-archive";
-    private static final String ARCHIVE_DB_DEV_URL = "https://oss.sharder.org/cos/client/dev/cos-db-archive";
+    private static final String ARCHIVE_DB_ONLINE_URL = Constants.OSS_PREFIX + "cos/client/release/cos-db-archive";
+    private static final String ARCHIVE_DB_DEV_URL = Constants.OSS_PREFIX + "cos/client/dev/cos-db-archive";
     
-    private static final String COS_RELEASE_URL = "https://oss.sharder.org/cos/client/release/";
+    private static final String COS_RELEASE_URL = Constants.OSS_PREFIX + "cos/client/release/";
     
    
-    public static final String KNOWN_IGNORE_BLOCKS = "https://oss.sharder.org/cos/client/release/ignore-blocks";
-    public static final String CMD_TOOLS = "https://oss.sharder.org/cos/client/release/cmd-tools";
+    public static final String KNOWN_IGNORE_BLOCKS = Constants.OSS_PREFIX + "cos/client/release/ignore-blocks";
+    public static final String CMD_TOOLS = Constants.OSS_PREFIX + "cos/client/release/cmd-tools";
     /*=============================================HUB UPGRADE API END========================================*/
     
     /**

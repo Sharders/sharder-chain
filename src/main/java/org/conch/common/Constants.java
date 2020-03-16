@@ -257,6 +257,9 @@ public final class Constants {
 
     //Coinbase
     public static final int MAX_COINBASE_TYPE_LENGTH = 16;
+
+    //OSS
+    public static final String OSS_PREFIX = "https://sharder.oss-cn-hangzhou.aliyuncs.com/";
     
     /**
      * chain begin time

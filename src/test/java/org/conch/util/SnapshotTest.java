@@ -106,18 +106,18 @@ public class SnapshotTest {
                 long balance = rs.getLong("BALANCE");
                 long unconfirmedBalance = rs.getLong("UNCONFIRMED_BALANCE");
                 long minedBalance = rs.getLong("FORGED_BALANCE");
-                long frozenBlance = rs.getLong("FROZEN_BALANCE");
+                long frozenBalance = rs.getLong("FROZEN_BALANCE");
                 int height = rs.getInt("HEIGHT");
                 amountJson.put("totalBalance" , amountJson.getLongValue("totalBalance") + (balance / Constants.ONE_SS));
                 amountJson.put("totalMined" , amountJson.getLongValue("totalMined") + (minedBalance/ Constants.ONE_SS));
-                amountJson.put("totalFrozen" , amountJson.getLongValue("totalFrozen") + (frozenBlance/ Constants.ONE_SS));
+                amountJson.put("totalFrozen" , amountJson.getLongValue("totalFrozen") + (frozenBalance/ Constants.ONE_SS));
                 amountJson.put("totalUnconfirmed" , amountJson.getLongValue("totalUnconfirmed") + (unconfirmedBalance/ Constants.ONE_SS));
                 accountBalStr += Account.rsAccount(accountId)
                         + ",accountId=" + accountId
                         + ",balance=" + balance
                         + ",unconfirmedBalance=" + unconfirmedBalance
                         + ",minedBalance=" + minedBalance
-                        + ",frozenBlance=" + frozenBlance
+                        + ",frozenBalance=" + frozenBalance
                         + ",height=" + height
                         + "\n";
 //                rs.getLong("SHARDER.PUBLIC.ACCOUNT.LATEST");
