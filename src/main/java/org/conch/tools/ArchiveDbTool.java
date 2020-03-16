@@ -30,6 +30,8 @@ import org.conch.util.FileUtil;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 public class ArchiveDbTool {
@@ -106,8 +108,9 @@ public class ArchiveDbTool {
             String fileNameStr;
             try {
                 Conch.getBlockchain().updateLock();
-                Conch.getBlockchain().readLock();
-                pathStr = (path == null) ? "BAK/" : path;
+                Path appRootPath = Paths.get(".");
+
+                pathStr = (path == null) ? appRootPath.resolve("BAK/").toString() : path;
                 if(!pathStr.endsWith(File.separator)) {
                     pathStr += File.separator;
                 }
@@ -133,61 +136,64 @@ public class ArchiveDbTool {
                 return archiveArray;
             } finally {
                 Conch.getBlockchain().updateUnlock();
-                Conch.getBlockchain().readUnlock();
             }
 
         }
 
-        private static String generateArchiveMemoFile(String path){
-            FileWriter writer = null;
-            String memoFilePath = null;
-            try {
-                if (!path.endsWith(File.separator)) {
-                    path += File.separator;
-                }
-                memoFilePath = path + OSS_DB_ARCHIVE_MEMO_FILE_NAME;
-                String dbArchiveName = Db.getName() + "_" + Conch.getHeight();
-                String content = "testLastArchive=" + dbArchiveName
-                        + "\ntestKnownArchive=" + Conch.getHeight();
+    private static String generateArchiveMemoFile(String path){
+        FileWriter writer = null;
+        String memoFilePath = null;
+        try {
+            if (!path.endsWith(File.separator)) {
+                path += File.separator;
+            }
+            memoFilePath = path + OSS_DB_ARCHIVE_MEMO_FILE_NAME;
+            String dbArchiveName = Db.getName() + "_" + Conch.getHeight();
+            String content = "testLastArchive=" + dbArchiveName
+                    + "\ntestKnownArchive=" + Conch.getHeight();
 
-                File file = new File(memoFilePath);
-                if (!file.exists()) {
-                    file.createNewFile();
-                }
+            File file = new File(memoFilePath);
+            if (!file.exists()) {
+                file.createNewFile();
+            }
 
-                // rewrite the file content
-                writer = new FileWriter(file.getName());
-                writer.write(content);
-            } catch (IOException e) {
-                e.printStackTrace();
-                return null;
-            } finally {
-                if(writer != null){
-                    try {
-                        writer.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+            // rewrite the file content
+            writer = new FileWriter(file.getName());
+            writer.write(content);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            if(writer != null){
+                try {
+                    writer.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
-            return memoFilePath;
+        }
+        return memoFilePath;
+    }
+
+    private static boolean deleteOldBackupFiles(String path, List<String> ignoreList){
+        File file = new File(path);
+
+        if(!file.isDirectory()) {
+            return false;
         }
 
-        private static boolean deleteOldBackupFiles(String path, List<String> ignoreList){
-            File file = new File(path);
-
-            if(!file.isDirectory()) {
-                return false;
+        File[] oldFiles = file.listFiles();
+        for(int i = 0 ; i < oldFiles.length; i++){
+            if(ignoreList.contains(oldFiles[i].getName())) {
+                continue;
             }
-
-            File[] oldFiles = file.listFiles();
-            for(int i = 0 ; i < oldFiles.length; i++){
-                if(ignoreList.contains(oldFiles[i].getName())) {
-                    continue;
-                }
-                oldFiles[i].delete();
-            }
-
-            return true;
+            oldFiles[i].delete();
         }
+
+        return true;
+    }
+
+    public static void main(String[] args) {
+
+    }
 }
