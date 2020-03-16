@@ -23,6 +23,8 @@ package org.conch.db;
 
 import it.sauronsoftware.cron4j.Scheduler;
 import org.conch.Conch;
+import org.conch.chain.BlockchainProcessor;
+import org.conch.tools.ArchiveDbTool;
 
 public class DbBackup {
 
@@ -45,6 +47,13 @@ public class DbBackup {
             scheduler.schedule(cron, task);
             // Starts the scheduler.
             scheduler.start();
+        }
+
+        // auto archive
+        if(ArchiveDbTool.openAutoArchive()){
+            // AFTER_BLOCK_APPLY event listener
+            Conch.getBlockchainProcessor().addListener(block -> ArchiveDbTool.checkAndArchiveDB(block),
+                    BlockchainProcessor.Event.AFTER_BLOCK_APPLY);
         }
     }
 }
