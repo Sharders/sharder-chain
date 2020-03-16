@@ -110,7 +110,7 @@ public class ArchiveDbTool {
                 Conch.getBlockchain().updateLock();
                 Path appRootPath = Paths.get(".");
 
-                pathStr = (path == null) ? appRootPath.resolve("BAK/").toString() : path;
+                pathStr = (path == null) ? appRootPath.resolve("ARCHIVE/").toString() : path;
                 if(!pathStr.endsWith(File.separator)) {
                     pathStr += File.separator;
                 }
