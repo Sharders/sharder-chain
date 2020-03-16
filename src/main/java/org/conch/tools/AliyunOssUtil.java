@@ -34,8 +34,8 @@ import java.util.*;
 public class AliyunOssUtil {
 
     // OSS setting
-    private static final String ENDPOINT = Conch.getStringProperty("sharder.oss.url");
-    private static final String INTERNAL_ENDPOINT = Conch.getStringProperty("sharder.oss.internal-url");
+    private static final String ENDPOINT = "http://" + Conch.getStringProperty("sharder.oss.url");
+    private static final String INTERNAL_ENDPOINT = "http://" + Conch.getStringProperty("sharder.oss.internal-url");
     private static final String ACCESS_KEY_ID = Conch.getStringProperty("sharder.oss.key");
     private static final String ACCESS_KEY_SECRET = Conch.getStringProperty("sharder.oss.secret");
     private static final String BUCKET_NAME = Conch.getStringProperty("sharder.oss.bucket");
