@@ -40,6 +40,7 @@ public class ArchiveDbTool {
     private static final String OSS_DB_ARCHIVE_PATH = "cos/client/release/";
     private static final String OSS_DB_ARCHIVE_MEMO_FILE_NAME = "cos-db-archive";
     private static final String OSS_DB_ARCHIVE_MEMO_PATH = "cos/client/release/" + OSS_DB_ARCHIVE_MEMO_FILE_NAME;
+    private static final int ARCHIVE_INTERVAL_DAYS = Conch.getIntProperty("sharder.oss.archive.interval", 15);
 
     /**
      * auto archive switch
@@ -53,8 +54,8 @@ public class ArchiveDbTool {
     private static long lastArchiveHeight = -1L;
 
     private static long calArchiveIntervalHeight(){
-        // every 15days to archive once
-        return 60L*60L*24L*15L*60L / (long)Constants.getBlockGapSeconds();
+        // default is 15days to archive once
+        return 60L*60L*24L*60L*ARCHIVE_INTERVAL_DAYS / (long)Constants.getBlockGapSeconds();
     }
     /**
      * current height whether match the backup condition
