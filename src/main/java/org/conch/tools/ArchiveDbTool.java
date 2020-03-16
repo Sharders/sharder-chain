@@ -85,7 +85,8 @@ public class ArchiveDbTool {
     public static void checkAndArchiveDB(Block block) {
         if(!bakNow()){
             long archiveHeight = lastArchiveHeight + archiveIntervalHeight;
-            Logger.logInfoMessage("Not reach the backup height[" + archiveHeight + "], exit the zip and backup operation.");
+            Logger.logInfoMessage("Not reach the archive height[" + archiveHeight + "], exit the archive operation.");
+            return;
         }
 
         Logger.logInfoMessage("New a thread to archive and upload the archive to OSS...");
