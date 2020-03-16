@@ -27,6 +27,8 @@ import org.conch.chain.Block;
 import org.conch.common.Constants;
 import org.conch.db.Db;
 import org.conch.util.FileUtil;
+import org.conch.util.Logger;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -82,14 +84,14 @@ public class ArchiveDbTool {
     public static void checkAndArchiveDB(Block block) {
         if(!bakNow()){
             long archiveHeight = lastArchiveHeight + archiveIntervalHeight;
-            System.out.println("Not reach the backup height[" + archiveHeight + "], exit the zip and backup operation.");
+            Logger.logInfoMessage("Not reach the backup height[" + archiveHeight + "], exit the zip and backup operation.");
         }
 
-        System.out.println("New a thread to archive and upload the archive to OSS...");
+        Logger.logInfoMessage("New a thread to archive and upload the archive to OSS...");
         Thread dbArchiveThread = new Thread(() -> {
             String[] dbArchiveArray = archiveDb(null);
             if(dbArchiveArray == null || dbArchiveArray.length == 0) {
-                System.out.println("zip db archive and memo file failed. EXIT the db archive operation.");
+                Logger.logInfoMessage("zip db archive and memo file failed. EXIT the db archive operation.");
             }
             AliyunOssUtil.uploadFile(OSS_DB_ARCHIVE_PATH, dbArchiveArray[0], true);
             AliyunOssUtil.uploadFile(OSS_DB_ARCHIVE_MEMO_PATH, dbArchiveArray[1], true);
