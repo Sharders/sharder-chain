@@ -41,6 +41,7 @@ import java.util.Map;
 
 public final class GetPeers extends APIServlet.APIRequestHandler {
     static final Map CoordinatesMap = new HashMap();
+    static final HashMap tempCoordinatesMap = new HashMap();
     static final GetPeers instance = new GetPeers();
 
     private GetPeers() {
@@ -114,17 +115,24 @@ public final class GetPeers extends APIServlet.APIRequestHandler {
 
         String startThis =  req.getParameter("startThis");
         JSONObject response = new JSONObject();
+        tempCoordinatesMap.putAll(CoordinatesMap);
         if (startThis != null){
             if (CoordinatesMap.size() == 0  || (CoordinatesMap.get("peersLength") != null && (int)CoordinatesMap.get("peersLength") != peersJSON.size())){
-                String result= byIPtoCoordinates("https://sharder.org/api/front/coordinates/ip",JSONArray.toJSONString(peersJSON));
-                CoordinatesMap.put("CoordinatesList",result);
-                CoordinatesMap.put("peersLength",peersJSON.size());
-                response.put("coordinates",result);
-            }else{
-                response.put("coordinates",CoordinatesMap.get("CoordinatesList"));
+                new Thread("换ip地址"){
+                    public void run(){
+                        final String result = byIPtoCoordinates("https://sharder.org/api/front/coordinates/ip",JSONArray.toJSONString(peersJSON));
+                        if (result.contains("ErrorInfo")){
+                            return;
+                        }else{
+                            CoordinatesMap.put("CoordinatesList",result);
+                            CoordinatesMap.put("peersLength",peersJSON.size());
+                            tempCoordinatesMap.putAll(CoordinatesMap);
+                        }
+                    }
+                }.start();
             }
+            response.put("coordinates",tempCoordinatesMap.get("CoordinatesList"));
         }
-
         response.put("peers", peersJSON);
         return response;
     }

@@ -23,10 +23,20 @@ package org.conch.db;
 
 import it.sauronsoftware.cron4j.Scheduler;
 import org.conch.Conch;
+import org.conch.chain.BlockchainProcessor;
+import org.conch.tools.ArchiveDbTool;
 
 public class DbBackup {
 
     public static void init() {
+        // auto archive listener
+        if(ArchiveDbTool.openAutoArchive()){
+            // AFTER_BLOCK_APPLY event listener
+            Conch.getBlockchainProcessor().addListener(block -> ArchiveDbTool.checkAndArchiveDB(block),
+                    BlockchainProcessor.Event.AFTER_BLOCK_APPLY);
+        }
+
+        // local db backup task
         Boolean enable = Conch.getBooleanProperty("sharder.db.enableBackup");
         if (enable) {
             String cron = Conch.getStringProperty("sharder.db.backup.cron").trim();

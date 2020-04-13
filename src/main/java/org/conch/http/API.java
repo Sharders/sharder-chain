@@ -62,8 +62,8 @@ import static org.conch.http.JSONResponses.*;
 
 public final class API {
 
-    public static final int TESTNET_API_PORT = 8215;
-    public static final int TESTNET_API_SSLPORT = 8218;
+    public static final int TESTNET_API_PORT = 8216;
+    public static final int TESTNET_API_SSLPORT = 8219;
     private static final String[] DISABLED_HTTP_METHODS = {"TRACE", "OPTIONS", "HEAD"};
 
     public static final int openAPIPort;

@@ -40,8 +40,33 @@ import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
 
 public class FileUtil {
+
+    /**
+     * zip the file
+     * @param filepath source file path
+     * @param zipOutPath zip output path
+     */
+    public static void ZipFile(String filepath ,String zipOutPath) {
+        try {
+            File file = new File(filepath);
+            File zipFile = new File(zipOutPath);
+            InputStream input = new FileInputStream(file);
+            ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(zipFile));
+            zipOut.putNextEntry(new ZipEntry(file.getName()));
+            int temp = 0;
+            while((temp = input.read()) != -1){
+                zipOut.write(temp);
+            }
+            input.close();
+            zipOut.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      * Unzips a file, placing its contents in the given output location.
      *

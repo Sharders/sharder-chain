@@ -25,7 +25,7 @@ public class SystemInfo implements Serializable {
     private String address;
 
     /**
-     * 绑定的豆匣账号SSA-XXX
+     * 绑定的MW账号CDW-XXX
      */
     private String bindRs;
 
@@ -42,12 +42,12 @@ public class SystemInfo implements Serializable {
     /**
      * 内存大小 （单位GB）
      */
-    private int memoryTotal;
+    private long memoryTotal;
 
     /**
      * 硬盘大小 （单位GB）
      */
-    private int hardDiskSize;
+    private long hardDiskSize;
 
     /**
      * 是否有公网IP
@@ -133,20 +133,20 @@ public class SystemInfo implements Serializable {
         return this;
     }
 
-    public int getMemoryTotal() {
+    public long getMemoryTotal() {
         return memoryTotal;
     }
 
-    public SystemInfo setMemoryTotal(int memoryTotal) {
+    public SystemInfo setMemoryTotal(long memoryTotal) {
         this.memoryTotal = memoryTotal;
         return this;
     }
 
-    public int getHardDiskSize() {
+    public long getHardDiskSize() {
         return hardDiskSize;
     }
 
-    public SystemInfo setHardDiskSize(int hardDiskSize) {
+    public SystemInfo setHardDiskSize(long hardDiskSize) {
         this.hardDiskSize = hardDiskSize;
         return this;
     }

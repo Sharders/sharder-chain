@@ -64,7 +64,7 @@ public final class Constants {
             }
 
             throw new IllegalArgumentException(
-                    String.format("There is no value with name '%s' in Enum %s", name, enumeration.getName()));
+                    String.format("There is no value with name '%s' in Enum %s, please add the conf folder into runtime firstly!", name, enumeration.getName()));
         }
 
         public String getName() {
@@ -89,7 +89,7 @@ public final class Constants {
     public static final String NetworkDef = loadNetworkDefinition();
     public static final boolean isOffline = Conch.getBooleanProperty("sharder.isOffline");
     public static final boolean isLightClient = Conch.getBooleanProperty("sharder.isLightClient");
-    public static final boolean isStorageClient = Conch.getBooleanProperty("sharder.enableStorage");
+    public static final boolean isStorageClient = Conch.getBooleanProperty("sharder.storage.enable");
     public static final List<String> bootNodesHost = parseBootNodesHost();
     public static final String bootNodeHost = parseBootNodeHost();
 
@@ -257,6 +257,9 @@ public final class Constants {
 
     //Coinbase
     public static final int MAX_COINBASE_TYPE_LENGTH = 16;
+
+    //OSS
+    public static final String OSS_PREFIX = "https://sharder.oss-cn-hangzhou.aliyuncs.com/";
     
     /**
      * chain begin time
