@@ -28,6 +28,7 @@ import org.conch.account.Account;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.common.UrlManager;
+import org.conch.consensus.poc.hardware.GetNodeHardware;
 import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.mq.Message;
 import org.conch.mq.MessageManager;
@@ -45,7 +46,7 @@ import java.util.*;
 
 /**
  * @author jiangbubai
- * @date  2019-05-09 updated by Ben 
+ * @date  2019-05-09 updated by Ben
  */
 public final class ReConfig extends APIServlet.APIRequestHandler {
 
@@ -60,11 +61,11 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
     );
 
     private static final String SF_BIND_URL = UrlManager.getFoundationUrl(
-            "", 
-            UrlManager.HUB_SETTING_ADDRESS_BIND_LOCAL, 
+            "",
+            UrlManager.HUB_SETTING_ADDRESS_BIND_LOCAL,
             UrlManager.HUB_SETTING_ADDRESS_BIND_PATH
     );
-    
+
     private ReConfig() {
         super(new APITag[] {APITag.DEBUG}, "restart");
     }
@@ -80,7 +81,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
         Enumeration enu = req.getParameterNames();
 
 //        Conch.getStringProperty("sharder.HubBindAddress");
-        
+
         String accountPR = Conch.getStringProperty("sharder.HubBindPassPhrase");
         String inputLinkedPR = req.getParameter("sharder.HubBindPassPhrase");
         if(StringUtils.isNotEmpty(inputLinkedPR)) {
@@ -88,7 +89,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
         }
         long creatorId = Account.getId(accountPR);
         String bindRs = Account.rsAccount(creatorId);
-        
+
 
         if (SharderPoolProcessor.whetherCreatorHasWorkingMinePool(creatorId)) {
             response.put("reconfiged", false);
@@ -120,7 +121,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
             response.put("failedReason", "Failed to configure settings caused by [" + e.getMessage() + "]");
             return response;
         }
-        
+
         // send to foundation to create node type tx once in initial processing
         if (!sendCreateNodeTypeTxRequestToFoundation(req, bindRs)) {
             Logger.logErrorMessage("failed to configure settings caused by send create node type tx message to foundation failed!");
@@ -128,10 +129,10 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
             response.put("failedReason", "Failed to configure settings caused by node type tx creation failed!");
             return response;
         }
-        
+
         while(enu.hasMoreElements()) {
             String paraName = (String)enu.nextElement();
-            
+
             if ("sharder.HubBindPassPhrase".equals(paraName)) {
                 String prFromRequest = req.getParameter(paraName);
                 map.put("sharder.HubBindPassPhrase", prFromRequest);
@@ -152,16 +153,16 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
 //                map.put("sharder.HubBindPassPhrase", Conch.getStringProperty("sharder.HubBindPassPhrase"));
 //                continue;
 //            }
-            
+
             // pre-defined exclusion request parameter
             if (EXCLUDE_PARAMS.contains(paraName)) {
                 continue;
             }
             map.put(paraName, req.getParameter(paraName));
         }
-        
+
         Conch.storePropertiesToFile(map);
-        
+
         if (restart) {
             new Thread(() -> {
                 // get the default db file
@@ -169,7 +170,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
                     Logger.logDebugMessage("Fetch and upgrade the default archived db file to local in the Hub initialization phase");
                     ClientUpgradeTool.restoreDbToLastArchive();
                 }
-                
+
                 Conch.restartApplication(null);
             }).start();
         }
@@ -256,7 +257,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
             return pageValue.equals(dbValue);
         }
     }
-    
+
     private void checkAndUpdateLinkedAddressToFoundation(HttpServletRequest req, String rsAddress) throws ConchException.NotValidException {
         RestfulHttpClient.HttpResponse verifyResponse = null;
         try {
@@ -278,7 +279,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
             throw new ConchException.NotValidException(e.getMessage());
         }
     }
-    
+
     //TODO need refactor
     @SuppressWarnings("unchecked")
     private Boolean sendCreateNodeTypeTxRequestToFoundation(HttpServletRequest req, String rsAddress) {
@@ -288,6 +289,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
         jsonObject.put("ip", myAddress);
         jsonObject.put("type", req.getParameter("nodeType"));
         jsonObject.put("network", Conch.getNetworkType());
+        jsonObject.put("diskCapacity", GetNodeHardware.diskCapacity(GetNodeHardware.DISK_UNIT_TYPE_KB));
         jsonObject.put("bindRs", rsAddress);
         jsonObject.put("from", "NodeInitialStage#Reconfig");
         Message message = new Message()

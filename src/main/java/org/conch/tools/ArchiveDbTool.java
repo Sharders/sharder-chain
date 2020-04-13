@@ -26,6 +26,7 @@ import org.conch.Conch;
 import org.conch.chain.Block;
 import org.conch.common.Constants;
 import org.conch.db.Db;
+import org.conch.mint.Generator;
 import org.conch.util.FileUtil;
 import org.conch.util.Logger;
 
@@ -41,12 +42,15 @@ public class ArchiveDbTool {
     private static final String OSS_DB_ARCHIVE_MEMO_FILE_NAME = "cos-db-archive";
     private static final String OSS_DB_ARCHIVE_MEMO_PATH = "cos/client/release/" + OSS_DB_ARCHIVE_MEMO_FILE_NAME;
     private static final int ARCHIVE_INTERVAL_DAYS = Conch.getIntProperty("sharder.oss.archive.interval", 15);
+    private static final Boolean AUTO_ARCHIVE_OPEN = Conch.getBooleanProperty("sharder.oss.archive.open");
 
     /**
      * auto archive switch
      * @return
      */
     public static boolean openAutoArchive() {
+        if(!AUTO_ARCHIVE_OPEN) return false;
+
         return AliyunOssUtil.openAutoBackDB();
     }
 

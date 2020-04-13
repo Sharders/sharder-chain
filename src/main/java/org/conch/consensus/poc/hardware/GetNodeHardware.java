@@ -28,6 +28,11 @@ import java.util.Optional;
  **/
 public class GetNodeHardware {
 
+    public static final int DISK_UNIT_TYPE_KB = 0;
+    public static final int DISK_UNIT_TYPE_GB = 1;
+    public static final int DISK_UNIT_TYPE_TB = 2;
+    public static final int DISK_UNIT_TYPE_PB = 3;
+
     public static SystemInfo cpu(SystemInfo systemInfo) throws SigarException {
         Sigar sigar = new Sigar();
         CpuInfo infos[] = sigar.getCpuInfoList();
@@ -47,47 +52,84 @@ public class GetNodeHardware {
         return systemInfo;
     }
 
-    public static SystemInfo disk(SystemInfo systemInfo) throws Exception {
+    /**
+     * disk capacity by specified unit
+     * @param unitType unit type
+     * @return
+     */
+    public static long diskCapacity(int unitType){
         Sigar sigar = new Sigar();
-        FileSystem fsList[] = sigar.getFileSystemList();
-        Long ypTotal = 0L;
-        for (int i = 0; i < fsList.length; i++) {
-            FileSystem fs = fsList[i];
-            FileSystemUsage usage = sigar.getFileSystemUsage(fs.getDirName());
-            switch (fs.getType()) {
-                case 0: // TYPE_UNKNOWN ：未知
-                    break;
-                case 1: // TYPE_NONE
-                    break;
-                case 2: // TYPE_LOCAL_DISK : 本地硬盘
-                    // 文件系统总大小
-                    ypTotal += usage.getTotal();
-                    break;
-                case 3:// TYPE_NETWORK ：网络
-                    break;
-                case 4:// TYPE_RAM_DISK ：闪存
-                    break;
-                case 5:// TYPE_CDROM ：光驱
-                    break;
-                case 6:// TYPE_SWAP ：页面交换
-                    break;
-                default:
-                    break;
-            }
-        }
-        int hdTotal = (int) ((double) ypTotal / 1024L / 1024L);
-        if (hdTotal == 0) {
+        long capacity = -1;
+        try{
+            FileSystem fsList[] = sigar.getFileSystemList();
+            Long diskTotal = 0L;
             for (int i = 0; i < fsList.length; i++) {
                 FileSystem fs = fsList[i];
-                if (fs.getDirName().equals("/")) {
-                    FileSystemUsage usage = sigar.getFileSystemUsage(fs.getDirName());
-                    hdTotal = (int) ((double) usage.getTotal() / 1024L / 1024L);
-                    break;
+                FileSystemUsage usage = sigar.getFileSystemUsage(fs.getDirName());
+                switch (fs.getType()) {
+                    case FileSystem.TYPE_UNKNOWN: //未知
+                        break;
+                    case FileSystem.TYPE_NONE: //TYPE_NONE
+                        break;
+                    case FileSystem.TYPE_LOCAL_DISK://本地硬盘
+                        // 文件系统总大小
+                        diskTotal += usage.getTotal();
+                        break;
+                    case FileSystem.TYPE_NETWORK://网络
+                        break;
+                    case FileSystem.TYPE_RAM_DISK: //闪存
+                        break;
+                    case FileSystem.TYPE_CDROM://光驱
+                        break;
+                    case FileSystem.TYPE_SWAP: //页面交换
+                        break;
+                    default:
+                        break;
                 }
             }
+
+            // processing by OS
+            if (diskTotal == 0) {
+                for (int i = 0; i < fsList.length; i++) {
+                    FileSystem fs = fsList[i];
+                    if (fs.getDirName().equals("/") //linux
+                            || fs.getDirName().equals("/System/Volumes/Data")// OSX
+                    ) {
+                        FileSystemUsage usage = null;
+                        try {
+                            usage = sigar.getFileSystemUsage(fs.getDirName());
+                        } catch (SigarException e) {
+                            e.printStackTrace();
+                        }
+                        diskTotal += usage.getTotal();
+                        break;
+                    }
+                }
+            }
+
+            // convert to specified unit type
+            switch(unitType){
+                case DISK_UNIT_TYPE_GB:
+                    capacity = diskTotal / 1024L / 1024L;
+                    break;
+                case DISK_UNIT_TYPE_TB:
+                    capacity = diskTotal / 1024L / 1024L / 1024L;
+                    break;
+                case DISK_UNIT_TYPE_PB:
+                    capacity = diskTotal / 1024L / 1024L / 1024L / 1024L;
+                    break;
+                default:
+                    capacity = diskTotal;
+                    break;
+            }
+        }catch(Exception e){
+            e.printStackTrace();
         }
-        systemInfo.setHardDiskSize(hdTotal);
-        return systemInfo;
+        return capacity;
+    }
+
+    public static SystemInfo disk(SystemInfo systemInfo) throws Exception {
+        return systemInfo.setHardDiskSize(diskCapacity(DISK_UNIT_TYPE_GB));
     }
 
     private static boolean externalIp(String ip) {
@@ -119,7 +161,7 @@ public class GetNodeHardware {
                 return true;
         }
     }
-    
+
     public static SystemInfo network(SystemInfo systemInfo) throws Exception {
         Sigar sigar = new Sigar();
 
@@ -201,8 +243,8 @@ public class GetNodeHardware {
         String host = Conch.addressHost(myAddress);
         int port = Conch.addressPort(myAddress);
         String bindRs = Optional.ofNullable(Generator.getAutoMiningRS())
-                .orElseThrow(() -> new ConchException.NotValidException("Current Hub's linked SS address is null"));
-        
+                .orElseThrow(() -> new ConchException.NotValidException("Current Hub's linked MW address is null"));
+
         if (StringUtils.isEmpty(Conch.getNodeType())) {
             //don't report
             return null;
@@ -231,7 +273,7 @@ public class GetNodeHardware {
     public static Boolean report(SystemInfo systemInfo) {
         try{
             if(systemInfo == null) return false;
-            
+
             RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(NODE_CONFIG_REPORT_URL)
                     .post()
                     .body(systemInfo)

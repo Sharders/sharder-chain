@@ -45,8 +45,6 @@ public class AliyunOssUtil {
      * @return
      */
     protected static boolean openAutoBackDB(){
-        if(!Generator.isBootNode) return false;
-
         if(StringUtils.isEmpty(ACCESS_KEY_ID)
             || StringUtils.isEmpty(ACCESS_KEY_SECRET)
             || StringUtils.isEmpty(BUCKET_NAME) ) return false;
