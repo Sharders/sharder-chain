@@ -33,6 +33,25 @@ public class GetNodeHardware {
     public static final int DISK_UNIT_TYPE_TB = 2;
     public static final int DISK_UNIT_TYPE_PB = 3;
 
+    /**
+     * value -> specified unit
+     * @param val
+     * @param unitType
+     * @return
+     */
+    private static long convertToUnit(long val, int unitType){
+        switch(unitType){
+            case DISK_UNIT_TYPE_GB:
+                return val / 1024L / 1024L;
+            case DISK_UNIT_TYPE_TB:
+                return val  / 1024L / 1024L / 1024L;
+            case DISK_UNIT_TYPE_PB:
+                return val  / 1024L / 1024L / 1024L / 1024L;
+            default:
+                return val;
+        }
+    }
+
     public static SystemInfo cpu(SystemInfo systemInfo) throws SigarException {
         Sigar sigar = new Sigar();
         CpuInfo infos[] = sigar.getCpuInfoList();
@@ -48,7 +67,7 @@ public class GetNodeHardware {
     public static SystemInfo memory(SystemInfo systemInfo) throws SigarException {
         Sigar sigar = new Sigar();
         Mem mem = sigar.getMem();
-        systemInfo.setMemoryTotal((int) (mem.getTotal() / 1024 / 1024 / 1024));
+        systemInfo.setMemoryTotal(convertToUnit(mem.getTotal(), DISK_UNIT_TYPE_GB));
         return systemInfo;
     }
 
@@ -108,28 +127,15 @@ public class GetNodeHardware {
             }
 
             // convert to specified unit type
-            switch(unitType){
-                case DISK_UNIT_TYPE_GB:
-                    capacity = diskTotal / 1024L / 1024L;
-                    break;
-                case DISK_UNIT_TYPE_TB:
-                    capacity = diskTotal / 1024L / 1024L / 1024L;
-                    break;
-                case DISK_UNIT_TYPE_PB:
-                    capacity = diskTotal / 1024L / 1024L / 1024L / 1024L;
-                    break;
-                default:
-                    capacity = diskTotal;
-                    break;
-            }
+            capacity = convertToUnit(diskTotal, unitType);
         }catch(Exception e){
             e.printStackTrace();
         }
         return capacity;
     }
 
-    public static SystemInfo disk(SystemInfo systemInfo) throws Exception {
-        return systemInfo.setHardDiskSize(diskCapacity(DISK_UNIT_TYPE_GB));
+    public static SystemInfo disk(SystemInfo systemInfo) {
+        return systemInfo.setHardDiskSize(diskCapacity(DISK_UNIT_TYPE_KB));
     }
 
     private static boolean externalIp(String ip) {
@@ -224,10 +230,9 @@ public class GetNodeHardware {
      * @return true成功，false失败
      */
     public static boolean readAndReport(Integer executeTime) {
-        SystemInfo systemInfo = new SystemInfo();
         try {
             Logger.logDebugMessage("report the node configuration performance infos to sharder foundation[" + NODE_CONFIG_REPORT_URL + "] ===>");
-            return report(read(systemInfo, executeTime));
+            return report(calTxPerformance(executeTime));
         } catch (ConchException.NotValidException e) {
             Logger.logWarningMessage(String.format("<=== failed to report configuration performance[caused by %s], maybe Hub isn't initialized yet", e.getMessage()));
         } catch (Exception e) {
@@ -236,7 +241,7 @@ public class GetNodeHardware {
         return false;
     }
 
-    public static SystemInfo read(SystemInfo systemInfo, Integer executeTime) throws Exception {
+    public static SystemInfo calTxPerformance(Integer executeTime) throws Exception {
         String myAddress = Optional.ofNullable(Conch.getMyAddress())
                 .orElseThrow(() -> new ConchException.NotValidException("Current Hub's myAddress is null"));
         // nat service: open - myAddress should be proxy address; nat service : close - myAddress should be public address
@@ -249,17 +254,33 @@ public class GetNodeHardware {
             //don't report
             return null;
         }
+
+        SystemInfo systemInfo = readSystemInfo();
+
         systemInfo.setIp(host).setPort(Integer.toString(port)).setAddress(host)
                 .setBindRs(bindRs).setNetworkType(Conch.getNetworkType()).setNodeType(Conch.getNodeType());
+
         Logger.logDebugMessage("============== Now start testing configuration performance... ==============");
-        cpu(systemInfo);
-        memory(systemInfo);
-        disk(systemInfo);
-        network(systemInfo);
         txPerformance(systemInfo, executeTime);
-        openingServices(systemInfo);
         Logger.logDebugMessage("============== The configuration performance test is completed ==============");
+
         Conch.systemInfo = systemInfo;
+        return systemInfo;
+    }
+
+    public static SystemInfo readSystemInfo() {
+        SystemInfo systemInfo = new SystemInfo();
+        try{
+            cpu(systemInfo);
+            memory(systemInfo);
+            disk(systemInfo);
+            network(systemInfo);
+            openingServices(systemInfo);
+            Conch.systemInfo = systemInfo;
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+
         return systemInfo;
     }
 

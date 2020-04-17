@@ -24,6 +24,7 @@ package org.conch.http;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.conch.Conch;
+import org.conch.consensus.poc.hardware.GetNodeHardware;
 import org.conch.util.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -83,6 +84,9 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
             Logger.logDebugMessage("current os is %s, node type is %s, serial is %s", SystemUtils.OS_NAME, nodeType, (StringUtils.isEmpty(serialNum) ? "null" : serialNum));
             response.put("sharder.NodeType", nodeType);
             response.put("sharder.xxx", serialNum);
+
+            if(Conch.systemInfo == null) GetNodeHardware.readSystemInfo();
+            response.put("sharder.diskCapacity", Conch.systemInfo.getHardDiskSize());
         } catch (IOException e) {
             response.clear();
             response.put("error", e.getMessage());
