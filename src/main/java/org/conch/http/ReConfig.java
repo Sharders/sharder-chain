@@ -271,7 +271,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
         RestfulHttpClient.HttpResponse verifyResponse = null;
         try {
             String myAddress = Convert.nullToEmpty(req.getParameter("sharder.myAddress"));
-            verifyResponse = RestfulHttpClient.getClient(SF_BIND_URL)
+            RestfulHttpClient.HttpClient client = RestfulHttpClient.getClient(SF_BIND_URL)
                     .post()
                     .addPostParam("sharderAccount", req.getParameter("sharderAccount"))
                     .addPostParam("password", req.getParameter("password"))
@@ -281,10 +281,11 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
                     .addPostParam("serialNum", Conch.getSerialNum())
                     .addPostParam("tssAddress", rsAddress)
                     .addPostParam("diskCapacity", String.valueOf(GetNodeHardware.diskCapacity(GetNodeHardware.DISK_UNIT_TYPE_KB)))
-                    .addPostParam("from", "NodeInitialStage#Reconfig")
-                    .request();
+                    .addPostParam("from", "NodeInitialStage#Reconfig");
 
-            Logger.logErrorMessage("send check and link request to foundation[" + SF_BIND_URL + "]");
+            Logger.logInfoMessage("send binding and NodeTypeTx creation request to foundation " + SF_BIND_URL + ": " + client.getPostParams());
+
+            verifyResponse = client.request();
             com.alibaba.fastjson.JSONObject responseObj = com.alibaba.fastjson.JSONObject.parseObject(verifyResponse.getContent());
             if(!responseObj.getBooleanValue(Constants.SUCCESS)) {
                 throw new ConchException.NotValidException(responseObj.getString("data"));

@@ -260,9 +260,13 @@ public class GetNodeHardware {
         systemInfo.setIp(host).setPort(Integer.toString(port)).setAddress(host)
                 .setBindRs(bindRs).setNetworkType(Conch.getNetworkType()).setNodeType(Conch.getNodeType());
 
-        Logger.logDebugMessage("============== Now start testing configuration performance... ==============");
-        txPerformance(systemInfo, executeTime);
-        Logger.logDebugMessage("============== The configuration performance test is completed ==============");
+        if(Generator.isBootNode){
+            Logger.logDebugMessage("Close the tx performance test on the Boot Node");
+        }else{
+            Logger.logDebugMessage("============== Now start testing configuration performance... ==============");
+            txPerformance(systemInfo, executeTime);
+            Logger.logDebugMessage("============== The configuration performance test is completed ==============");
+        }
 
         Conch.systemInfo = systemInfo;
         return systemInfo;

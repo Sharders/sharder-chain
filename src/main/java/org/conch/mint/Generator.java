@@ -496,8 +496,12 @@ public class Generator implements Comparable<Generator> {
     public static boolean verifyHit(BigInteger hit, BigInteger pocScore, Block previousBlock, int timestamp) {
         int elapsedTime = timestamp - previousBlock.getTimestamp();
         if (elapsedTime <= 0) {
-            Logger.logWarningMessage("verify hit failed caused by this generator missing the turn to generate when the elapsed time[%d] <=0", elapsedTime);
-            return false;
+            if(Generator.isBootNode) {
+                Logger.logWarningMessage("continue to validate the hit when the Boot Node's elapsed time[%d] <=0 to avoid the block stuck in the single boot node situation", elapsedTime);
+            }else {
+                Logger.logWarningMessage("verify hit failed caused by this generator missing the turn to generate when the elapsed time[%d] <=0", elapsedTime);
+                return false;
+            }
         }else if(elapsedTime < Constants.getBlockGapSeconds()){
             Logger.logWarningMessage("verify hit failed caused by this generator's elapsed time[%d] is in the block gap[%d]", elapsedTime,Constants.getBlockGapSeconds() );
             return false;
