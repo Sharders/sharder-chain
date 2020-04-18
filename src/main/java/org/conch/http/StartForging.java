@@ -43,8 +43,12 @@ public final class StartForging extends APIServlet.APIRequestHandler {
         Generator generator = Generator.startMining(secretPhrase);
 
         JSONObject response = new JSONObject();
-        response.put("deadline", generator.getDeadline());
-        response.put("hitTime", generator.getHitTime());
+        if(generator != null){
+            response.put("deadline", generator.getDeadline());
+            response.put("hitTime", generator.getHitTime());
+        } else {
+            throw new RuntimeException("can't start mining, check the account balance and other mining conditions");
+        }
         return response;
 
     }

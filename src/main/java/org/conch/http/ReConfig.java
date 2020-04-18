@@ -271,6 +271,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
         RestfulHttpClient.HttpResponse verifyResponse = null;
         try {
             String myAddress = Convert.nullToEmpty(req.getParameter("sharder.myAddress"));
+            if(Conch.systemInfo == null) GetNodeHardware.readSystemInfo();
             RestfulHttpClient.HttpClient client = RestfulHttpClient.getClient(SF_BIND_URL)
                     .post()
                     .addPostParam("sharderAccount", req.getParameter("sharderAccount"))
@@ -280,7 +281,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
                     .addPostParam("nodeType", req.getParameter("nodeType"))
                     .addPostParam("serialNum", Conch.getSerialNum())
                     .addPostParam("tssAddress", rsAddress)
-                    .addPostParam("diskCapacity", String.valueOf(GetNodeHardware.diskCapacity(GetNodeHardware.DISK_UNIT_TYPE_KB)))
+                    .addPostParam("diskCapacity", String.valueOf(Conch.systemInfo.getHardDiskSize()))
                     .addPostParam("from", "NodeInitialStage#Reconfig");
 
             Logger.logInfoMessage("send binding and NodeTypeTx creation request to foundation " + SF_BIND_URL + ": " + client.getPostParams());

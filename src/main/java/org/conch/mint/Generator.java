@@ -368,20 +368,18 @@ public class Generator implements Comparable<Generator> {
         boolean isOwner = secretPhrase.equalsIgnoreCase(getAutoMiningPR());
         // if miner is not the owner of the node
         if(!isOwner && generators.size() >= MAX_MINERS) {
-            throw new RuntimeException("the limit miners of this node is " + MAX_MINERS + ", can't allow more miners!");
+            throw new RuntimeException("The limit miners of this node is " + MAX_MINERS + ", can't allow more miners!");
         }
-        
-        Long accountId = Account.getId(secretPhrase);
-        /**
-        // whether own the pool
-        if(!SharderPoolProcessor.checkOwnPoolState(accountId, SharderPoolProcessor.State.WORKING)) {
-            throw new RuntimeException("current node did't own the pool, please create pool firstly!");
+
+        // mining condition: holding limit check
+        long accountId = Account.getId(secretPhrase);
+        Account bindMiner = Account.getAccount(accountId, Conch.getHeight());
+        long accountBalanceNQT = (bindMiner != null) ? bindMiner.getEffectiveBalanceNQT(Conch.getHeight()) : 0L;
+        long effectiveBalance = accountBalanceNQT / Constants.ONE_SS;
+        if(effectiveBalance < Constants.MINGING_MW_HOLDING_LIMIT) {
+            Logger.logWarningMessage("The MW holding limit of the mining is " + Constants.MINGING_MW_HOLDING_LIMIT + ", and current balance is " + effectiveBalance + ", can't start to mining");
+            return null;
         }
-        
-        if(!Conch.getPocProcessor().isCertifiedPeerBind(accountId)){
-            throw new RuntimeException("current node type isn't the valid node");
-        }
-        **/
 
         Generator generator = new Generator(secretPhrase);
         Generator old = generators.putIfAbsent(secretPhrase, generator);
@@ -977,6 +975,9 @@ public class Generator implements Comparable<Generator> {
         String miningPR = getAutoMiningPR();
         if(StringUtils.isNotEmpty(miningPR)) {
             linkedGenerator = startMining(miningPR.trim());
+
+            if(linkedGenerator == null) return;
+
             Logger.logInfoMessage("Account %s start to mining [next mining time is %s] ...", linkedGenerator.rsAddress, Convert.dateFromEpochTime(linkedGenerator.hitTime));
         }
        

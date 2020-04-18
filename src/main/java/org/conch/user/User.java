@@ -83,7 +83,8 @@ final class User {
     long unlockAccount(String secretPhrase) {
         this.publicKey = Crypto.getPublicKey(secretPhrase);
         this.secretPhrase = secretPhrase;
-        return Generator.startMining(secretPhrase).getAccountId();
+        Generator generator = Generator.startMining(secretPhrase);
+        return generator != null ? generator.getAccountId() : -1;
     }
 
     synchronized void processPendingResponses(HttpServletRequest req, HttpServletResponse resp) throws IOException {
