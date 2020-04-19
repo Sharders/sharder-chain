@@ -66,7 +66,8 @@ public class ArchiveDbTool {
      */
     private static boolean bakNow(){
         if(lastArchiveHeight == -1L){
-            lastArchiveHeight = Conch.getHeight();
+            Integer archiveHeightOnOss = ClientUpgradeTool.getLastDbArchiveHeight();
+            lastArchiveHeight = archiveHeightOnOss != null ? archiveHeightOnOss :  Conch.getHeight();
             return false;
         }
 
@@ -207,6 +208,8 @@ public class ArchiveDbTool {
     }
 
     public static void main(String[] args) {
-
+        Integer archiveHeightOnOss = ClientUpgradeTool.getLastDbArchiveHeight();
+        lastArchiveHeight = archiveHeightOnOss != null ? archiveHeightOnOss :  Conch.getHeight();
+        System.out.println(lastArchiveHeight);
     }
 }
