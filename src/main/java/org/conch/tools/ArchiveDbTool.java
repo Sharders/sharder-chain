@@ -26,7 +26,6 @@ import org.conch.Conch;
 import org.conch.chain.Block;
 import org.conch.common.Constants;
 import org.conch.db.Db;
-import org.conch.mint.Generator;
 import org.conch.util.FileUtil;
 import org.conch.util.Logger;
 
@@ -59,7 +58,7 @@ public class ArchiveDbTool {
 
     private static long calArchiveIntervalHeight(){
         // default is 15days to archive once
-        return 60L*24L*60L*ARCHIVE_INTERVAL_DAYS / (long)Constants.getBlockGapSeconds();
+        return 60L*60L*24L*ARCHIVE_INTERVAL_DAYS / (long)Constants.getBlockGapSeconds();
     }
     /**
      * current height whether match the backup condition
@@ -100,9 +99,15 @@ public class ArchiveDbTool {
             String[] dbArchiveArray = archiveDb(null);
             if(dbArchiveArray == null || dbArchiveArray.length == 0) {
                 Logger.logInfoMessage("zip db archive and memo file failed. EXIT the db archive operation.");
+            } else {
+                // upload to OSS
+                Logger.logInfoMessage("Delete the old db archive memo file " + OSS_DB_ARCHIVE_MEMO_PATH);
+                AliyunOssUtil.delFile(Lists.newArrayList(OSS_DB_ARCHIVE_MEMO_PATH));
+                Logger.logInfoMessage("Upload the db archive[" + dbArchiveArray[0] + "] to OSS " + OSS_DB_ARCHIVE_PATH);
+                AliyunOssUtil.uploadFile(OSS_DB_ARCHIVE_PATH, dbArchiveArray[0], true);
+                Logger.logInfoMessage("Upload the db archive memo file[" + dbArchiveArray[1] + "] to OSS " + OSS_DB_ARCHIVE_MEMO_PATH);
+                AliyunOssUtil.uploadFile(OSS_DB_ARCHIVE_MEMO_PATH, dbArchiveArray[1], true);
             }
-            AliyunOssUtil.uploadFile(OSS_DB_ARCHIVE_PATH, dbArchiveArray[0], true);
-            AliyunOssUtil.uploadFile(OSS_DB_ARCHIVE_MEMO_PATH, dbArchiveArray[1], true);
         });
         dbArchiveThread.start();
     }
@@ -113,45 +118,40 @@ public class ArchiveDbTool {
      * @return String[2]: String[0]- db archive file path; String[1]- db archive memo file path
      */
     private static String[] archiveDb(String path) {
-            String[] archiveArray = new String[2];
-            String pathStr;
-            String fileNameStr;
-            try {
-                Conch.getBlockchain().updateLock();
-                Path appRootPath = Paths.get(".");
+        String[] archiveArray = new String[2];
+        String pathStr;
+        String fileNameStr;
+        try {
+            Conch.getBlockchain().updateLock();
+            Path appRootPath = Paths.get(".");
 
-                pathStr = (path == null) ? appRootPath.resolve("ARCHIVE/").toString() : path;
-                if(!pathStr.endsWith(File.separator)) {
-                    pathStr += File.separator;
-                }
-
-                //db archive file
-                fileNameStr = Db.getName() + "_" + Conch.getHeight() +".zip";
-
-                File bakFolder = new File(pathStr);
-                if(!bakFolder.exists()) {
-                    bakFolder.mkdirs();
-                }
-
-                // generate db archive
-                String dbArchivePath = pathStr + fileNameStr;
-                FileUtil.ZipFile(pathStr + Db.getName(), pathStr + fileNameStr);
-
-                // return values
-                archiveArray[0] = dbArchivePath;
-                archiveArray[1] = generateArchiveMemoFile(pathStr);
-
-                // upload to OSS
-                AliyunOssUtil.delFile(Lists.newArrayList(OSS_DB_ARCHIVE_MEMO_PATH));
-                AliyunOssUtil.uploadFile(archiveArray[0], dbArchivePath, true);
-                AliyunOssUtil.uploadFile(archiveArray[1], dbArchivePath, true);
-
-                return archiveArray;
-            } finally {
-                Conch.getBlockchain().updateUnlock();
+            pathStr = (path == null) ? appRootPath.resolve("ARCHIVE/").toString() : path;
+            if(!pathStr.endsWith(File.separator)) {
+                pathStr += File.separator;
             }
 
+            //db archive file
+            fileNameStr = Db.getName() + "_" + Conch.getHeight() +".zip";
+
+            File bakFolder = new File(pathStr);
+            if(!bakFolder.exists()) {
+                bakFolder.mkdirs();
+            }
+
+            // generate db archive
+            String dbArchivePath = pathStr + fileNameStr;
+            FileUtil.ZipFile(pathStr + Db.getName(), pathStr + fileNameStr);
+
+            // return values
+            archiveArray[0] = dbArchivePath;
+            archiveArray[1] = generateArchiveMemoFile(pathStr);
+
+            return archiveArray;
+        } finally {
+            Conch.getBlockchain().updateUnlock();
         }
+
+    }
 
     private static String generateArchiveMemoFile(String path){
         FileWriter writer = null;
