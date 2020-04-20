@@ -38,8 +38,8 @@ public class ClientUpgradeTool {
     public static final String DB_ARCHIVE_DEFAULT = "default";
     
     public static final String PROPERTY_COS_UPDATE = "sharder.cosUpdateDate";
-    
-    
+    private static final String ENV_PREFIX = Constants.isDevnet() ? "dev" : (Constants.isTestnet() ? "test" : "main");
+
     public static final String cosLastUpdateDate = Conch.getStringProperty(PROPERTY_COS_UPDATE,"");
 
     public static boolean isFullUpgrade(String mode){
@@ -150,16 +150,11 @@ public class ClientUpgradeTool {
         }
         return false;
     }
-    
-    /**
-     * testLastArchive=sharder_test_db_12118
-     * testKnownArchive=sharder_test_db_268
-     * @return latest db archive
-     * @throws IOException
-     */
-    public static String fetchLastDbArchive()  {
-        if(!fetchLastDbArchiveNow()) return lastDbArchive;
-        
+
+
+
+    private static JSONObject fetchAndParseTheDbArchiveMemo(){
+        JSONObject archiveMemoKV = new JSONObject();
         String url = UrlManager.getDbArchiveDescriptionFileUrl();
         Logger.logDebugMessage("fetch the db archive description file from " + url);
         RestfulHttpClient.HttpResponse response = null;
@@ -167,41 +162,70 @@ public class ClientUpgradeTool {
             response = RestfulHttpClient.getClient(url).get().request();
         } catch (IOException e) {
             Logger.logErrorMessage("Can't fetch the db file from oss caused by ", e.getMessage());
-            return "";
+            return archiveMemoKV;
         }
         String content = response.getContent();
-        
+
         // parse the description file
-        lastDbArchiveObj = new JSONObject();
-        lastDbArchiveFetchTime = System.currentTimeMillis();
-        while(StringUtils.isNotEmpty(content) 
+        while(StringUtils.isNotEmpty(content)
                 && content.contains("\n")){
             String[] array = content.split("\n");
-            if(array != null 
-            && array[0].contains("=")){
+            if(array != null
+                    && array[0].contains("=")){
                 String[] heightConfigAry =array[0].split("=");
-                lastDbArchiveObj.put(heightConfigAry[0], heightConfigAry[1]);
+                archiveMemoKV.put(heightConfigAry[0], heightConfigAry[1]);
             }
             content = array[1];
         }
-        
-        String envPrefix = Constants.isDevnet() ? "dev" : (Constants.isTestnet() ? "test" : "main");
+        return archiveMemoKV;
+    }
+
+    /**
+     *
+     * @param lastDbArchive
+     * @return String[2] : string[0] - last db archive name; string[1] - last archive height
+     */
+    private static String[] parseDbArchiveFileName(JSONObject lastDbArchive){
+        String[] arry = new String[2];
+        if(lastDbArchive == null) return arry;
+
         // last db archive
-        if(lastDbArchiveObj.containsKey(envPrefix + KEY_DB_LAST_ARCHIVE)){
-            String lastDbArchiveName = lastDbArchiveObj.getString(envPrefix + KEY_DB_LAST_ARCHIVE);
+        if(lastDbArchive.containsKey(ENV_PREFIX + KEY_DB_LAST_ARCHIVE)){
+            String lastDbArchiveName = lastDbArchive.getString(ENV_PREFIX + KEY_DB_LAST_ARCHIVE);
             try {
-                lastDbArchive = lastDbArchiveName + ".zip";
-                lastDbArchiveHeight = Integer.valueOf(lastDbArchiveName.replace(Db.getName() + "_", ""));
+                arry[0] = lastDbArchiveName + ".zip";
+                arry[1] = lastDbArchiveName.replace(Db.getName() + "_", "");
             } catch (Exception e) {
                 Logger.logErrorMessage("Can't parse the lastDbArchive attribute caused by ", e.getMessage());
             }
         }
-        
+        return arry;
+    }
+
+    /**
+     * testLastArchive=mw_test_db_12118
+     * testKnownArchive=mw_test_db_268
+     * @return latest db archive
+     * @throws IOException
+     */
+    public static String fetchLastDbArchive()  {
+        if(!fetchLastDbArchiveNow()) return lastDbArchive;
+
+        lastDbArchiveObj = fetchAndParseTheDbArchiveMemo();
+        lastDbArchiveFetchTime = System.currentTimeMillis();
+        if(lastDbArchiveObj == null || lastDbArchiveObj.size() == 0) {
+            Logger.logWarningMessage("Can't fetch the last db archive memo, maybe db archive memo file don't exist on the OSS, please check it");
+            return lastDbArchive;
+        }
+        String[] dbArchiveKV = parseDbArchiveFileName(lastDbArchiveObj);
+        lastDbArchive = dbArchiveKV[0];
+        lastDbArchiveHeight = Integer.valueOf(dbArchiveKV[1]);
+
         // known archive height
-        if(lastDbArchiveObj.containsKey(envPrefix + KEY_DB_ARCHIVE_KNOWN_HEIGHT)){
-            String knownHeightStr = lastDbArchiveObj.getString(envPrefix + KEY_DB_ARCHIVE_KNOWN_HEIGHT);
+        if(lastDbArchiveObj.containsKey(ENV_PREFIX + KEY_DB_ARCHIVE_KNOWN_HEIGHT)){
+            String knownHeightStr = lastDbArchiveObj.getString(ENV_PREFIX + KEY_DB_ARCHIVE_KNOWN_HEIGHT);
             if(StringUtils.isNotEmpty(knownHeightStr)) {
-                String[] array = content.split(",");
+                String[] array = knownHeightStr.split(",");
                 for(int i = 0 ; i < array.length ; i++){
                     knownDbArchives.add(Integer.valueOf(array[i]));
                 }
@@ -211,7 +235,7 @@ public class ClientUpgradeTool {
         return lastDbArchive;
     }
 
-    public static int getLastDbArchiveHeight() {
+    public static Integer getLastDbArchiveHeight() {
         if(lastDbArchiveHeight == null) fetchLastDbArchive();
         return lastDbArchiveHeight;
     }

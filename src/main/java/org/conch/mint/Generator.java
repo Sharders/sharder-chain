@@ -368,20 +368,17 @@ public class Generator implements Comparable<Generator> {
         boolean isOwner = secretPhrase.equalsIgnoreCase(getAutoMiningPR());
         // if miner is not the owner of the node
         if(!isOwner && generators.size() >= MAX_MINERS) {
-            throw new RuntimeException("the limit miners of this node is " + MAX_MINERS + ", can't allow more miners!");
+            throw new RuntimeException("The limit miners of this node is " + MAX_MINERS + ", can't allow more miners!");
         }
-        
-        Long accountId = Account.getId(secretPhrase);
-        /**
-        // whether own the pool
-        if(!SharderPoolProcessor.checkOwnPoolState(accountId, SharderPoolProcessor.State.WORKING)) {
-            throw new RuntimeException("current node did't own the pool, please create pool firstly!");
+
+        // mining condition: holding limit check
+        long accountId = Account.getId(secretPhrase);
+        Account bindMiner = Account.getAccount(accountId, Conch.getHeight());
+        long accountBalanceNQT = (bindMiner != null) ? bindMiner.getEffectiveBalanceNQT(Conch.getHeight()) : 0L;
+        if(accountBalanceNQT < Constants.MINING_HOLDING_LIMIT) {
+            Logger.logWarningMessage("The MW holding limit of the mining is " + (Constants.MINING_HOLDING_LIMIT / Constants.ONE_SS) + ", and current balance is " + (accountBalanceNQT / Constants.ONE_SS) + ", can't start to mining");
+            return null;
         }
-        
-        if(!Conch.getPocProcessor().isCertifiedPeerBind(accountId)){
-            throw new RuntimeException("current node type isn't the valid node");
-        }
-        **/
 
         Generator generator = new Generator(secretPhrase);
         Generator old = generators.putIfAbsent(secretPhrase, generator);
@@ -496,8 +493,12 @@ public class Generator implements Comparable<Generator> {
     public static boolean verifyHit(BigInteger hit, BigInteger pocScore, Block previousBlock, int timestamp) {
         int elapsedTime = timestamp - previousBlock.getTimestamp();
         if (elapsedTime <= 0) {
-            Logger.logWarningMessage("verify hit failed caused by this generator missing the turn to generate when the elapsed time[%d] <=0", elapsedTime);
-            return false;
+            if(Generator.isBootNode) {
+                Logger.logWarningMessage("continue to validate the hit when the Boot Node's elapsed time[%d] <=0 to avoid the block stuck in the single boot node situation", elapsedTime);
+            }else {
+                Logger.logWarningMessage("verify hit failed caused by this generator missing the turn to generate when the elapsed time[%d] <=0", elapsedTime);
+                return false;
+            }
         }else if(elapsedTime < Constants.getBlockGapSeconds()){
             Logger.logWarningMessage("verify hit failed caused by this generator's elapsed time[%d] is in the block gap[%d]", elapsedTime,Constants.getBlockGapSeconds() );
             return false;
@@ -973,6 +974,9 @@ public class Generator implements Comparable<Generator> {
         String miningPR = getAutoMiningPR();
         if(StringUtils.isNotEmpty(miningPR)) {
             linkedGenerator = startMining(miningPR.trim());
+
+            if(linkedGenerator == null) return;
+
             Logger.logInfoMessage("Account %s start to mining [next mining time is %s] ...", linkedGenerator.rsAddress, Convert.dateFromEpochTime(linkedGenerator.hitTime));
         }
        

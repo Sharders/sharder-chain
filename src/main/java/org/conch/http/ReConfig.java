@@ -113,8 +113,9 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
 //            return response;
 //        }
 
+        // send the address binding request to foundation
         try {
-            checkAndUpdateLinkedAddressToFoundation(req, bindRs);
+            sendAddrBindingAndTypeTxCreationRequestToFoundation(req, bindRs);
         } catch (ConchException.NotValidException e) {
             Logger.logErrorMessage("failed to configure settings caused by update linked address to foundation failed[" + e.getMessage() + "]");
             response.put("reconfiged", false);
@@ -122,13 +123,13 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
             return response;
         }
 
-        // send to foundation to create node type tx once in initial processing
-        if (!sendCreateNodeTypeTxRequestToFoundation(req, bindRs)) {
-            Logger.logErrorMessage("failed to configure settings caused by send create node type tx message to foundation failed!");
-            response.put("reconfiged", false);
-            response.put("failedReason", "Failed to configure settings caused by node type tx creation failed!");
-            return response;
-        }
+//        // send to foundation to validate and create a node type tx
+//        if (!sendCreateNodeTypeTxRequestToFoundation(req, bindRs)) {
+//            Logger.logErrorMessage("failed to configure settings caused by send create node type tx message to foundation failed!");
+//            response.put("reconfiged", false);
+//            response.put("failedReason", "Failed to configure settings caused by node type tx creation failed!");
+//            return response;
+//        }
 
         while(enu.hasMoreElements()) {
             String paraName = (String)enu.nextElement();
@@ -258,18 +259,34 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
         }
     }
 
-    private void checkAndUpdateLinkedAddressToFoundation(HttpServletRequest req, String rsAddress) throws ConchException.NotValidException {
+    /**
+     * send request to foundation to :
+     * 1. bind addr to the machine
+     * 2. create a node type tx to certify the node
+     * @param req
+     * @param rsAddress
+     * @return
+     */
+    private void sendAddrBindingAndTypeTxCreationRequestToFoundation(HttpServletRequest req, String rsAddress) throws ConchException.NotValidException {
         RestfulHttpClient.HttpResponse verifyResponse = null;
         try {
-            verifyResponse = RestfulHttpClient.getClient(SF_BIND_URL)
+            String myAddress = Convert.nullToEmpty(req.getParameter("sharder.myAddress"));
+            if(Conch.systemInfo == null) GetNodeHardware.readSystemInfo();
+            RestfulHttpClient.HttpClient client = RestfulHttpClient.getClient(SF_BIND_URL)
                     .post()
                     .addPostParam("sharderAccount", req.getParameter("sharderAccount"))
                     .addPostParam("password", req.getParameter("password"))
+                    .addPostParam("ip", myAddress)
+                    .addPostParam("network", Conch.getNetworkType())
                     .addPostParam("nodeType", req.getParameter("nodeType"))
                     .addPostParam("serialNum", Conch.getSerialNum())
                     .addPostParam("tssAddress", rsAddress)
-                    .request();
-            Logger.logErrorMessage("send check and link request to foundation[" + SF_BIND_URL + "]");
+                    .addPostParam("diskCapacity", String.valueOf(Conch.systemInfo.getHardDiskSize()))
+                    .addPostParam("from", "NodeInitialStage#Reconfig");
+
+            Logger.logInfoMessage("send binding and NodeTypeTx creation request to foundation " + SF_BIND_URL + ": " + client.getPostParams());
+
+            verifyResponse = client.request();
             com.alibaba.fastjson.JSONObject responseObj = com.alibaba.fastjson.JSONObject.parseObject(verifyResponse.getContent());
             if(!responseObj.getBooleanValue(Constants.SUCCESS)) {
                 throw new ConchException.NotValidException(responseObj.getString("data"));

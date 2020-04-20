@@ -1289,7 +1289,7 @@ public final class Account {
             if (activeLesseeId == 0) {
                 effectiveBalanceNQT += getGuaranteedBalanceNQT(Constants.GUARANTEED_BALANCE_CONFIRMATIONS, height);
             }
-            return (height > Constants.SHUFFLING_BLOCK_HEIGHT && effectiveBalanceNQT < Constants.MIN_FORGING_BALANCE_NQT) ? 0 : effectiveBalanceNQT;
+            return  effectiveBalanceNQT;
         } finally {
             Conch.getBlockchain().readUnlock();
         }

@@ -45,7 +45,7 @@ public class SystemInfo implements Serializable {
     private long memoryTotal;
 
     /**
-     * 硬盘大小 （单位GB）
+     * 硬盘大小 （单位KB）
      */
     private long hardDiskSize;
 
@@ -140,6 +140,10 @@ public class SystemInfo implements Serializable {
     public SystemInfo setMemoryTotal(long memoryTotal) {
         this.memoryTotal = memoryTotal;
         return this;
+    }
+
+    public long getHardDiskSizeInGB() {
+        return hardDiskSize / 1024L / 1024L;
     }
 
     public long getHardDiskSize() {
