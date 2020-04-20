@@ -684,7 +684,12 @@
                         <td>{{$global.getSSNumberFormat(accountInfo.frozenBalanceNQT)}}</td>
                     </tr>
                     <tr>
-                        <th>{{$t('account_info.account_mining_balance')}}</th>
+                        <th>
+                            {{$t('account_info.account_mining_balance')}}
+                            <el-tooltip class="item" effect="dark" :content="$t('account_info.account_mining_balance_explain')" placement="top-start">
+                                <p class="el-icon-info"></p>
+                            </el-tooltip>
+                        </th>
                         <td>{{$global.getSSNumberFormat(accountInfo.forgedBalanceNQT)}}</td>
                     </tr>
                     <tr>
@@ -1027,7 +1032,7 @@
             if (/(iPhone|iPad|iPod|iOS|Android)/i.test(navigator.userAgent)) { //移动端
                 this.isMobile = true
             }
-            
+
             const _this = this;
             _this.getAccount(_this.accountInfo.accountRS).then(res => {
                 _this.accountInfo.account = res.account;
@@ -2746,7 +2751,7 @@
             $('#tranfer_receiver').on("blur", function () {
                 _this.validationReceiver("transfer");
             });
-            
+
             this.menuAdapter()
         },
     };

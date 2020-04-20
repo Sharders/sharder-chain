@@ -115,7 +115,7 @@ public final class Constants {
     /** for the security, you can set the confirmations = 1440 */
     public static final int GUARANTEED_BALANCE_CONFIRMATIONS = isDevnet() ? 1 :(isTestnet()? 3 : 12);
     public static final int LEASING_DELAY = isTestnetOrDevnet() ? Conch.getIntProperty("sharder.testnetLeasingDelay", 10) : 205;
-    public static final long MIN_FORGING_BALANCE_NQT = 1000 * ONE_SS;
+    public static final long MINING_HOLDING_LIMIT = isTestnet() ? 1000 * ONE_SS : 1000 * ONE_SS;
 
     public static final int MAX_TIMEDRIFT = 15; // allow up to 15 s clock difference
     public static final int MINING_DELAY = Conch.getIntProperty("sharder.miningDelay");
@@ -215,8 +215,7 @@ public final class Constants {
     
     public static final int LAST_KNOWN_BLOCK = isDevnet() ?  1 : (isTestnet() ? 268 : 500);
     public static final int BOOTNODE_MINING_DIRECT_HEIGHT = isTestnet() ? 1600 : 1;
-    public static final long MINGING_MW_HOLDING_LIMIT = isTestnet() ? 133 : 133;
-    
+
     public static final int TESTNET_PHASE_ONE = 500000;
     public static final int TESTNET_PHASE_TWO = 990000;
     public static final String TESTNET_PHASE_ONE_TIME = "2019-06-30 00:00:00";
