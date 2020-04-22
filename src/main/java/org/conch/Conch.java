@@ -370,9 +370,9 @@ public final class Conch {
 
     static {
         loadProperties(properties, CONCH_PROPERTIES, false);
-        
+
         // use the external ip as its myAddress default value
-        myAddress = Convert.emptyToNull(Conch.getStringProperty("sharder.myAddress", IpUtil.getNetworkIp()).trim());
+        myAddress = readAndParseMyAddress();
         
         // check port of myAddress whether equal to port of TESTNET
         if (myAddress != null && myAddress.endsWith(":" + PresetParam.getPeerPort(Constants.Network.TESTNET)) && !Constants.isTestnet()) {
@@ -380,6 +380,17 @@ public final class Conch {
         }
     }
 
+    private static String readAndParseMyAddress(){
+        String myAddr = Convert.emptyToNull(Conch.getStringProperty("sharder.myAddress", IpUtil.getNetworkIp()).trim());
+
+        // correct the undefined issue of myAddress
+        if("undefined".equalsIgnoreCase(myAddr)){
+            myAddr = IpUtil.getNetworkIp().trim();
+            Conch.storePropertieToFile("sharder.myAddress", myAddr);
+        }
+
+        return  myAddr;
+    }
     /**
      * [NAT] useNATService and client configuration
      */
