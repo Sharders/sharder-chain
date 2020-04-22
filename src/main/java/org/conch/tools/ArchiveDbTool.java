@@ -102,10 +102,10 @@ public class ArchiveDbTool {
                 Logger.logInfoMessage("zip db archive and memo file failed. EXIT the db archive operation.");
             } else {
                 // upload to OSS
+                Logger.logInfoMessage("Start to upload the db archive[" + dbArchiveArray[0] + "] to OSS " + OSS_DB_ARCHIVE_PATH);
+                AliyunOssUtil.uploadFile(OSS_DB_ARCHIVE_PATH, dbArchiveArray[0], true);
                 Logger.logInfoMessage("Delete the old db archive memo file " + OSS_DB_ARCHIVE_MEMO_PATH);
                 AliyunOssUtil.delFile(Lists.newArrayList(OSS_DB_ARCHIVE_MEMO_PATH));
-                Logger.logInfoMessage("Upload the db archive[" + dbArchiveArray[0] + "] to OSS " + OSS_DB_ARCHIVE_PATH);
-                AliyunOssUtil.uploadFile(OSS_DB_ARCHIVE_PATH, dbArchiveArray[0], true);
                 Logger.logInfoMessage("Upload the db archive memo file[" + dbArchiveArray[1] + "] to OSS " + OSS_DB_ARCHIVE_MEMO_PATH);
                 AliyunOssUtil.uploadFile(OSS_DB_ARCHIVE_MEMO_PATH, dbArchiveArray[1], true);
             }
@@ -126,22 +126,23 @@ public class ArchiveDbTool {
             Conch.getBlockchain().updateLock();
             Path appRootPath = Paths.get(".");
 
+            // check and generate the archive folder
             pathStr = (path == null) ? appRootPath.resolve("ARCHIVE/").toString() : path;
             if(!pathStr.endsWith(File.separator)) {
                 pathStr += File.separator;
             }
-
-            //db archive file
-            fileNameStr = Db.getName() + "_" + Conch.getHeight() +".zip";
-
             File bakFolder = new File(pathStr);
             if(!bakFolder.exists()) {
                 bakFolder.mkdirs();
             }
 
             // generate db archive
+            fileNameStr = Db.getName() + "_" + Conch.getHeight() +".zip";
             String dbArchivePath = pathStr + fileNameStr;
-            FileUtil.ZipFile(pathStr + Db.getName(), pathStr + fileNameStr);
+
+            String dbPath = appRootPath.resolve(Db.getName() + "/").toString();
+            Logger.logInfoMessage("Zip the current db from " + dbPath + " to " + dbArchivePath);
+            FileUtil.ZipFile(dbPath, dbArchivePath);
 
             // return values
             archiveArray[0] = dbArchivePath;
