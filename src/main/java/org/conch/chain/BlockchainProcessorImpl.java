@@ -149,7 +149,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
                     if (Conch.hasSerialNum() && !Constants.hubLinked) {
                         if (Logger.printNow(Constants.BlockchainProcessor_getMoreBlocks)) {
-                            Logger.logDebugMessage("Don't synchronize blocks before the Hub initialization is completed");
+                            Logger.logDebugMessage("Don't synchronize blocks before the Client initialization is completed");
                         }
                         return;
                     }

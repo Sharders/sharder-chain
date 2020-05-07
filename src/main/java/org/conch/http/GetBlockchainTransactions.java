@@ -23,6 +23,7 @@ package org.conch.http;
 
 import org.conch.Conch;
 import org.conch.common.ConchException;
+import org.conch.consensus.genesis.GenesisRecipient;
 import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.consensus.poc.tx.PocTxWrapper;
@@ -107,6 +108,22 @@ public final class GetBlockchainTransactions extends APIServlet.APIRequestHandle
                     transactions.add(JSONData.transaction(tx, includePhasingResult));
                 }
             });
+
+            if(type == -1 || type == TransactionType.TYPE_POC) {
+                // Poc txs processing
+                DbIterator<? extends Transaction> pocIterator = null;
+                try {
+                    pocIterator = Conch.getBlockchain().getTransactions(GenesisRecipient.POC_TX_CREATOR_ID, TransactionType.TYPE_POC, true, 0, Integer.MAX_VALUE);
+                    while (pocIterator.hasNext()) {
+                        Transaction transaction = pocIterator.next();
+                        if(isBelongToAccount(statementAccountId, transaction)){
+                            transactions.add(JSONData.transaction(transaction, includePhasingResult));
+                        }
+                    }
+                } finally {
+                    DbUtils.close(pocIterator);
+                }
+            }
         }finally {
             DbUtils.close(iterator);
         }

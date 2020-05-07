@@ -44,7 +44,7 @@ public class PocScore implements Serializable {
     private static BigInteger parseAndGetScoreMagnification(){
         BigInteger mag = BigInteger.TEN;
         try{
-            if(Conch.getHeight() <= Constants.POC_SCORE_MAGNIFICATION_HEIGHT) {
+            if(Conch.getHeight() <= Constants.POC_TX_ALLOW_RECIPIENT) {
                 mag = BigInteger.TEN;
             }
         }catch(Exception e){

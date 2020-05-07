@@ -226,7 +226,6 @@ public final class Constants {
     public static final int POC_SS_HELD_SCORE_PHASE2_HEIGHT = isTestnet() ? 13777 : 0;
     public static final int POC_POOL_NEVER_END_HEIGHT = isTestnet() ? 13777 : 0;
     public static final int POC_BALANCE_CORRECTION_HEIGHT = isTestnet() ? 15777 : 0;
-    public static final int POC_SCORE_MAGNIFICATION_HEIGHT = isTestnet() ? 1400 : 0;
     public static final int POC_TX_ALLOW_RECIPIENT = isTestnet() ? 0 : 0;
 
     //not opened yet

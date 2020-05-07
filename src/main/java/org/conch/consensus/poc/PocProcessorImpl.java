@@ -13,6 +13,7 @@ import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.consensus.poc.db.PocDb;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.consensus.poc.tx.PocTxWrapper;
+import org.conch.consensus.reward.RewardCalculator;
 import org.conch.db.Db;
 import org.conch.db.DbIterator;
 import org.conch.db.DbUtils;
@@ -336,7 +337,7 @@ public class PocProcessorImpl implements PocProcessor {
      * update the recipient id of the old  poc txs
      */
     public static void updateRecipientIdIntoOldPocTxs() {
-        if(Conch.getHeight() >= 1500) {
+        if(Conch.getHeight() > Constants.POC_TX_ALLOW_RECIPIENT) {
             return;
         }
         Logger.logInfoMessage("[PocTxCorrect] update the recipient id of the old  poc txs");
@@ -376,7 +377,36 @@ public class PocProcessorImpl implements PocProcessor {
         }
     }
 
+    private static boolean pocDbBeReset = false;
+    /**
+     * reset the poc table to avoid the poc score wrong
+     */
+    public static void resetPocDb() {
+//        if(Conch.getHeight() > RewardCalculator.MINER_JOINING_PHASE) {
+//            return;
+//        }
+
+        try {
+            Logger.logInfoMessage("[ResetPocDb] reset the poc db");
+            if (!Db.db.isInTransaction()) {
+                Db.db.beginTransaction();
+            }
+            int count = PocDb.rollback(0);
+
+            Db.db.clearCache();
+            Db.db.commitTransaction();
+            pocDbBeReset = true;
+            Logger.logInfoMessage("[ResetPocDb] reset the poc db finished, reset count is " + count);
+        } catch (RuntimeException e) {
+            Logger.logErrorMessage("Error reset the poc db, " + e.toString());
+            Db.db.rollbackTransaction();
+            throw e;
+        }
+    }
+
     public static void init() {
+        // no needs to reset when lanuch a new network
+        // resetPocDb();
         ThreadPool.scheduleThread("OldPocTxsProcessThread", oldPocTxsProcessThread, 1, TimeUnit.MINUTES);
         ThreadPool.scheduleThread("DelayedPocTxsProcessThread", delayedPocTxsProcessThread, pocTxSynThreadInterval, TimeUnit.SECONDS);
         //updateRecipientIdIntoOldPocTxs();
@@ -386,32 +416,43 @@ public class PocProcessorImpl implements PocProcessor {
         try {
 
             if (!oldPocTxsProcess) {
-                Logger.logDebugMessage("all old poc txs be processed yet, sleep for the next round check...");
+                Logger.logDebugMessage("[OldPocTxs] all old poc txs be processed yet, sleep for the next round check...");
                 return;
             }
-            
+
             // old poc txs process: a) miss the poc tx, b) restart the cos client
             if (oldPocTxsProcess) {
                 // total poc txs from last height
-                int fromHeight = (PocHolder.inst.lastHeight <= -1) ? 0 : PocHolder.inst.lastHeight;
+                int fromHeight = 0;
+                if(PocHolder.inst.lastHeight > 0) {
+                    fromHeight = PocHolder.inst.lastHeight;
+                }
                 int toHeight = Conch.getHeight();
-                Logger.logInfoMessage("process old poc txs from %d to %d ...", fromHeight, toHeight);
+
+                BlockchainImpl.getInstance().writeLock();
                 DbIterator<BlockImpl> blocks = null;
                 try {
-                    blocks = BlockchainImpl.getInstance().getBlocks(fromHeight, toHeight);
+                    if(pocDbBeReset){
+                        Logger.logInfoMessage("[OldPocTxs] process old poc txs from %d to %d when poc db be reset...", 0, toHeight);
+                        blocks = BlockchainImpl.getInstance().getAllBlocks();
+                    }else{
+                        Logger.logInfoMessage("[OldPocTxs] process old poc txs from %d to %d ...", fromHeight, toHeight);
+                        blocks = BlockchainImpl.getInstance().getBlocks(fromHeight, toHeight);
+                    }
                     int count = 0;
                     for (BlockImpl block : blocks) {
                         count += instance.pocSeriesTxProcess(block);
                     }
-                    Logger.logInfoMessage("old poc txs processed[from %d to %d] [processed size=%d]", fromHeight, toHeight, count);
+                    Logger.logInfoMessage("[OldPocTxs] old poc txs processed[from %d to %d] [processed size=%d]", fromHeight, toHeight, count);
                     oldPocTxsProcess = false;
                 } finally {
                     DbUtils.close(blocks);
+                    BlockchainImpl.getInstance().writeUnlock();
                 }
             }
 
         } catch (Exception e) {
-            Logger.logErrorMessage("old poc txs processing thread interrupted", e);
+            Logger.logErrorMessage("[OldPocTxs] old poc txs processing thread interrupted", e);
         } catch (Throwable t) {
             Logger.logErrorMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
             System.exit(1);
