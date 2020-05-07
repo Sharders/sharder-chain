@@ -71,19 +71,19 @@ public class CheckSumValidator {
     public static Listener<Block> eventProcessor(){
         return inst.checksumListener;
     }
-    
+
     // pop off to previous right height when checksum validation failed
     private final Listener<Block> checksumListener = block -> {
-                if (block.getHeight() == Constants.POC_BLOCK_HEIGHT) {
-                    if (!verifyChecksum(CHECKSUM_POC_BLOCK, 0, Constants.POC_BLOCK_HEIGHT)) {
-                        Conch.getBlockchainProcessor().popOffTo(0);
-                    }
-                } else if (block.getHeight() == Constants.PHASING_BLOCK_HEIGHT) {
-                    if (!verifyChecksum(CHECKSUM_PHASING_BLOCK, Constants.POC_BLOCK_HEIGHT, Constants.PHASING_BLOCK_HEIGHT)) {
-                        Conch.getBlockchainProcessor().popOffTo(Constants.POC_BLOCK_HEIGHT);
-                    }
-                }
-            };
+        if (block.getHeight() == Constants.POC_BLOCK_HEIGHT) {
+            if (!verifyChecksum(CHECKSUM_POC_BLOCK, 0, Constants.POC_BLOCK_HEIGHT)) {
+                Conch.getBlockchainProcessor().popOffTo(0);
+            }
+        } else if (block.getHeight() == Constants.PHASING_BLOCK_HEIGHT) {
+            if (!verifyChecksum(CHECKSUM_PHASING_BLOCK, Constants.POC_BLOCK_HEIGHT, Constants.PHASING_BLOCK_HEIGHT)) {
+                Conch.getBlockchainProcessor().popOffTo(Constants.POC_BLOCK_HEIGHT);
+            }
+        }
+    };
 
 
     private boolean verifyChecksum(byte[] validChecksum, int fromHeight, int toHeight) {
