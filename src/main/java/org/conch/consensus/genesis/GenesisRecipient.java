@@ -23,6 +23,8 @@ public class GenesisRecipient {
         this.publicKey = publicKey;
         this.signature = signature;
     }
+
+    public static long POC_TX_CREATOR_ID = -4474757083699191238L;
     static Map<Constants.Network, List<GenesisRecipient>> genesisRecipients = new HashMap<>();
     static {
         List<GenesisRecipient> devnetRecipients = Lists.newArrayList(
@@ -80,7 +82,7 @@ public class GenesisRecipient {
                                 -125,-49,-128,-17,-70,28,20,30,-55,-127,106,-88,-99,85,87,-102,-87,-43,53,112,77,9}),
                 
                 // tx creator
-                new GenesisRecipient(-4474757083699191238l, 50077L, 
+                new GenesisRecipient(POC_TX_CREATOR_ID, 50077L,
                         new byte[]{86, 17, 18, -47, -122, 40, 81, 102, -9, 9, 36, 15, -56, 82, 31, 81, 70, -118, -83, 50, 113, 18, 63, 93, 76, 9, -87, 26, -114, 45, -57, 31},
                         new byte[]{-40,-46,-118,34,-21,-84,-6,90,-14,89,-40,88,64,-37,-92,-60,90,77,21,-59,-10,10,-75,-99,33,-110,-43,-109,58,-95,104,12,6,30,-128,-44,-84,-21,-76,-120,-83,77,
                                 104,-128,108,121,55,-81,94,123,93,-30,84,-101,41,42,-114,-3,-39,-90,14,-97,118,94})

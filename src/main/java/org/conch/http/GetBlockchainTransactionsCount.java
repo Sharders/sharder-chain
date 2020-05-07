@@ -7,16 +7,7 @@ import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 
-/**********************************************************************************
- * @package org.conch.http
- * @author Marcio Yang
- * @email yx@sharder.org
- * @company Chongqing Morning Whale Technology Co,.LTD
- * @website http://www.ichaoj.com/
- * @creatAt 2019-一月-24 12:33 星期四
- * @tel 17318413650
- * @comment
- **********************************************************************************/
+
 public class GetBlockchainTransactionsCount extends APIServlet.APIRequestHandler {
 
     static final GetBlockchainTransactionsCount instance = new GetBlockchainTransactionsCount();
