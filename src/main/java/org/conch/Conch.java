@@ -401,7 +401,7 @@ public final class Conch {
         }else{
             // correct the internal IP to public IP if the client have the public IP at the every client start
             if(StringUtils.isEmpty(myAddr)
-                    || (!IpUtil.isDomain(myAddr) && IpUtil.isInternalIp(myAddr)) // myAddress is not the domain and it is internal ip
+            || (!IpUtil.isDomain(myAddr) && IpUtil.isInternalIp(myAddr)) // myAddress is not the domain and it is internal ip
             ) {
                 myAddr = IpUtil.getNetworkIp().trim();
                 Conch.storePropertieToFile("sharder.myAddress", myAddr);

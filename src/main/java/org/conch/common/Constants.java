@@ -374,6 +374,16 @@ public final class Constants {
         return networkInProperties;
     }
 
+    /**
+     * used to local debug
+     * @return true： local debug mode
+     */
+    public static boolean isLocalDebug(){
+        String localDebugEnv = System.getProperty(RuntimeEnvironment.LOCALDEBUG_ARG);
+        return StringUtils.isNotEmpty(localDebugEnv) ? Boolean.parseBoolean(localDebugEnv) : false;
+    }
+
+
     private static final String parseBootNodeHost() {
         if(isMainnet()){
             return "boot.sharder.io";
