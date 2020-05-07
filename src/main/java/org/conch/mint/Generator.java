@@ -735,7 +735,7 @@ public class Generator implements Comparable<Generator> {
         && isAutoMiningAccount(accountId)
         && Conch.getBlockchainProcessor().isObsolete()){
             Logger.logInfoMessage("[BootNode] Current blockchain was stuck, so use the current system time %d to replace the original block generation time %d."
-            , start, timestamp);
+                    , start, timestamp);
             timestamp = start;
         }
         

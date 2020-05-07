@@ -261,6 +261,10 @@ public class PocProcessorImpl implements PocProcessor {
         return true;
     }
 
+    @Override
+    public Map<Long, CertifiedPeer> getCertifiedPeers(){
+        return PocHolder.inst.certifiedPeers;
+    }
 
     /**
      * load the poc holder backup from local disk

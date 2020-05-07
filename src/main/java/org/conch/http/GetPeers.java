@@ -21,6 +21,7 @@
 
 package org.conch.http;
 
+import org.conch.Conch;
 import org.conch.peer.Peer;
 import org.conch.peer.Peers;
 import org.conch.util.Convert;
@@ -134,6 +135,7 @@ public final class GetPeers extends APIServlet.APIRequestHandler {
             response.put("coordinates",tempCoordinatesMap.get("CoordinatesList"));
         }
         response.put("peers", peersJSON);
+        response.put("declaredPeerSize", Conch.getPocProcessor().getCertifiedPeers().size());
         return response;
     }
 

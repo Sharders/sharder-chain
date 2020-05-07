@@ -50,9 +50,9 @@ class PocHolder implements Serializable {
     /** certified peers **/
     // certified peer: foundation node,sharder hub/box, community node
     // account id : certified peer
-    private Map<Long, CertifiedPeer> certifiedPeers = Maps.newConcurrentMap();
+    protected Map<Long, CertifiedPeer> certifiedPeers = Maps.newConcurrentMap();
     // height : { accountId : certifiedPeer }
-    private Map<Integer, Map<Long,CertifiedPeer>> historyCertifiedPeers = Maps.newConcurrentMap();
+    protected Map<Integer, Map<Long,CertifiedPeer>> historyCertifiedPeers = Maps.newConcurrentMap();
     /** certified peers **/
     
     
