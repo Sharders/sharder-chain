@@ -21,6 +21,7 @@ import org.conch.tx.Transaction;
 import org.conch.tx.TransactionImpl;
 import org.conch.tx.TransactionType;
 import org.conch.util.DiskStorageUtil;
+import org.conch.util.LocalDebugTool;
 import org.conch.util.Logger;
 import org.conch.util.ThreadPool;
 
@@ -561,6 +562,9 @@ public class PocProcessorImpl implements PocProcessor {
             return false;
         }
         long accountId = account.getId();
+        if(LocalDebugTool.isCheckPocAccount(accountId)) {
+            Logger.logDebugMessage(Account.rsAccount(accountId) + "'s balance is changed at height " + height);
+        }
         PocScore pocScoreToUpdate = PocHolder.getPocScore(height, accountId);
         PocHolder.saveOrUpdate(pocScoreToUpdate.setHeight(height).ssCal());
         return true;

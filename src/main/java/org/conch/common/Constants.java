@@ -383,7 +383,6 @@ public final class Constants {
         return StringUtils.isNotEmpty(localDebugEnv) ? Boolean.parseBoolean(localDebugEnv) : false;
     }
 
-
     private static final String parseBootNodeHost() {
         if(isMainnet()){
             return "boot.sharder.io";
