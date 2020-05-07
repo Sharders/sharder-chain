@@ -141,12 +141,6 @@ public class CheckSumValidator {
     // known ignore blocks
     private static final Set<Long> knownIgnoreBlocks = Sets.newHashSet(
             //Testnet
-            -8556361949057624360L,
-            211456030592803100L,
-            -9051459710885545966L,
-            -9040736285988428238L,          // height 1465
-            665016367944624517L,            // height 1478
-            -7482224415980390345L           // height 1480
     );
     
     private static final Set<Long> knownIgnoreTxs = Sets.newHashSet();
@@ -154,9 +148,9 @@ public class CheckSumValidator {
     private static final Map<Integer,Set<Long>> knownDirtyPocTxs = Maps.newConcurrentMap();
     
     static Map<Integer, Map<Long, PocTxBody.PocNodeTypeV2>> pocNodeTypeTxsMap = Maps.newHashMap();
-    
-    
-    public static final int CHECK_INTERVAL = Conch.getIntProperty("sharder.knownBlockCheckInterval", 60);
+
+
+    public static final int CHECK_INTERVAL_IN_MINUTES = Conch.getIntProperty("sharder.knownBlockCheckInterval", 60);
     
     //TODO 
     private static final Map<Long,JSONObject> ignoreBlockMap = Maps.newConcurrentMap();
@@ -175,7 +169,7 @@ public class CheckSumValidator {
     };
 
     static {
-        ThreadPool.scheduleThread("UpdateKnownIgnoreBlocksThread", updateKnownIgnoreBlocksThread, CHECK_INTERVAL, TimeUnit.MINUTES);
+        ThreadPool.scheduleThread("UpdateKnownIgnoreBlocksThread", updateKnownIgnoreBlocksThread, CHECK_INTERVAL_IN_MINUTES, TimeUnit.MINUTES);
     }
 
     public static boolean isKnownIgnoreBlock(long blockId){
