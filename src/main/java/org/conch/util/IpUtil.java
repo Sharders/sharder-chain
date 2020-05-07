@@ -2,6 +2,7 @@ package org.conch.util;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
+import sun.net.util.IPAddressUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import java.net.InetAddress;
@@ -99,6 +100,54 @@ public class IpUtil {
         
         return false;
     }
+
+    /**
+     * ip addr whether is the internal ip
+     * @param ipv4Addr
+     * @return
+     */
+    public static boolean isInternalIp(String ipv4Addr){
+        return _isInternalIp(IPAddressUtil.textToNumericFormatV4(ipv4Addr));
+    }
+
+    /**
+     * ipv4
+     * tcp/ip协议中，专门保留了三个IP地址区域作为私有地址，其地址范围如下：
+     * 10.0.0.0/8：10.0.0.0～10.255.255.255 
+     * 172.16.0.0/12：172.16.0.0～172.31.255.255 
+     * 192.168.0.0/16：192.168.0.0～192.168.255.255
+     * @param addr
+     * @return
+     */
+    private static boolean _isInternalIp(byte[] addr) {
+        final byte b0 = addr[0];
+        final byte b1 = addr[1];
+        //10.x.x.x/8
+        final byte SECTION_1 = 0x0A;
+        //172.16.x.x/12
+        final byte SECTION_2 = (byte) 0xAC;
+        final byte SECTION_3 = (byte) 0x10;
+        final byte SECTION_4 = (byte) 0x1F;
+        //192.168.x.x/16
+        final byte SECTION_5 = (byte) 0xC0;
+        final byte SECTION_6 = (byte) 0xA8;
+        switch (b0) {
+            case SECTION_1:
+                return true;
+            case SECTION_2:
+                if (b1 >= SECTION_3 && b1 <= SECTION_4) {
+                    return true;
+                }
+            case SECTION_5:
+                switch (b1) {
+                    case SECTION_6:
+                        return true;
+                }
+            default:
+                return false;
+        }
+    }
+
 
     /**
      * public ip -> internal ip

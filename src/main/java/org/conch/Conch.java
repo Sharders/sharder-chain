@@ -388,10 +388,17 @@ public final class Conch {
     }
 
     private static String readAndParseMyAddress(){
-        String myAddr = Convert.emptyToNull(Conch.getStringProperty("sharder.myAddress", IpUtil.getNetworkIp()).trim());
+        String myAddr = Convert.emptyToNull(Conch.getStringProperty("sharder.myAddress", "").trim());
 
         // correct the undefined issue of myAddress
         if("undefined".equalsIgnoreCase(myAddr)){
+            myAddr = IpUtil.getNetworkIp().trim();
+            Conch.storePropertieToFile("sharder.myAddress", myAddr);
+        }
+
+        // correct the internal IP to public IP if the client have the public IP at the every client start
+        if(StringUtils.isEmpty(myAddr)
+                || IpUtil.isInternalIp(myAddr)) {
             myAddr = IpUtil.getNetworkIp().trim();
             Conch.storePropertieToFile("sharder.myAddress", myAddr);
         }
