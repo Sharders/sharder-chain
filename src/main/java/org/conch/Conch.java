@@ -389,21 +389,26 @@ public final class Conch {
 
     private static String readAndParseMyAddress(){
         String myAddr = Convert.emptyToNull(Conch.getStringProperty("sharder.myAddress", "").trim());
-
+        boolean closeAutoSwitchIp = Conch.getBooleanProperty("sharder.closeAutoSwitchIp");
         // correct the undefined issue of myAddress
         if("undefined".equalsIgnoreCase(myAddr)){
             myAddr = IpUtil.getNetworkIp().trim();
             Conch.storePropertieToFile("sharder.myAddress", myAddr);
         }
 
-        // correct the internal IP to public IP if the client have the public IP at the every client start
-        if(StringUtils.isEmpty(myAddr)
-                || IpUtil.isInternalIp(myAddr)) {
-            myAddr = IpUtil.getNetworkIp().trim();
-            Conch.storePropertieToFile("sharder.myAddress", myAddr);
+        if(closeAutoSwitchIp) {
+            Logger.logInfoMessage("Auto check and switch the internal ip to public ip is CLOSED");
+        }else{
+            // correct the internal IP to public IP if the client have the public IP at the every client start
+            if(StringUtils.isEmpty(myAddr)
+                    || (!IpUtil.isDomain(myAddr) && IpUtil.isInternalIp(myAddr)) // myAddress is not the domain and it is internal ip
+            ) {
+                myAddr = IpUtil.getNetworkIp().trim();
+                Conch.storePropertieToFile("sharder.myAddress", myAddr);
+            }
         }
 
-        return  myAddr;
+        return myAddr;
     }
     /**
      * [NAT] useNATService and client configuration
