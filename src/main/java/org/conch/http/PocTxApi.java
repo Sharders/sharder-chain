@@ -196,7 +196,12 @@ public abstract class PocTxApi {
                 }
 
                 Logger.logInfoMessage("creating node type tx %s", pocNodeType.toString());
-                long recipientId = (accountId == -1) ? 0 : accountId;
+
+                long recipientId = 0;
+                if(Conch.getHeight() > Constants.POC_TX_ALLOW_RECIPIENT) {
+                    recipientId = (accountId == -1) ? 0 : accountId;
+                }
+
                 createTransaction(request, account, recipientId, 0, pocNodeType);
                 Logger.logInfoMessage("success to create node type tx");
             } catch(ConchException.AccountControlException e){

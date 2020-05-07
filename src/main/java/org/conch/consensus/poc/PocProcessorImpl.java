@@ -8,6 +8,7 @@ import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.chain.*;
 import org.conch.common.Constants;
+import org.conch.consensus.genesis.GenesisRecipient;
 import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.consensus.poc.tx.PocTxWrapper;
@@ -266,6 +267,11 @@ public class PocProcessorImpl implements PocProcessor {
         return PocHolder.inst.certifiedPeers;
     }
 
+    @Override
+    public Map<Integer, Map<Long,CertifiedPeer>> getHistoryCertifiedPeers() {
+        return PocHolder.inst.historyCertifiedPeers;
+    }
+
     /**
      * load the poc holder backup from local disk
      */
@@ -281,10 +287,54 @@ public class PocProcessorImpl implements PocProcessor {
             oldPocTxsProcess = true;
         }
     }
+    /**
+     * update the recipient id of the old  poc txs
+     */
+    public static void updateRecipientIdIntoOldPocTxs() {
+        if(Conch.getHeight() >= 1500) {
+            return;
+        }
+        Logger.logInfoMessage("[PocTxCorrect] update the recipient id of the old  poc txs");
+        DbIterator<? extends Transaction> iterator = null;
+        Connection updateConnection = null;
+        try {
+            iterator = Conch.getBlockchain().getTransactions(GenesisRecipient.POC_TX_CREATOR_ID, TransactionType.TYPE_POC, true, 0, Integer.MAX_VALUE);
+            updateConnection = Db.db.getConnection();
+
+            int i = 0;
+            while (iterator.hasNext()) {
+                Transaction transaction = iterator.next();
+                Attachment attachment = transaction.getAttachment();
+                if(PocTxWrapper.SUBTYPE_POC_NODE_TYPE == attachment.getTransactionType().getSubtype()
+                        && (transaction.getRecipientId() == -1 || transaction.getRecipientId() == 0)) {
+                    long accountIdOfAttachment = -1L;
+                    if(attachment instanceof PocTxBody.PocNodeTypeV3){
+                        accountIdOfAttachment = ((PocTxBody.PocNodeTypeV3) attachment).getAccountId();
+                    }else if(attachment instanceof PocTxBody.PocNodeTypeV2){
+                        accountIdOfAttachment = ((PocTxBody.PocNodeTypeV2) attachment).getAccountId();
+                    }
+
+                    try (PreparedStatement pstmt = updateConnection.prepareStatement("UPDATE transaction SET recipient_id = ? WHERE id = ?")) {
+                        pstmt.setLong(1, accountIdOfAttachment);
+                        pstmt.setLong(2, transaction.getId());
+                        pstmt.executeUpdate();
+                        i++;
+                    }
+                }
+            }
+            Logger.logInfoMessage("[PocTxCorrect] update finished. update count is " + i);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            DbUtils.close(iterator);
+            DbUtils.close(updateConnection);
+        }
+    }
 
     public static void init() {
         ThreadPool.scheduleThread("OldPocTxsProcessThread", oldPocTxsProcessThread, 1, TimeUnit.MINUTES);
         ThreadPool.scheduleThread("DelayedPocTxsProcessThread", delayedPocTxsProcessThread, pocTxSynThreadInterval, TimeUnit.SECONDS);
+        //updateRecipientIdIntoOldPocTxs();
     }
 
     private static final Runnable oldPocTxsProcessThread = () -> {

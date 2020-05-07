@@ -464,18 +464,19 @@ public final class BlockchainImpl implements Blockchain {
     /**
      * 查询账户的收款付款交易记录
      * @param accountId
+     * @param type
      * @param isFrom accountId是否是发送方
      * @param from
      * @param to
      * @return
      */
     @Override
-    public DbIterator<TransactionImpl> getTransactions(long accountId, boolean isFrom,int from, int to) {
+    public DbIterator<TransactionImpl> getTransactions(long accountId, byte type, boolean isFrom, int from, int to) {
         Connection con = null;
         PreparedStatement pstmt;
         try {
             StringBuilder buf = new StringBuilder();
-            buf.append("SELECT transaction.* FROM transaction where type=0 ");
+            buf.append("SELECT transaction.* FROM transaction where type=" + type + " ");
             if (isFrom) {
                 buf.append("And sender_id = ? ");
             } else {

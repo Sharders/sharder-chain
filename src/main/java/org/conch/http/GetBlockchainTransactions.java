@@ -118,7 +118,7 @@ public final class GetBlockchainTransactions extends APIServlet.APIRequestHandle
 
     }
 
-    private boolean isBelongToAccount(long accountId, Transaction transaction){
+    private static boolean isBelongToAccount(long accountId, Transaction transaction){
         Attachment attachment = transaction.getAttachment();
         if(PocTxWrapper.SUBTYPE_POC_NODE_TYPE == attachment.getTransactionType().getSubtype()) {
             long accountIdOfAttachment = -1L;

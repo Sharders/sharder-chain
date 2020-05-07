@@ -140,7 +140,7 @@ public class PocScore implements Serializable {
     
     public PocScore setHeight(int height) {
         if(LocalDebugTool.isCheckPocAccount(this.accountId)) {
-            Logger.logDebugMessage(Account.rsAccount(this.accountId) + " is updated at height " + height);
+            Logger.logDebugMessage("[LocalDebugMode] " + Account.rsAccount(this.accountId) + " is updated at height " + height);
         }
         this.height = height;
         return this;
