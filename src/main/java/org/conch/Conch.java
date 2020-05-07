@@ -190,10 +190,17 @@ public final class Conch {
 
         return Peer.Type.getSimpleName(nodeTypeCode);
     }
-    
+
+    private static int readSerialNoCount = 0;
     public static String getSerialNum(){
-        if(StringUtils.isEmpty(Conch.serialNum) || Conch.serialNum.length() < 6) readAndSetSerialNum();
-        
+        if((StringUtils.isEmpty(Conch.serialNum) || Conch.serialNum.length() < 6)
+                && readSerialNoCount == 0) {
+            readAndSetSerialNum();
+        }
+        // every specified times to read the serial no from
+        if(readSerialNoCount++ == 100){
+            readSerialNoCount = 0;
+        }
         return Conch.serialNum;
     }
     
