@@ -202,8 +202,8 @@ public abstract class PocTxApi {
                     recipientId = (accountId == -1) ? 0 : accountId;
                 }
 
-                createTransaction(request, account, recipientId, 0, pocNodeType);
-                Logger.logInfoMessage("success to create node type tx");
+                JSONStreamAware txJson = createTransaction(request, account, recipientId, 0, pocNodeType);
+                Logger.logInfoMessage("success to create node type tx " + txJson.toString());
             } catch(ConchException.AccountControlException e){
                 Logger.logErrorMessage(e.getMessage());
                 return ResultUtil.failed(HttpStatus.INTERNAL_SERVER_ERROR_500, e.getMessage());

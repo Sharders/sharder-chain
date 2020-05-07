@@ -10,11 +10,13 @@ import org.conch.chain.*;
 import org.conch.common.Constants;
 import org.conch.consensus.genesis.GenesisRecipient;
 import org.conch.consensus.genesis.SharderGenesis;
+import org.conch.consensus.poc.db.PocDb;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.consensus.poc.tx.PocTxWrapper;
 import org.conch.db.Db;
 import org.conch.db.DbIterator;
 import org.conch.db.DbUtils;
+import org.conch.mint.pool.PoolRule;
 import org.conch.peer.CertifiedPeer;
 import org.conch.peer.Peer;
 import org.conch.tx.Attachment;
@@ -272,6 +274,49 @@ public class PocProcessorImpl implements PocProcessor {
         return PocHolder.inst.historyCertifiedPeers;
     }
 
+    @Override
+    public boolean rollbackTo(int height) {
+        try {
+            int currentHeight = Conch.getHeight();
+            // rollback the poc score map
+            synchronized (PocHolder.inst.historyScore) {
+                for(int i = height + 1; i <= currentHeight ; i++){
+                    if(PocHolder.inst.historyScore.containsKey(i)){
+                        PocHolder.inst.historyScore.remove(i);
+                    }
+                }
+                //rollback the db
+                PocDb.rollback(height);
+            }
+
+            // reset the score map
+            synchronized (PocHolder.inst.scoreMap) {
+                PocHolder.inst.scoreMap.clear();
+                PocHolder.inst.scoreMap = PocDb.listAll();
+            }
+
+            // rollback the history certified peers
+            synchronized (PocHolder.inst.historyCertifiedPeers) {
+                for (int i = height + 1; i <= currentHeight; i++) {
+                    // rollback the poc score map
+                    if (PocHolder.inst.historyCertifiedPeers.containsKey(i)) {
+                        PocHolder.inst.historyCertifiedPeers.remove(i);
+                    }
+                }
+            }
+
+            // reset the certified peers
+
+
+            // set the latest certified peer
+            PocHolder.inst.updateHeight(height);
+
+        } finally {
+
+        }
+        return true;
+    }
+
     /**
      * load the poc holder backup from local disk
      */
@@ -458,7 +503,32 @@ public class PocProcessorImpl implements PocProcessor {
 
         //just process poc tx
         for (Transaction tx : txs) {
-            if (pocTxProcess(tx)) count++;
+            if (TransactionType.TYPE_POC  == tx.getType().getType()) {
+                if(pocTxProcess(tx)) count++;
+            } else if(TransactionType.TYPE_PAYMENT  == tx.getType().getType()){
+                // payment tx processing
+                Account recipientAccount = Account.getAccount(tx.getRecipientId());
+                Account senderAccount = Account.getAccount(tx.getSenderId());
+                balanceChangedProcess(block.getHeight(), senderAccount);
+                balanceChangedProcess(block.getHeight(), recipientAccount);
+                count++;
+            } else if(TransactionType.TYPE_COIN_BASE  == tx.getType().getType()){
+                // coinbase tx processing
+                Attachment.CoinBase coinBase = (Attachment.CoinBase) tx.getAttachment();
+                Account senderAccount = Account.getAccount(tx.getSenderId());
+                Map<Long, Long> consignors = coinBase.getConsignors();
+
+                if (consignors.size() == 0) {
+                    balanceChangedProcess(block.getHeight(), senderAccount);
+                } else {
+                    Map<Long, Long> rewardList = PoolRule.calRewardMapAccordingToRules(senderAccount.getId(), coinBase.getGeneratorId(), tx.getAmountNQT(), consignors);
+                    for (long id : rewardList.keySet()) {
+                        Account account = Account.getAccount(id);
+                        balanceChangedProcess(block.getHeight(), account);
+                    }
+                }
+                count++;
+            }
         }
 
         return count;

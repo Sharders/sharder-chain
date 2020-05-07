@@ -295,6 +295,11 @@ public final class BlockImpl implements Block {
         return this.blockTransactions;
     }
 
+    /**
+     * no needs to add external to mark the block contains the poc txs - 2020.04.28 ben
+     * @param transaction
+     */
+    @Deprecated
     public void autoExtensionAppend(TransactionImpl transaction) {
         // auto extension process for isPoc and isPool
         if (TransactionType.TYPE_POC == transaction.getType().getType()) {
