@@ -95,7 +95,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class Conch {
 
     public static final String VERSION = "0.1.8";
-    public static final String STAGE = "-Alpha";
+    public static final String STAGE = "Alpha";
     public static final String APPLICATION = "COS";
 
     private static volatile Time time = new Time.EpochTime();
@@ -1201,7 +1201,7 @@ public final class Conch {
      * @return 
      */
     public static String getFullVersion(){
-        return VERSION + STAGE;
+        return VERSION + "-" + STAGE;
     }
     public static String getVersion(){ return VERSION; }
     public static String getCosUpgradeDate(){ return ClientUpgradeTool.cosLastUpdateDate; }
