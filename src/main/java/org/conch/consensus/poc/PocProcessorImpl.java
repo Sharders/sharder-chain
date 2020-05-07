@@ -69,20 +69,30 @@ public class PocProcessorImpl implements PocProcessor {
         return instance != null ? instance : new PocProcessorImpl();
     }
 
+
+    /**
+     * process the balance map which recorded in the payment or coinbase
+     * the map recorded in the method: org.conch.consensus.poc.PocProcessorImpl#putInBalanceChangedAccount
+     * the potential logic is: received Account.Event.BALANCE firstly, then received Event.AFTER_BLOCK_ACCEPT
+     * @param height
+     */
+    private static synchronized void balanceChangeMapProcessing(int height){
+        boolean someAccountBalanceChanged = balanceChangedMap.containsKey(height) && balanceChangedMap.get(height).size() > 0;
+        if (someAccountBalanceChanged) {
+            for (Account account : balanceChangedMap.get(height).values()) {
+                balanceChangedProcess(height, account);
+            }
+
+            balanceChangedMap.get(height).clear();
+            balanceChangedMap.remove(height);
+        }
+    }
+
     static {
         // new block accepted
         Conch.getBlockchainProcessor().addListener((Block block) -> {
-            // ss hold score re-calculate
-            // remark: the potential logic is: received Account.Event.BALANCE firstly, then received Event.AFTER_BLOCK_ACCEPT
-            boolean someAccountBalanceChanged = balanceChangedMap.containsKey(block.getHeight()) && balanceChangedMap.get(block.getHeight()).size() > 0;
-            if (someAccountBalanceChanged) {
-                for (Account account : balanceChangedMap.get(block.getHeight()).values()) {
-                    balanceChangedProcess(block.getHeight(), account);
-                }
-               
-                balanceChangedMap.get(block.getHeight()).clear();
-                balanceChangedMap.remove(block.getHeight());
-            }
+            // balance hold score re-calculate
+            balanceChangeMapProcessing(block.getHeight());
         }, BlockchainProcessor.Event.AFTER_BLOCK_ACCEPT);
 
         // balance changed event
@@ -103,6 +113,12 @@ public class PocProcessorImpl implements PocProcessor {
         instance.loadFromDisk();
     }
 
+    /**
+     * put the account balance change event into map
+     * @param height
+     * @param account
+     * @param event
+     */
     static void putInBalanceChangedAccount(int height, Account account, Account.Event event) {
         if (account == null || account.getId() == -1 || event == null) return;
         long accountId = account.getId();
@@ -128,7 +144,7 @@ public class PocProcessorImpl implements PocProcessor {
             balanceChangedMap.get(confirmedHeight).put(accountId, account);
         }
 
-        // check current height when event is BALANCE changed
+        // check current height when event is POC
         if (Account.Event.POC == event) {
             if (!balanceChangedMap.containsKey(height)) {
                 balanceChangedMap.put(height, Maps.newHashMap());
@@ -550,8 +566,8 @@ public class PocProcessorImpl implements PocProcessor {
                 // payment tx processing
                 Account recipientAccount = Account.getAccount(tx.getRecipientId());
                 Account senderAccount = Account.getAccount(tx.getSenderId());
-                balanceChangedProcess(block.getHeight(), senderAccount);
-                balanceChangedProcess(block.getHeight(), recipientAccount);
+                putInBalanceChangedAccount(block.getHeight(), senderAccount, Account.Event.BALANCE);
+                putInBalanceChangedAccount(block.getHeight(), recipientAccount, Account.Event.BALANCE);
                 count++;
             } else if(TransactionType.TYPE_COIN_BASE  == tx.getType().getType()){
                 // coinbase tx processing
@@ -560,17 +576,19 @@ public class PocProcessorImpl implements PocProcessor {
                 Map<Long, Long> consignors = coinBase.getConsignors();
 
                 if (consignors.size() == 0) {
-                    balanceChangedProcess(block.getHeight(), senderAccount);
+                    putInBalanceChangedAccount(block.getHeight(), senderAccount, Account.Event.POC);
                 } else {
                     Map<Long, Long> rewardList = PoolRule.calRewardMapAccordingToRules(senderAccount.getId(), coinBase.getGeneratorId(), tx.getAmountNQT(), consignors);
                     for (long id : rewardList.keySet()) {
                         Account account = Account.getAccount(id);
-                        balanceChangedProcess(block.getHeight(), account);
+                        putInBalanceChangedAccount(block.getHeight(), senderAccount, Account.Event.POC);
                     }
                 }
                 count++;
             }
         }
+
+        balanceChangeMapProcessing(block.getHeight());
 
         return count;
     }

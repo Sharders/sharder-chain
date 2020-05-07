@@ -1184,7 +1184,7 @@ public final class Peers {
     }
 
     static void checkNetworkWhetherRight(String host, int port) {
-        Logger.logDebugMessage("Network is " + Constants.getNetwork().getName() + ", host is " + host + ", port is " + port);
+        Logger.logDebugMessage("Check the format of the peer's address [ host is " + host + ", port is " + port + ", network is" + Constants.getNetwork().getName() + " ]");
         host = StringUtils.isEmpty(host) ? "null" : host;
         String networkDetail = "";
         boolean badNetwork = false;
