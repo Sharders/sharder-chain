@@ -283,11 +283,12 @@ class PocHolder implements Serializable {
         PocDb.saveOrUpdate(pocScore);
         
         PocScore pocScoreDetail = inst.scoreMap.get(pocScore.accountId);
-        
-        if(pocScore.height >= pocScoreDetail.height) {
+
+        if(pocScoreDetail == null
+                || pocScore.height >= pocScoreDetail.height) {
             inst.scoreMap.put(pocScore.accountId, pocScore);
         }
-        
+
         return pocScore;
     }
     

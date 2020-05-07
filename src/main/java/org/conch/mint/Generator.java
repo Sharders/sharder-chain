@@ -374,9 +374,11 @@ public class Generator implements Comparable<Generator> {
         // mining condition: holding limit check
         long accountId = Account.getId(secretPhrase);
         Account bindMiner = Account.getAccount(accountId, Conch.getHeight());
+        String rsAddr = Account.rsAccount(accountId);
+
         long accountBalanceNQT = (bindMiner != null) ? bindMiner.getEffectiveBalanceNQT(Conch.getHeight()) : 0L;
         if(accountBalanceNQT < Constants.MINING_HOLDING_LIMIT) {
-            Logger.logWarningMessage("The MW holding limit of the mining is " + (Constants.MINING_HOLDING_LIMIT / Constants.ONE_SS) + ", and current balance is " + (accountBalanceNQT / Constants.ONE_SS) + ", can't start to mining");
+            Logger.logWarningMessage("The SS holding limit of the mining is " + (Constants.MINING_HOLDING_LIMIT / Constants.ONE_SS) + ", and account " + rsAddr + "'s current balance is " + (accountBalanceNQT / Constants.ONE_SS) + ", can't start to mining");
             return null;
         }
 
