@@ -174,7 +174,7 @@ public class CheckSumValidator {
 
     public static boolean isKnownIgnoreBlock(long blockId){
         boolean result = knownIgnoreBlocks.contains(blockId);
-        return Constants.isLocalDebug() ? false : result;
+        return LocalDebugTool.isCheckBlockId(blockId) ? false : result;
     }
 
     public static boolean isDoubleSpendingIgnoreTx(TransactionImpl tx){

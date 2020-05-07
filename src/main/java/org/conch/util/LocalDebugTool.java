@@ -47,11 +47,11 @@ public class LocalDebugTool {
     private static final List<String> checkPocAccounts = Lists.newArrayList(localDebugConfig.getProperty(DEBUG_PROPERTY_POC_ACCOUNTS,"").split(SEPARATOR));
 
     public static boolean isCheckPocAccount(String rsAccount){
-       return isLocalDebug() && checkPocAccounts.contains(rsAccount);
+        return isLocalDebug() && checkPocAccounts.contains(rsAccount);
     }
 
     public static boolean isCheckPocAccount(long accountId){
-       return isLocalDebug() && checkPocAccounts.contains(Account.rsAccount(accountId));
+        return isLocalDebug() && checkPocAccounts.contains(Account.rsAccount(accountId));
     }
 
     /** debug the block generator error **/
