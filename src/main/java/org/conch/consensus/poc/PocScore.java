@@ -32,10 +32,26 @@ public class PocScore implements Serializable {
     BigInteger bcScore = BigInteger.ZERO;
 
     BigInteger effectiveBalance;
-    
-    private static BigInteger SCORE_MULTIPLIER = new BigInteger("10");
-    
-    //TODO 
+
+    private static BigInteger SCORE_MULTIPLIER = parseAndGetScoreMagnification();
+
+    /**
+     * mag. of poc score is use to increase the poc score of the miner to make sure the mining gap is match the preset interval
+     * @return
+     */
+    private static BigInteger parseAndGetScoreMagnification(){
+        BigInteger mag = BigInteger.TEN;
+        try{
+            if(Conch.getHeight() <= Constants.POC_SCORE_MAGNIFICATION_HEIGHT) {
+                mag = BigInteger.TEN;
+            }
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        return mag;
+    }
+
+    //TODO for every pool add the luck, used to battle the block generation chance
     int luck = 0;
 
 

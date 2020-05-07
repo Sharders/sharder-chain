@@ -226,6 +226,7 @@ public final class Constants {
     public static final int POC_SS_HELD_SCORE_PHASE2_HEIGHT = isTestnet() ? 13777 : 0;
     public static final int POC_POOL_NEVER_END_HEIGHT = isTestnet() ? 13777 : 0;
     public static final int POC_BALANCE_CORRECTION_HEIGHT = isTestnet() ? 15777 : 0;
+    public static final int POC_SCORE_MAGNIFICATION_HEIGHT = isTestnet() ? 1400 : 0;
 
     //not opened yet
     public static final int PHASING_BLOCK_HEIGHT = Integer.MAX_VALUE;
@@ -426,8 +427,9 @@ public final class Constants {
     public static final String Generator_isBlockStuckOnBootNode = Generator.class.getName() + "#isBlockStuckOnBootNode";
     public static final String Generator_isPocTxsProcessed = Generator.class.getName() + "#isPocTxsProcessed";
     public static final String CONCH_P_reachLastKnownBlock = Conch.class.getName() + "#reachLastKnownBlock";
-    public static final String BlockchainProcessor_P_downloadPeer = BlockchainProcessorImpl.class.getName() + "#downloadPeer";
-    public static final String BlockchainProcessor_P_getMoreBlocks = BlockchainProcessorImpl.class.getName() + "#getMoreBlocks";
+    public static final String BlockchainProcessor_downloadPeer_sizeCheck = BlockchainProcessorImpl.class.getName() + "#downloadPeer#sizeCheck";
+    public static final String BlockchainProcessor_downloadPeer_getWeightedPeer = BlockchainProcessorImpl.class.getName() + "#downloadPeer#getWeightedPeer";
+    public static final String BlockchainProcessor_getMoreBlocks = BlockchainProcessorImpl.class.getName() + "#getMoreBlocks";
     public static final String GetNodeHardware_P_report = GetNodeHardware.class.getName() + "#report";
     
     public static final boolean hubLinked = Conch.getBooleanProperty("sharder.HubBind");

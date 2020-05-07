@@ -49,7 +49,7 @@ const cn = {
         'set_password': "设置节点管理密码",
         'confirm_password': "确认节点管理密码",
         'confirm_restart': "确认后重启",
-        'current_version': "当前版本",
+        'current_version': "当前版本 ",
         'discover_new_version': "发现新版本",
         'update': "点击更新",
         'reset': "重置",

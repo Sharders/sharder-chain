@@ -83,6 +83,7 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
 
             Logger.logDebugMessage("current os is %s, node type is %s, serial is %s", SystemUtils.OS_NAME, nodeType, (StringUtils.isEmpty(serialNum) ? "null" : serialNum));
             response.put("sharder.NodeType", nodeType);
+            response.put("sharder.phase", Conch.STAGE);
             response.put("sharder.xxx", serialNum);
 
             if(Conch.systemInfo == null) GetNodeHardware.readSystemInfo();
