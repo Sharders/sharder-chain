@@ -59,7 +59,7 @@ public class ClientUpgradeTool {
                     Conch.restartApplication(null);
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                Logger.logErrorMessage("Can't fetch and install the latest version " + cosVerObj.getString("version") + ", ABORT the upgrade thread",e);
                 Thread.currentThread().interrupt();
             }finally {
                 Conch.unpause();
@@ -70,9 +70,9 @@ public class ClientUpgradeTool {
         upgradePackageThread.start();
         return upgradePackageThread;
     }
-    
 
-    private static final long FETCH_INTERVAL_MS = 30*60*1000L;
+    // 60 minutes
+    private static final long FETCH_INTERVAL_MS = 60*60*1000L;
     private static volatile JSONObject lastCosVerObj = null;
     private static long lastFetchTime = -1;
     

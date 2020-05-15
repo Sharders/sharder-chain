@@ -350,9 +350,9 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
         // auto upgrade
         boolean closeAutoUpgrade = Conch.getBooleanProperty(PROPERTY_CLOSE_AUTO_UPGRADE);
         if(!closeAutoUpgrade) {
-            int interval = Constants.isDevnet() ? 1 : 60;
-            Logger.logInfoMessage("[AutoUpgrade] Open the auto upgrade on this node, check interval is %d minutes", interval);
-            ThreadPool.scheduleThread("cosAutoUpgradeThread", autoUpgradeThread, interval, TimeUnit.MINUTES);
+            int intervalInMinutes = Constants.isDevnet() ? 1 : 60;
+            Logger.logInfoMessage("[AutoUpgrade] Open the auto upgrade on this node, check interval is %d minutes", intervalInMinutes);
+            ThreadPool.scheduleThread("cosAutoUpgradeThread", autoUpgradeThread, intervalInMinutes, TimeUnit.MINUTES);
         }
 
         checkOrForceDeleteBakFolder();

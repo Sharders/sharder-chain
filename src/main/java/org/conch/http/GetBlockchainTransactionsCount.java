@@ -2,21 +2,20 @@ package org.conch.http;
 
 import org.conch.Conch;
 import org.conch.common.ConchException;
+import org.conch.consensus.genesis.GenesisRecipient;
+import org.conch.consensus.poc.tx.PocTxBody;
+import org.conch.consensus.poc.tx.PocTxWrapper;
+import org.conch.db.DbIterator;
+import org.conch.db.DbUtils;
+import org.conch.tx.Attachment;
+import org.conch.tx.Transaction;
+import org.conch.tx.TransactionType;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
 
-/**********************************************************************************
- * @package org.conch.http
- * @author Marcio Yang
- * @email yx@sharder.org
- * @company Chongqing Morning Whale Technology Co,.LTD
- * @website http://www.ichaoj.com/
- * @creatAt 2019-一月-24 12:33 星期四
- * @tel 17318413650
- * @comment
- **********************************************************************************/
+
 public class GetBlockchainTransactionsCount extends APIServlet.APIRequestHandler {
 
     static final GetBlockchainTransactionsCount instance = new GetBlockchainTransactionsCount();
@@ -45,7 +44,34 @@ public class GetBlockchainTransactionsCount extends APIServlet.APIRequestHandler
         int count = 0;
         JSONObject response = new JSONObject();
         try{
-            count = Conch.getBlockchain().getTransactionCountByAccount(accountId,type,subtype);
+            if(type != TransactionType.TYPE_POC) {
+                count = Conch.getBlockchain().getTransactionCountByAccount(accountId,type,subtype);
+            }
+
+            if(type == -1 || type == TransactionType.TYPE_POC) {
+                // Poc txs processing
+                DbIterator<? extends Transaction> iterator = null;
+                try {
+                    iterator = Conch.getBlockchain().getTransactions(GenesisRecipient.POC_TX_CREATOR_ID, TransactionType.TYPE_POC, true, 0, Integer.MAX_VALUE);
+                    while (iterator.hasNext()) {
+                        Transaction transaction = iterator.next();
+                        Attachment attachment = transaction.getAttachment();
+                        if(PocTxWrapper.SUBTYPE_POC_NODE_TYPE == attachment.getTransactionType().getSubtype()) {
+                            long accountIdOfAttachment = -1L;
+                            if(attachment instanceof PocTxBody.PocNodeTypeV3){
+                                accountIdOfAttachment = ((PocTxBody.PocNodeTypeV3) attachment).getAccountId();
+                            }else if(attachment instanceof PocTxBody.PocNodeTypeV2){
+                                accountIdOfAttachment = ((PocTxBody.PocNodeTypeV2) attachment).getAccountId();
+                            }
+
+                            if(accountId == accountIdOfAttachment) count++;
+                        }
+                    }
+                } finally {
+                    DbUtils.close(iterator);
+                }
+            }
+
             response.put("count",count);
         }catch(Exception e){
             throw new RuntimeException(e.toString(),e);

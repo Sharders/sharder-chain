@@ -28,6 +28,7 @@ import org.conch.common.ConchException;
 import org.conch.db.*;
 import org.conch.http.*;
 import org.conch.tx.Transaction;
+import org.conch.tx.TransactionType;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONStreamAware;
 
@@ -64,7 +65,7 @@ public final class GetAccountTxs extends APIServlet.APIRequestHandler {
         if((!isFrom && isTo) || (isFrom && !isTo)){
             DbIterator<? extends Transaction> iterator = null;
             try {
-                iterator = Conch.getBlockchain().getTransactions(accountId,isFrom,firstIndex, lastIndex);
+                iterator = Conch.getBlockchain().getTransactions(accountId, TransactionType.TYPE_PAYMENT, isFrom,firstIndex, lastIndex);
                 while (iterator.hasNext()) {
                     Transaction transaction = iterator.next();
                     transactions.add(JSONData.transaction(transaction, false));

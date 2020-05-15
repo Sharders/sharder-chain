@@ -8,12 +8,16 @@ import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.chain.*;
 import org.conch.common.Constants;
+import org.conch.consensus.genesis.GenesisRecipient;
 import org.conch.consensus.genesis.SharderGenesis;
+import org.conch.consensus.poc.db.PocDb;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.consensus.poc.tx.PocTxWrapper;
+import org.conch.consensus.reward.RewardCalculator;
 import org.conch.db.Db;
 import org.conch.db.DbIterator;
 import org.conch.db.DbUtils;
+import org.conch.mint.pool.PoolRule;
 import org.conch.peer.CertifiedPeer;
 import org.conch.peer.Peer;
 import org.conch.tx.Attachment;
@@ -21,6 +25,7 @@ import org.conch.tx.Transaction;
 import org.conch.tx.TransactionImpl;
 import org.conch.tx.TransactionType;
 import org.conch.util.DiskStorageUtil;
+import org.conch.util.LocalDebugTool;
 import org.conch.util.Logger;
 import org.conch.util.ThreadPool;
 
@@ -64,20 +69,30 @@ public class PocProcessorImpl implements PocProcessor {
         return instance != null ? instance : new PocProcessorImpl();
     }
 
+
+    /**
+     * process the balance map which recorded in the payment or coinbase
+     * the map recorded in the method: org.conch.consensus.poc.PocProcessorImpl#putInBalanceChangedAccount
+     * the potential logic is: received Account.Event.BALANCE firstly, then received Event.AFTER_BLOCK_ACCEPT
+     * @param height
+     */
+    private static synchronized void balanceChangeMapProcessing(int height){
+        boolean someAccountBalanceChanged = balanceChangedMap.containsKey(height) && balanceChangedMap.get(height).size() > 0;
+        if (someAccountBalanceChanged) {
+            for (Account account : balanceChangedMap.get(height).values()) {
+                balanceChangedProcess(height, account);
+            }
+
+            balanceChangedMap.get(height).clear();
+            balanceChangedMap.remove(height);
+        }
+    }
+
     static {
         // new block accepted
         Conch.getBlockchainProcessor().addListener((Block block) -> {
-            // ss hold score re-calculate
-            // remark: the potential logic is: received Account.Event.BALANCE firstly, then received Event.AFTER_BLOCK_ACCEPT
-            boolean someAccountBalanceChanged = balanceChangedMap.containsKey(block.getHeight()) && balanceChangedMap.get(block.getHeight()).size() > 0;
-            if (someAccountBalanceChanged) {
-                for (Account account : balanceChangedMap.get(block.getHeight()).values()) {
-                    balanceChangedProcess(block.getHeight(), account);
-                }
-               
-                balanceChangedMap.get(block.getHeight()).clear();
-                balanceChangedMap.remove(block.getHeight());
-            }
+            // balance hold score re-calculate
+            balanceChangeMapProcessing(block.getHeight());
         }, BlockchainProcessor.Event.AFTER_BLOCK_ACCEPT);
 
         // balance changed event
@@ -98,6 +113,12 @@ public class PocProcessorImpl implements PocProcessor {
         instance.loadFromDisk();
     }
 
+    /**
+     * put the account balance change event into map
+     * @param height
+     * @param account
+     * @param event
+     */
     static void putInBalanceChangedAccount(int height, Account account, Account.Event event) {
         if (account == null || account.getId() == -1 || event == null) return;
         long accountId = account.getId();
@@ -123,7 +144,7 @@ public class PocProcessorImpl implements PocProcessor {
             balanceChangedMap.get(confirmedHeight).put(accountId, account);
         }
 
-        // check current height when event is BALANCE changed
+        // check current height when event is POC
         if (Account.Event.POC == event) {
             if (!balanceChangedMap.containsKey(height)) {
                 balanceChangedMap.put(height, Maps.newHashMap());
@@ -260,6 +281,58 @@ public class PocProcessorImpl implements PocProcessor {
         return true;
     }
 
+    @Override
+    public Map<Long, CertifiedPeer> getCertifiedPeers(){
+        return PocHolder.inst.certifiedPeers;
+    }
+
+    @Override
+    public Map<Integer, Map<Long,CertifiedPeer>> getHistoryCertifiedPeers() {
+        return PocHolder.inst.historyCertifiedPeers;
+    }
+
+    @Override
+    public boolean rollbackTo(int height) {
+        try {
+            int currentHeight = Conch.getHeight();
+            // rollback the poc score map
+            synchronized (PocHolder.inst.historyScore) {
+                for(int i = height + 1; i <= currentHeight ; i++){
+                    if(PocHolder.inst.historyScore.containsKey(i)){
+                        PocHolder.inst.historyScore.remove(i);
+                    }
+                }
+                //rollback the db
+                PocDb.rollback(height);
+            }
+
+            // reset the score map
+            synchronized (PocHolder.inst.scoreMap) {
+                PocHolder.inst.scoreMap.clear();
+                PocHolder.inst.scoreMap = PocDb.listAll();
+            }
+
+            // rollback the history certified peers
+            synchronized (PocHolder.inst.historyCertifiedPeers) {
+                for (int i = height + 1; i <= currentHeight; i++) {
+                    // rollback the poc score map
+                    if (PocHolder.inst.historyCertifiedPeers.containsKey(i)) {
+                        PocHolder.inst.historyCertifiedPeers.remove(i);
+                    }
+                }
+            }
+
+            // reset the certified peers
+
+
+            // set the latest certified peer
+            PocHolder.inst.updateHeight(height);
+
+        } finally {
+
+        }
+        return true;
+    }
 
     /**
      * load the poc holder backup from local disk
@@ -276,42 +349,126 @@ public class PocProcessorImpl implements PocProcessor {
             oldPocTxsProcess = true;
         }
     }
+    /**
+     * update the recipient id of the old  poc txs
+     */
+    public static void updateRecipientIdIntoOldPocTxs() {
+        if(Conch.getHeight() > Constants.POC_TX_ALLOW_RECIPIENT) {
+            return;
+        }
+        Logger.logInfoMessage("[PocTxCorrect] update the recipient id of the old  poc txs");
+        DbIterator<? extends Transaction> iterator = null;
+        Connection updateConnection = null;
+        try {
+            iterator = Conch.getBlockchain().getTransactions(GenesisRecipient.POC_TX_CREATOR_ID, TransactionType.TYPE_POC, true, 0, Integer.MAX_VALUE);
+            updateConnection = Db.db.getConnection();
+
+            int i = 0;
+            while (iterator.hasNext()) {
+                Transaction transaction = iterator.next();
+                Attachment attachment = transaction.getAttachment();
+                if(PocTxWrapper.SUBTYPE_POC_NODE_TYPE == attachment.getTransactionType().getSubtype()
+                        && (transaction.getRecipientId() == -1 || transaction.getRecipientId() == 0)) {
+                    long accountIdOfAttachment = -1L;
+                    if(attachment instanceof PocTxBody.PocNodeTypeV3){
+                        accountIdOfAttachment = ((PocTxBody.PocNodeTypeV3) attachment).getAccountId();
+                    }else if(attachment instanceof PocTxBody.PocNodeTypeV2){
+                        accountIdOfAttachment = ((PocTxBody.PocNodeTypeV2) attachment).getAccountId();
+                    }
+
+                    try (PreparedStatement pstmt = updateConnection.prepareStatement("UPDATE transaction SET recipient_id = ? WHERE id = ?")) {
+                        pstmt.setLong(1, accountIdOfAttachment);
+                        pstmt.setLong(2, transaction.getId());
+                        pstmt.executeUpdate();
+                        i++;
+                    }
+                }
+            }
+            Logger.logInfoMessage("[PocTxCorrect] update finished. update count is " + i);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            DbUtils.close(iterator);
+            DbUtils.close(updateConnection);
+        }
+    }
+
+    private static boolean pocDbBeReset = false;
+    /**
+     * reset the poc table to avoid the poc score wrong
+     */
+    public static void resetPocDb() {
+//        if(Conch.getHeight() > RewardCalculator.MINER_JOINING_PHASE) {
+//            return;
+//        }
+
+        try {
+            Logger.logInfoMessage("[ResetPocDb] reset the poc db");
+            if (!Db.db.isInTransaction()) {
+                Db.db.beginTransaction();
+            }
+            int count = PocDb.rollback(0);
+
+            Db.db.clearCache();
+            Db.db.commitTransaction();
+            pocDbBeReset = true;
+            Logger.logInfoMessage("[ResetPocDb] reset the poc db finished, reset count is " + count);
+        } catch (RuntimeException e) {
+            Logger.logErrorMessage("Error reset the poc db, " + e.toString());
+            Db.db.rollbackTransaction();
+            throw e;
+        }
+    }
 
     public static void init() {
+        // no needs to reset when lanuch a new network
+        // resetPocDb();
         ThreadPool.scheduleThread("OldPocTxsProcessThread", oldPocTxsProcessThread, 1, TimeUnit.MINUTES);
         ThreadPool.scheduleThread("DelayedPocTxsProcessThread", delayedPocTxsProcessThread, pocTxSynThreadInterval, TimeUnit.SECONDS);
+        //updateRecipientIdIntoOldPocTxs();
     }
 
     private static final Runnable oldPocTxsProcessThread = () -> {
         try {
 
             if (!oldPocTxsProcess) {
-                Logger.logDebugMessage("all old poc txs be processed yet, sleep for the next round check...");
+                Logger.logDebugMessage("[OldPocTxs] all old poc txs be processed yet, sleep for the next round check...");
                 return;
             }
-            
+
             // old poc txs process: a) miss the poc tx, b) restart the cos client
             if (oldPocTxsProcess) {
                 // total poc txs from last height
-                int fromHeight = (PocHolder.inst.lastHeight <= -1) ? 0 : PocHolder.inst.lastHeight;
+                int fromHeight = 0;
+                if(PocHolder.inst.lastHeight > 0) {
+                    fromHeight = PocHolder.inst.lastHeight;
+                }
                 int toHeight = Conch.getHeight();
-                Logger.logInfoMessage("process old poc txs from %d to %d ...", fromHeight, toHeight);
+
+                BlockchainImpl.getInstance().writeLock();
                 DbIterator<BlockImpl> blocks = null;
                 try {
-                    blocks = BlockchainImpl.getInstance().getBlocks(fromHeight, toHeight);
+                    if(pocDbBeReset){
+                        Logger.logInfoMessage("[OldPocTxs] process old poc txs from %d to %d when poc db be reset...", 0, toHeight);
+                        blocks = BlockchainImpl.getInstance().getAllBlocks();
+                    }else{
+                        Logger.logInfoMessage("[OldPocTxs] process old poc txs from %d to %d ...", fromHeight, toHeight);
+                        blocks = BlockchainImpl.getInstance().getBlocks(fromHeight, toHeight);
+                    }
                     int count = 0;
                     for (BlockImpl block : blocks) {
                         count += instance.pocSeriesTxProcess(block);
                     }
-                    Logger.logInfoMessage("old poc txs processed[from %d to %d] [processed size=%d]", fromHeight, toHeight, count);
+                    Logger.logInfoMessage("[OldPocTxs] old poc txs processed[from %d to %d] [processed size=%d]", fromHeight, toHeight, count);
                     oldPocTxsProcess = false;
                 } finally {
                     DbUtils.close(blocks);
+                    BlockchainImpl.getInstance().writeUnlock();
                 }
             }
 
         } catch (Exception e) {
-            Logger.logErrorMessage("old poc txs processing thread interrupted", e);
+            Logger.logErrorMessage("[OldPocTxs] old poc txs processing thread interrupted", e);
         } catch (Throwable t) {
             Logger.logErrorMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
             System.exit(1);
@@ -403,8 +560,35 @@ public class PocProcessorImpl implements PocProcessor {
 
         //just process poc tx
         for (Transaction tx : txs) {
-            if (pocTxProcess(tx)) count++;
+            if (TransactionType.TYPE_POC  == tx.getType().getType()) {
+                if(pocTxProcess(tx)) count++;
+            } else if(TransactionType.TYPE_PAYMENT  == tx.getType().getType()){
+                // payment tx processing
+                Account recipientAccount = Account.getAccount(tx.getRecipientId());
+                Account senderAccount = Account.getAccount(tx.getSenderId());
+                putInBalanceChangedAccount(block.getHeight(), senderAccount, Account.Event.BALANCE);
+                putInBalanceChangedAccount(block.getHeight(), recipientAccount, Account.Event.BALANCE);
+                count++;
+            } else if(TransactionType.TYPE_COIN_BASE  == tx.getType().getType()){
+                // coinbase tx processing
+                Attachment.CoinBase coinBase = (Attachment.CoinBase) tx.getAttachment();
+                Account senderAccount = Account.getAccount(tx.getSenderId());
+                Map<Long, Long> consignors = coinBase.getConsignors();
+
+                if (consignors.size() == 0) {
+                    putInBalanceChangedAccount(block.getHeight(), senderAccount, Account.Event.POC);
+                } else {
+                    Map<Long, Long> rewardList = PoolRule.calRewardMapAccordingToRules(senderAccount.getId(), coinBase.getGeneratorId(), tx.getAmountNQT(), consignors);
+                    for (long id : rewardList.keySet()) {
+                        Account account = Account.getAccount(id);
+                        putInBalanceChangedAccount(block.getHeight(), senderAccount, Account.Event.POC);
+                    }
+                }
+                count++;
+            }
         }
+
+        balanceChangeMapProcessing(block.getHeight());
 
         return count;
     }
@@ -561,6 +745,9 @@ public class PocProcessorImpl implements PocProcessor {
             return false;
         }
         long accountId = account.getId();
+        if(LocalDebugTool.isCheckPocAccount(accountId)) {
+            Logger.logDebugMessage(Account.rsAccount(accountId) + "'s balance is changed at height " + height);
+        }
         PocScore pocScoreToUpdate = PocHolder.getPocScore(height, accountId);
         PocHolder.saveOrUpdate(pocScoreToUpdate.setHeight(height).ssCal());
         return true;

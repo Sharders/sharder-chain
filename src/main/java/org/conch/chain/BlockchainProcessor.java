@@ -27,6 +27,7 @@ import org.conch.db.DerivedDbTable;
 import org.conch.peer.Peer;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionImpl;
+import org.conch.util.Convert;
 import org.conch.util.Observable;
 import org.json.simple.JSONObject;
 
@@ -97,7 +98,13 @@ public interface BlockchainProcessor extends Observable<Block, BlockchainProcess
 
         @Override
         public String getMessage() {
-            return block == null ? super.getMessage() : super.getMessage() + " [block id=" + block.getId() + ", block string id=" + block.getStringId() + "]";
+            return block == null ? super.getMessage() : super.getMessage() + String.format(" [block id=%d, block generator=%s, block height=%d, block string id=%s, block signature=%s]"
+                    , block.getId()
+                    , Account.rsAccount(block.getGeneratorId())
+                    , block.getHeight()
+                    , block.getStringId()
+                    , Convert.toHexString(block.getBlockSignature())
+            );
         }
 
     }

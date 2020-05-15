@@ -90,7 +90,7 @@ public interface Blockchain {
 
     DbIterator<? extends Transaction> getAllTransactions();
 
-    DbIterator<TransactionImpl> getTransactions(long accountId, boolean isFrom, int from, int to);
+    DbIterator<TransactionImpl> getTransactions(long accountId, byte type, boolean isFrom, int from, int to);
 
     DbIterator<? extends Transaction> getTransactions(long accountId, byte type, byte subtype, int blockTimestamp,
                                                       boolean includeExpiredPrunable);

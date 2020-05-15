@@ -215,7 +215,7 @@ public class SharderGenesis {
      * default node type tx for known peers
      * @return node-type txs
      */
-    private static List<TransactionImpl> nodeTypeTxs() {
+    public static List<TransactionImpl> nodeTypeTxs() {
         List<TransactionImpl> transactions = Lists.newArrayList();
 
         GenesisPeer.getAll().forEach(genesisPeer -> {

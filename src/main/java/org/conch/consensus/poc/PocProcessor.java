@@ -26,6 +26,7 @@ import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.peer.CertifiedPeer;
 import org.conch.tx.Transaction;
 
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -104,5 +105,10 @@ public interface PocProcessor {
      * notify poc processor to re-process the all poc txs
      */
     void notifySynTxNow();
-    
+
+    Map<Long, CertifiedPeer> getCertifiedPeers();
+
+    Map<Integer, Map<Long,CertifiedPeer>>  getHistoryCertifiedPeers();
+
+    boolean rollbackTo(int height);
 }

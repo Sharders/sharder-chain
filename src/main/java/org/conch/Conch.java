@@ -190,10 +190,17 @@ public final class Conch {
 
         return Peer.Type.getSimpleName(nodeTypeCode);
     }
-    
+
+    private static int readSerialNoCount = 0;
     public static String getSerialNum(){
-        if(StringUtils.isEmpty(Conch.serialNum) || Conch.serialNum.length() < 6) readAndSetSerialNum();
-        
+        if((StringUtils.isEmpty(Conch.serialNum) || Conch.serialNum.length() < 6)
+                && readSerialNoCount == 0) {
+            readAndSetSerialNum();
+        }
+        // every specified times to read the serial no from
+        if(readSerialNoCount++ == 100){
+            readSerialNoCount = 0;
+        }
         return Conch.serialNum;
     }
     
@@ -222,8 +229,8 @@ public final class Conch {
      * Preset parameters
      */
     public static class PresetParam {
-        public static final int DEFAULT_PEER_PORT=3219;
-        public static final int DEFAULT_API_PORT=8216;
+        public static final int DEFAULT_PEER_PORT=3218;
+        public static final int DEFAULT_API_PORT=8215;
         public static final int DEFAULT_API_SSL_PORT=8217;
 
         public Constants.Network network;
@@ -242,9 +249,9 @@ public final class Conch {
         static {
             //preset params
             presetMap.clear();
-            presetMap.put(Constants.Network.DEVNET, new PresetParam(Constants.Network.DEVNET, 9219, 9216, 9217));
-            presetMap.put(Constants.Network.TESTNET, new PresetParam(Constants.Network.TESTNET, 7219, 7216, 7217));
-            presetMap.put(Constants.Network.MAINNET, new PresetParam(Constants.Network.MAINNET, 3219, 3216, 3217));
+            presetMap.put(Constants.Network.DEVNET, new PresetParam(Constants.Network.DEVNET, 9218, 9215, 9217));
+            presetMap.put(Constants.Network.TESTNET, new PresetParam(Constants.Network.TESTNET, 7218, 7215, 7217));
+            presetMap.put(Constants.Network.MAINNET, new PresetParam(Constants.Network.MAINNET, 3218, 3215, 3217));
         }
 
         public static void print(){
@@ -381,15 +388,27 @@ public final class Conch {
     }
 
     private static String readAndParseMyAddress(){
-        String myAddr = Convert.emptyToNull(Conch.getStringProperty("sharder.myAddress", IpUtil.getNetworkIp()).trim());
-
+        String myAddr = Convert.emptyToNull(Conch.getStringProperty("sharder.myAddress", "").trim());
+        boolean closeAutoSwitchIp = Conch.getBooleanProperty("sharder.closeAutoSwitchIp");
         // correct the undefined issue of myAddress
         if("undefined".equalsIgnoreCase(myAddr)){
             myAddr = IpUtil.getNetworkIp().trim();
             Conch.storePropertieToFile("sharder.myAddress", myAddr);
         }
 
-        return  myAddr;
+        if(closeAutoSwitchIp) {
+            Logger.logInfoMessage("Auto check and switch the internal ip to public ip is CLOSED");
+        }else{
+            // correct the internal IP to public IP if the client have the public IP at the every client start
+            if(StringUtils.isEmpty(myAddr)
+            || (!IpUtil.isDomain(myAddr) && IpUtil.isInternalIp(myAddr)) // myAddress is not the domain and it is internal ip
+            ) {
+                myAddr = IpUtil.getNetworkIp().trim();
+                Conch.storePropertieToFile("sharder.myAddress", myAddr);
+            }
+        }
+
+        return myAddr;
     }
     /**
      * [NAT] useNATService and client configuration

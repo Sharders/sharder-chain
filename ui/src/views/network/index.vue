@@ -20,6 +20,7 @@
                     <div class="block_blue radius_blue">
                         <p>{{$t('network.block_peers_volume')}}</p>
                         <p><span>{{peerNum}}</span></p>
+                        <p class="declared_peers"><span>{{$t('network.declared_peers_size')}}</span><span class="declared_size">{{declaredPeerSize}}</span></p>
                     </div>
                 </div>
             </div>
@@ -501,6 +502,7 @@
                 newestTime: 0,
                 averageAmount: 0,
                 peerNum: 0,
+                declaredPeerSize: 0,
                 fetchCoordinates: false,
                 //旷工信息
                 activeCount: 0,
@@ -538,7 +540,7 @@
                     clearInterval(networkDataLoader);
                 }
             }, SSO.downloadingBlockchain ? this.$global.cfg.soonInterval : this.$global.cfg.defaultInterval);
-    
+
             this.menuAdapter()
         },
         filters: {
@@ -610,12 +612,13 @@
                 _this.$global.fetch("GET", {startThis:"startThis"}, "getPeers").then(res => {
                     console.log(res.coordinates);
                     _this.peerNum = res.peers.length;
+                    _this.declaredPeerSize = res.declaredPeerSize;
                     _this.$global.coordinatesMap = JSON.parse(res.coordinates);
                     return _this.$global.drawPeers();
                 }).catch(err => {
                     console.info("error", err);
                 });
-                
+
             },
             networkUrlBlocks() {
                 const _this = this;
@@ -751,14 +754,24 @@
         font-weight: normal;
         text-align: center;
     }
-    
+
 
     .last_block {
         text-align: left!important;
         font-size: 12px!important;
-        
+
         .generator {
             margin-right: 10px;
+        }
+    }
+
+    .declared_peers {
+        text-align: left!important;
+        font-size: 13px!important;
+
+        .declared_size {
+            margin-left: 5px;
+            font-weight: bold;
         }
     }
 

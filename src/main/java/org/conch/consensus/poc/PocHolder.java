@@ -41,18 +41,18 @@ class PocHolder implements Serializable {
     
     /** poc score **/
     // accountId : pocScore
-    private transient Map<Long, PocScore> scoreMap = PocDb.listAll();
+    protected transient Map<Long, PocScore> scoreMap = PocDb.listAll();
    
     // height : { accountId : pocScore }
-    private transient Map<Integer, Map<Long, PocScore>> historyScore = Maps.newConcurrentMap();
+    protected transient Map<Integer, Map<Long, PocScore>> historyScore = Maps.newConcurrentMap();
     /** poc score **/
 
     /** certified peers **/
     // certified peer: foundation node,sharder hub/box, community node
     // account id : certified peer
-    private Map<Long, CertifiedPeer> certifiedPeers = Maps.newConcurrentMap();
+    protected Map<Long, CertifiedPeer> certifiedPeers = Maps.newConcurrentMap();
     // height : { accountId : certifiedPeer }
-    private Map<Integer, Map<Long,CertifiedPeer>> historyCertifiedPeers = Maps.newConcurrentMap();
+    protected Map<Integer, Map<Long,CertifiedPeer>> historyCertifiedPeers = Maps.newConcurrentMap();
     /** certified peers **/
     
     
@@ -283,11 +283,12 @@ class PocHolder implements Serializable {
         PocDb.saveOrUpdate(pocScore);
         
         PocScore pocScoreDetail = inst.scoreMap.get(pocScore.accountId);
-        
-        if(pocScore.height >= pocScoreDetail.height) {
+
+        if(pocScoreDetail == null
+                || pocScore.height >= pocScoreDetail.height) {
             inst.scoreMap.put(pocScore.accountId, pocScore);
         }
-        
+
         return pocScore;
     }
     

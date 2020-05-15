@@ -149,7 +149,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
                     if (Conch.hasSerialNum() && !Constants.hubLinked) {
                         if (Logger.printNow(Constants.BlockchainProcessor_getMoreBlocks)) {
-                            Logger.logDebugMessage("Don't synchronize blocks before the Hub initialization is completed");
+                            Logger.logDebugMessage("Don't synchronize blocks before the Client initialization is completed");
                         }
                         return;
                     }
@@ -1707,8 +1707,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         if (!block.verifyGenerationSignature() && !Generator.allowsFakeMining(block.getGeneratorPublicKey())) {
             Account generatorAccount = Account.getAccount(block.getGeneratorId());
             PocScore pocScoreObj = Conch.getPocProcessor().calPocScore(generatorAccount, previousLastBlock.getHeight());
-            String errorMsg = String.format("Block generation signature verification failed, generator %s poc score is %d at height %d.",
-                    generatorAccount.getRsAddress(), pocScoreObj.total(), (previousLastBlock.getHeight() + 1));
+            String errorMsg = String.format("Block generation signature verification failed, generator %s(id=%d, last update height=%d)'s poc score is %d at height %d.",
+                    generatorAccount.getRsAddress(), generatorAccount.getId(), pocScoreObj.getHeight() , pocScoreObj.total(), (previousLastBlock.getHeight() + 1));
             throw new BlockNotAcceptedException(errorMsg, block);
         }
         if (!block.verifyBlockSignature()) {
@@ -2033,7 +2033,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 }
 //                SharderPoolProcessor.rollback(commonBlock.getHeight());
 //                PocDb.rollback(commonBlock.getHeight());
-                
+
+                Conch.getPocProcessor().rollbackTo(commonBlock.getHeight());
+
                 Db.db.clearCache();
                 Db.db.commitTransaction();
             } catch (RuntimeException e) {

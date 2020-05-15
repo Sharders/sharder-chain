@@ -10,6 +10,8 @@ import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.peer.Peer;
+import org.conch.util.LocalDebugTool;
+import org.conch.util.Logger;
 
 import java.io.Serializable;
 import java.math.BigInteger;
@@ -42,7 +44,7 @@ public class PocScore implements Serializable {
     private static BigInteger parseAndGetScoreMagnification(){
         BigInteger mag = BigInteger.TEN;
         try{
-            if(Conch.getHeight() <= Constants.POC_SCORE_MAGNIFICATION_HEIGHT) {
+            if(Conch.getHeight() <= Constants.POC_TX_ALLOW_RECIPIENT) {
                 mag = BigInteger.TEN;
             }
         }catch(Exception e){
@@ -137,6 +139,9 @@ public class PocScore implements Serializable {
     }
     
     public PocScore setHeight(int height) {
+        if(LocalDebugTool.isCheckPocAccount(this.accountId)) {
+            Logger.logDebugMessage("[LocalDebugMode] " + Account.rsAccount(this.accountId) + " is updated at height " + height);
+        }
         this.height = height;
         return this;
     }

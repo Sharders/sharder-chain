@@ -32,6 +32,7 @@ public class RuntimeEnvironment {
     public static final String DIRPROVIDER_ARG = "sharder.runtime.dirProvider";
     public static final String NETWORK_ARG = "sharder.runtime.network";
     public static final String BOOTNODE_ARG = "sharder.runtime.bootNode";
+    public static final String LOCALDEBUG_ARG = "sharder.runtime.localDebug";
 
     private static final String osname = System.getProperty("os.name").toLowerCase();
     private static final boolean isHeadless;

@@ -235,6 +235,7 @@ const cn = {
         'block_newest_time': "生成时间 ",
         'block_avg_transaction_volume': "区块平均交易数",
         'block_peers_volume': "节点数量",
+        'declared_peers_size': "历史声明节点数",
         'miner_info': "交易概况",
         'miner_volume': "矿工数量",
         'total_trading_volume': "交易总额",

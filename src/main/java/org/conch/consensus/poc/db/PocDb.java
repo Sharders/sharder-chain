@@ -115,14 +115,14 @@ public class PocDb {
         }
     }
 
-    public static void rollback(int height) {
+    public static int rollback(int height) {
         if (!Db.db.isInTransaction()) {
             throw new IllegalStateException("Not in transaction");
         }
-        try (Connection con = Db.db.getConnection(); 
-            PreparedStatement pstmtDelete = con.prepareStatement("DELETE FROM ACCOUNT_POC_SCORE WHERE height > ?")) {
+        try (Connection con = Db.db.getConnection();
+             PreparedStatement pstmtDelete = con.prepareStatement("DELETE FROM ACCOUNT_POC_SCORE WHERE height > ?")) {
             pstmtDelete.setInt(1, height);
-            pstmtDelete.executeUpdate();
+            return pstmtDelete.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
         }

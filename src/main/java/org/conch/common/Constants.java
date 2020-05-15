@@ -226,7 +226,7 @@ public final class Constants {
     public static final int POC_SS_HELD_SCORE_PHASE2_HEIGHT = isTestnet() ? 13777 : 0;
     public static final int POC_POOL_NEVER_END_HEIGHT = isTestnet() ? 13777 : 0;
     public static final int POC_BALANCE_CORRECTION_HEIGHT = isTestnet() ? 15777 : 0;
-    public static final int POC_SCORE_MAGNIFICATION_HEIGHT = isTestnet() ? 1400 : 0;
+    public static final int POC_TX_ALLOW_RECIPIENT = isTestnet() ? 0 : 0;
 
     //not opened yet
     public static final int PHASING_BLOCK_HEIGHT = Integer.MAX_VALUE;
@@ -372,6 +372,15 @@ public final class Constants {
         if (StringUtils.isNotBlank(networkInEnv)) return networkInEnv;
 
         return networkInProperties;
+    }
+
+    /**
+     * used to local debug
+     * @return true： local debug mode
+     */
+    public static boolean isLocalDebug(){
+        String localDebugEnv = System.getProperty(RuntimeEnvironment.LOCALDEBUG_ARG);
+        return StringUtils.isNotEmpty(localDebugEnv) ? Boolean.parseBoolean(localDebugEnv) : false;
     }
 
     private static final String parseBootNodeHost() {
