@@ -9,7 +9,7 @@
             </el-radio-group>
             <el-col :span="24" class="login_operation">
                 <div style="font-size: x-small;color: #5daf34;text-align: left;height: 12px;">
-                    <span v-if="tabTitle === 'key'&& hubBind">{{$t('login.login_binding_hub_account_tip')}}{{hubBindAddress}}</span>
+                    <span v-if="tabTitle === 'key' && hubBind && displayBindAddr">{{$t('login.login_binding_hub_account_tip')}}{{hubBindAddress}}</span>
                 </div>
                 <input v-if="tabTitle === 'key'" class="account_input" type="password" v-model="secretPhrase"
                        :placeholder="$t('login.login_placeholder')"/>
@@ -72,6 +72,16 @@
             SSO.init();
         },
         methods: {
+            displayBindAddr(){
+                const _this = this;
+
+                if(_this.$store.state.userConfig["sharder.myAddress"]
+                    && (_this.$store.state.userConfig["sharder.myAddress"].contains("sharder.io")
+                        || _this.$store.state.userConfig["sharder.myAddress"].contains("sharder.org"))){
+                    return false
+                }
+                return true
+            },
             autoLogin(val) {
                 if (val["sharder.login.mode"] !== "auto" || sessionStorage.getItem("sharder.login.mode") === "manual") return;
                 let _this = this;
