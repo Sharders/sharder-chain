@@ -253,7 +253,7 @@ export default {
     },
     formatNQTMoney(num, n = 8) {
         let s = new BigNumber(num).dividedBy("100000000").toFixed();
-        
+
         if (isNaN(s)) {
             return 0 + this.unit;
         }
@@ -659,10 +659,10 @@ export default {
     drawPeers() {
         let _this = this.$vue;
         let myChart = _this.$echarts.init(document.getElementById("peers-map"));
-        
+
         function parseData (coordinatesMap) {
             if(undefined == coordinatesMap || null == coordinatesMap) return;
-            
+
             let mapData = [];
             for (let i of Object.keys(coordinatesMap)) {
                 if (coordinatesMap[i]["X"] !== "" && coordinatesMap[i]["X"] !== "0"
@@ -670,7 +670,7 @@ export default {
                     && !isNaN(coordinatesMap[i]["X"]) && !isNaN(coordinatesMap[i]["Y"])) {
                     let locationArray = [coordinatesMap[i]["Y"],coordinatesMap[i]["X"]];
                     mapData.push({
-                        name: i, 
+                        name: i,
                         value: locationArray
                     });
                 }
@@ -821,19 +821,19 @@ export default {
      */
     getTransactionAmountNQT(t, accountRS) {
         let _this = this;
-   
+
         let isCreatePoolTx = (t.type === 8 && t.subtype === 0) ? true : false;
         let isDestroyPoolTx = (t.type === 8 && t.subtype === 1) ? true : false;
         let isJoinPoolTx = (t.type === 8 && t.subtype === 2) ? true : false;
         let isQuitPoolTx = (t.type === 8 && t.subtype === 3) ? true : false;
-        
+
         let amountNQT = t.amountNQT;
         if(isJoinPoolTx || isQuitPoolTx){
             amountNQT = t.attachment.amount
         }else if(isCreatePoolTx || isDestroyPoolTx){
             amountNQT = _this.poolPledgeAmount;
         }
-        
+
         amountNQT = new BigNumber(amountNQT).dividedBy("100000000").toFixed();
 
         if (isJoinPoolTx || isCreatePoolTx) {
@@ -873,7 +873,9 @@ export default {
      * @param t
      */
     getSenderOrRecipient(t) {
-        if (t.type === 9 && this.$vue.$store.state.account === t.recipientRS) {
+        if(t.type === 12){
+            return "System"
+        } else if (t.type === 9 && this.$vue.$store.state.account === t.recipientRS) {
             return t.senderRS
         } else if (t.type === 9 && this.$vue.$store.state.account !== t.recipientRS) {
             return this.$vue.$t('dialog.account_transaction_own')

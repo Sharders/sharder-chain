@@ -196,22 +196,25 @@
                                 <td class="pc-table">{{$global.getTransactionAmountNQT(transaction,accountInfo.accountRS)}}</td>
                                 <td class="pc-table">{{$global.getTransactionFeeNQT(transaction)}}</td>
                                 <td class=" image_text w300 pc-table">
-                                    <span class="linker" v-if="transaction.type === 9">Coinbase</span>
+                                    <!-- tx sender -->
+                                    <span class="linker" v-if="transaction.type === 9 || transaction.type === 18">Coinbase</span>
+                                    <span class="linker" v-else-if="transaction.type === 12" @click="openBlockInfoDialog(transaction.height)">System</span>
                                     <span class="linker" @click="openAccountInfoDialog(transaction.senderRS)"
                                           v-else-if="transaction.senderRS === accountInfo.accountRS && transaction.type !== 9">
                                          <span class="linker" @click="openAccountInfoDialog(transaction.recipientRS)" v-if="transaction.type === 8 && transaction.subtype === 3 &&transaction.recipientRS !== accountInfo.accountRS">
                                             {{transaction.recipientRS}}
-                                        </span>
-                                        <span v-else>{{$t('transaction.self')}}</span>
+                                         </span>
+                                         <span v-else>{{$t('transaction.self')}}</span>
                                     </span>
                                     <span class="linker" v-else-if=" transaction.senderRS !== accountInfo.accountRS && transaction.type !== 9">
                                          <span v-if="transaction.type === 8 && transaction.subtype === 3">
                                             {{$t('transaction.self')}}
-                                        </span>
-                                        <span v-else>{{transaction.senderRS}}</span>
+                                         </span>
+                                         <span v-else>{{transaction.senderRS}}</span>
                                     </span>
 
                                     <img src="../../assets/img/right_arrow.svg"/>
+                                    <!-- tx recipient -->
                                     <span class="linker" @click="openAccountInfoDialog(transaction.senderRS)" v-if="transaction.type === 9">
                                         {{$t('transaction.self')}}
                                     </span>

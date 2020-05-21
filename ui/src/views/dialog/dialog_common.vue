@@ -199,6 +199,7 @@
                             <td class="pc-table">{{$global.getTransactionAmountNQT(transaction,"")}}</td>
                             <td class="pc-table">{{$global.getTransactionFeeNQT(transaction)}}</td>
                             <td class="pc-table" v-if="transaction.type === 9">CoinBase</td>
+                            <td class="pc-table" v-else-if="transaction.type === 12">System</td>
                             <td class="linker pc-table" style="font-size:11px;" v-else @click="openAccountInfo(transaction.senderRS)">
                                 {{transaction.senderRS}}
                             </td>
@@ -333,7 +334,7 @@
                             :label="$t('poc.tx')">
                         </el-table-column>
                     </el-table>
-                    
+
                     <!-- mobile -->
                     <el-table :data="pocInfoList" class="poc mobile" style="width: 100%">
                         <el-table-column type="expand">
@@ -1066,7 +1067,7 @@
                         line-height: 20px;
                     }
                 }
-                
+
                 .poc {
                     margin-top: 20px;
                 }
@@ -1274,5 +1275,5 @@
             max-height: 300px;
         }
     }
-    
+
 </style>
