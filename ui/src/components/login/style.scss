@@ -45,19 +45,23 @@
             font-size: 16px;
             text-align: center;
             img{
-                width:100px;
+                width:150px;
             }
         }
         .content_message{
             background-color: #fff;
             box-shadow: 0.5px 0.5px 5px 2px #e7e7e7;
             border-radius:4px;
-            height: 90px;
+            height: 150px;
             margin-bottom: 20px;
             text-align:center;
             overflow:auto;
+            > div:first-child{
+                margin-top: 3%;
+                margin-bottom: 2%;
+            }
             > div{
-                margin-top:4%;
+                margin-bottom: 3px;
                 a{
                     color: #ff0f0f;
                     font-size: 15px;
