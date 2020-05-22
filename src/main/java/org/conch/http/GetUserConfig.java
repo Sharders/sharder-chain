@@ -46,7 +46,21 @@ import java.util.Properties;
 public final class GetUserConfig extends APIServlet.APIRequestHandler {
 
     static final GetUserConfig INSTANCE = new GetUserConfig();
-    static final List<String> EXCLUDE_KEYS = Arrays.asList("sharder.adminPassword", "sharder.HubBindPassPhrase");
+    static final List<String> EXCLUDE_KEYS = Arrays.asList(
+            "sharder.adminPassword",
+            "sharder.oss.bucket",
+            "sharder.oss.internal-url",
+            "sharder.oss.key",
+            "sharder.oss.secret",
+            "sharder.oss.url",
+            "sharder.HubBindPassPhrase",
+            "sharder.autoTransactionAddress",
+            "sharder.obsoleteDelay",
+            "harder.debugTraceLog",
+            "sharder.closeAutoSwitchIp",
+            "sharder.closeAutoUpgrade",
+            "sharder.closeSwitchToBootFork:"
+    );
 
     private GetUserConfig() {
         super(new APITag[]{APITag.INFO});

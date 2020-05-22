@@ -4,8 +4,11 @@ const en = {
     login: {
         'incorrect_key': "The mnemonic phrase you entered is incorrect, please try again",
         'no_found_account': "Your account address could not be found",
-        'login_tip1': "Warning: You are connected to the Testnet, please login with your TSS address.",
+        'login_tip0': "PLEASE read the following tips and warnings carefully",
+        'login_tip1': "Warning: You are connected to the Testnet, please login with your TSS address or mnemonic phrase.",
         'login_tip2': "Please store your mnemonic phrase securely, retrieval is not possible once lost.",
+        'login_tip3': "To avoid theft of mnemonic phrase, please use a local or trusted node for large transfers!",
+        'login_tip4': "CDW-87L3-HT5W-K9WD-3AQJ3 is a public trial account, please do not transfer funds to this account or claim rewards on this account!",
         'language': 'Language',
         'login': 'Login',
         'secret_login': "Mnemonic Phrase",

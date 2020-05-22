@@ -94,6 +94,14 @@ public class UrlManager {
     }
 
     /**
+     * get API URLs
+     */
+    public static String getFoundationApiUrl(String path) {
+        String domain = USE_LOCAL ? "127.0.0.1" : Conch.getSharderFoundationURL();
+        return HTTPS_SCHEME + domain + path;
+    }
+
+    /**
      * check validation of request host
      *
      * @param request HttpServletRequest

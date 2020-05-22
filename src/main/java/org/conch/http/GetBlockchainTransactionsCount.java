@@ -14,6 +14,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 
 public class GetBlockchainTransactionsCount extends APIServlet.APIRequestHandler {
@@ -49,27 +50,8 @@ public class GetBlockchainTransactionsCount extends APIServlet.APIRequestHandler
             }
 
             if(type == -1 || type == TransactionType.TYPE_POC) {
-                // Poc txs processing
-                DbIterator<? extends Transaction> iterator = null;
-                try {
-                    iterator = Conch.getBlockchain().getTransactions(GenesisRecipient.POC_TX_CREATOR_ID, TransactionType.TYPE_POC, true, 0, Integer.MAX_VALUE);
-                    while (iterator.hasNext()) {
-                        Transaction transaction = iterator.next();
-                        Attachment attachment = transaction.getAttachment();
-                        if(PocTxWrapper.SUBTYPE_POC_NODE_TYPE == attachment.getTransactionType().getSubtype()) {
-                            long accountIdOfAttachment = -1L;
-                            if(attachment instanceof PocTxBody.PocNodeTypeV3){
-                                accountIdOfAttachment = ((PocTxBody.PocNodeTypeV3) attachment).getAccountId();
-                            }else if(attachment instanceof PocTxBody.PocNodeTypeV2){
-                                accountIdOfAttachment = ((PocTxBody.PocNodeTypeV2) attachment).getAccountId();
-                            }
-
-                            if(accountId == accountIdOfAttachment) count++;
-                        }
-                    }
-                } finally {
-                    DbUtils.close(iterator);
-                }
+                List<JSONObject> txJsonObjs = GetBlockchainTransactions.checkOrLoadOldPocTxs(accountId, true);
+                count += txJsonObjs.size();
             }
 
             response.put("count",count);

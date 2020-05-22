@@ -25,6 +25,7 @@ import org.conch.Conch;
 import org.conch.peer.Peer;
 import org.conch.peer.Peers;
 import org.conch.util.Convert;
+import org.conch.util.IpUtil;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -41,8 +42,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public final class GetPeers extends APIServlet.APIRequestHandler {
-    static final Map CoordinatesMap = new HashMap();
-    static final HashMap tempCoordinatesMap = new HashMap();
     static final GetPeers instance = new GetPeers();
 
     private GetPeers() {
@@ -114,94 +113,17 @@ public final class GetPeers extends APIServlet.APIRequestHandler {
             peersJSON.add(Peers.getMyAddress());
         }
 
-        String startThis =  req.getParameter("startThis");
         JSONObject response = new JSONObject();
-        tempCoordinatesMap.putAll(CoordinatesMap);
-        if (startThis != null){
-            if (CoordinatesMap.size() == 0  || (CoordinatesMap.get("peersLength") != null && (int)CoordinatesMap.get("peersLength") != peersJSON.size())){
-                new Thread("ExchangeIpAddr"){
-                    public void run(){
-                        final String result = byIPtoCoordinates("https://sharder.org/api/front/coordinates/ip",JSONArray.toJSONString(peersJSON));
-                        if (result.contains("ErrorInfo")){
-                            return;
-                        }else{
-                            CoordinatesMap.put("CoordinatesList",result);
-                            CoordinatesMap.put("peersLength",peersJSON.size());
-                            tempCoordinatesMap.putAll(CoordinatesMap);
-                        }
-                    }
-                }.start();
-            }
-            response.put("coordinates",tempCoordinatesMap.get("CoordinatesList"));
+
+        String startThis =  req.getParameter("startThis");
+        if (startThis != null) {
+            response.put("coordinates", IpUtil.parseAndConvertToCoordinates(peersJSON).toJSONString());
         }
-        response.put("peers", peersJSON);
-        response.put("declaredPeerSize", Conch.getPocProcessor().getCertifiedPeers().size());
         return response;
     }
 
     @Override
     protected boolean allowRequiredBlockParameters() {
         return false;
-    }
-
-    public static String byIPtoCoordinates(String url, String param) {
-        PrintWriter out = null;
-        BufferedReader in = null;
-        String result = "";
-        try {
-            URL realUrl = new URL(url);
-            // 打开和URL之间的连接
-            URLConnection conn = realUrl.openConnection();
-            // 设置通用的请求属性
-            conn.setRequestProperty("accept", "*/*");
-            conn.setRequestProperty("connection", "Keep-Alive");
-            conn.setRequestProperty("content-type","application/json;charset=UTF-8");
-
-            // 发送POST请求必须设置如下两行
-            conn.setDoOutput(true);
-            conn.setDoInput(true);
-            // 获取URLConnection对象对应的输出流
-            out = new PrintWriter(conn.getOutputStream());
-            // 发送请求参数
-            out.print(param);
-            // flush输出流的缓冲
-            out.flush();
-            // 定义BufferedReader输入流来读取URL的响应
-            in = new BufferedReader(
-                    new InputStreamReader(conn.getInputStream()));
-            System.out.println(in);
-
-            String line;
-            while ((line = in.readLine()) != null) {
-                result += line;
-            }
-        } catch (Exception e) {
-            System.out.println("发送 POST 请求出现异常！"+e);
-            e.printStackTrace();
-        }
-        //使用finally块来关闭输出流、输入流
-        finally{
-            try{
-                if(out!=null){
-                    out.close();
-                }
-                if(in!=null){
-                    in.close();
-                }
-            }
-            catch(IOException ex){
-                ex.printStackTrace();
-            }
-        }
-        return result;
-    }
-
-    public static void main(String[] args){
-        JSONArray peersJSON = new JSONArray();
-        peersJSON.add("cn.testnat.sharder.io:8926");
-        peersJSON.add("116.8.37.150");
-        String result= byIPtoCoordinates("https://sharder.org/api/front/coordinates/ip",JSONArray.toJSONString(peersJSON));
-        System.out.println("lengh:"+CoordinatesMap.get("peersLengh"));
-        System.out.println("jiegou:"+result);
     }
 }
