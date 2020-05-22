@@ -21,8 +21,10 @@
 
 package org.conch.http;
 
+import com.google.common.collect.Lists;
 import org.conch.Conch;
 import org.conch.common.ConchException;
+import org.conch.common.Constants;
 import org.conch.consensus.genesis.GenesisRecipient;
 import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.consensus.poc.tx.PocTxBody;
@@ -30,12 +32,14 @@ import org.conch.consensus.poc.tx.PocTxWrapper;
 import org.conch.db.*;
 import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
+import org.conch.tx.TransactionImpl;
 import org.conch.tx.TransactionType;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 public final class GetBlockchainTransactions extends APIServlet.APIRequestHandler {
 
@@ -85,44 +89,12 @@ public final class GetBlockchainTransactions extends APIServlet.APIRequestHandle
                     includeExpiredPrunable, executedOnly);
             // normal txs
             while (iterator.hasNext()) {
-                Transaction transaction = iterator.next();
-                // Poc statement(PoC Node Type Tx)
-                if(TransactionType.TYPE_POC == type) {
-                    if(isBelongToAccount(statementAccountId, transaction)){
-                        transactions.add(JSONData.transaction(transaction, includePhasingResult));
-                    }
-                }else{
-                    transactions.add(JSONData.transaction(transaction, includePhasingResult));
-                }
+                transactions.add(JSONData.transaction(iterator.next(), includePhasingResult));
             }
 
-            // genesis txs process
-            SharderGenesis.nodeTypeTxs().forEach(tx -> {
-                tx.setIndex(0);
-                // Poc statement(PoC Node Type Tx)
-                if(TransactionType.TYPE_POC == tx.getType().getType()) {
-                    if(isBelongToAccount(statementAccountId, tx)) {
-                        transactions.add(JSONData.transaction(tx, includePhasingResult));
-                    }
-                }else{
-                    transactions.add(JSONData.transaction(tx, includePhasingResult));
-                }
-            });
-
+            // add the all old poc txs
             if(type == -1 || type == TransactionType.TYPE_POC) {
-                // Poc txs processing
-                DbIterator<? extends Transaction> pocIterator = null;
-                try {
-                    pocIterator = Conch.getBlockchain().getTransactions(GenesisRecipient.POC_TX_CREATOR_ID, TransactionType.TYPE_POC, true, 0, Integer.MAX_VALUE);
-                    while (pocIterator.hasNext()) {
-                        Transaction transaction = pocIterator.next();
-                        if(isBelongToAccount(statementAccountId, transaction)){
-                            transactions.add(JSONData.transaction(transaction, includePhasingResult));
-                        }
-                    }
-                } finally {
-                    DbUtils.close(pocIterator);
-                }
+                transactions.addAll(checkOrLoadOldPocTxs(statementAccountId, includePhasingResult));
             }
         }finally {
             DbUtils.close(iterator);
@@ -150,6 +122,58 @@ public final class GetBlockchainTransactions extends APIServlet.APIRequestHandle
             }
         }
         return true;
+    }
+
+    private static List<TransactionImpl> oldPocTxs = Lists.newArrayList();
+    private static int oldPocTxsLoadHeight = -1;
+
+    /**
+     *
+     * @param txBelongToAccountId
+     * @param includePhasingResult
+     * @return
+     */
+    protected static List<JSONObject> checkOrLoadOldPocTxs(Long txBelongToAccountId, Boolean includePhasingResult){
+        List<JSONObject> txsInJsonObj = Lists.newArrayList();
+
+        // check or load the poc txs
+        synchronized (oldPocTxs){
+            if(oldPocTxs.size() == 0
+                    || oldPocTxsLoadHeight < Constants.POC_TX_ALLOW_RECIPIENT) {
+                // poc txs load from db
+                DbIterator<TransactionImpl> oldPocTxsIterator = null;
+                try {
+                    oldPocTxsIterator = Conch.getBlockchain().getTransactions(GenesisRecipient.POC_TX_CREATOR_ID, TransactionType.TYPE_POC, true, 0, Integer.MAX_VALUE, Constants.POC_TX_ALLOW_RECIPIENT);
+                    while (oldPocTxsIterator.hasNext()) {
+                        oldPocTxs.add(oldPocTxsIterator.next());
+                    }
+                } finally {
+                    DbUtils.close(oldPocTxsIterator);
+                }
+
+                // genesis txs process
+                SharderGenesis.nodeTypeTxs().forEach(tx -> {
+                    tx.setIndex(0);
+                    // Poc statement(PoC Node Type Tx)
+                    if(TransactionType.TYPE_POC == tx.getType().getType()) {
+                        oldPocTxs.add(tx);
+                    }
+                });
+
+                oldPocTxsLoadHeight = Conch.getHeight();
+            }
+        }
+
+        // filter poc txs by account id
+        if(txBelongToAccountId != null) {
+            for(TransactionImpl tx : oldPocTxs){
+                if(isBelongToAccount(txBelongToAccountId, tx)){
+                    txsInJsonObj.add(JSONData.transaction(tx, includePhasingResult));
+                }
+            }
+        }
+
+        return txsInJsonObj;
     }
 
 }
