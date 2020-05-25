@@ -511,7 +511,7 @@ public final class BlockImpl implements Block {
             BigInteger hit = new BigInteger(1, new byte[]{generationSignatureHash[7], generationSignatureHash[6], generationSignatureHash[5], generationSignatureHash[4], generationSignatureHash[3], generationSignatureHash[2], generationSignatureHash[1], generationSignatureHash[0]});
             boolean validHit = Generator.verifyHit(hit, pocScore, previousBlock, timestamp);
             
-            boolean isIgnoreBlock = CheckSumValidator.isKnownIgnoreBlock(this.id);
+            boolean isIgnoreBlock = CheckSumValidator.isKnownIgnoreBlock(this.id, this.getBlockSignature());
             if(isIgnoreBlock) {
                 Logger.logWarningMessage("Known ignore block[id=%d, height=%d] in %s, skip validation", this.getId(), (previousBlock.getHeight()+1), Constants.getNetwork().getName());
             }
