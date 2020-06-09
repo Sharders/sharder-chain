@@ -369,7 +369,12 @@ public class Generator implements Comparable<Generator> {
      */
     public static boolean isValidMiner(long minerId, int height){
         Account minerAccount = Account.getAccount(minerId, height);
-
+        if(minerAccount == null) {
+            if(Logger.printNow(Logger.Generator_startMining)) {
+                Logger.logWarningMessage("Current miner account[id=%d] is a new account at this height %d, please create some txs or receive some MW from other accounts", minerId, height);
+            }
+            return false;
+        }
         // check the black list
         if(blackedGenerators.contains(minerId)) {
             if(Logger.printNow(Logger.Generator_startMining)) {
@@ -377,6 +382,7 @@ public class Generator implements Comparable<Generator> {
                         minerAccount.getRsAddress(),
                         Conch.getHeight());
             }
+            return false;
         }
 
         //check the peer statement
@@ -414,8 +420,7 @@ public class Generator implements Comparable<Generator> {
         }
 
         // mining condition: holding limit check
-        long accountId = Account.getId(secretPhrase);
-        if(!isValidMiner(accountId, Conch.getHeight())) return null;
+        if(!isValidMiner(Account.getId(secretPhrase), Conch.getHeight())) return null;
 
         Generator generator = new Generator(secretPhrase);
         Generator old = generators.putIfAbsent(secretPhrase, generator);
