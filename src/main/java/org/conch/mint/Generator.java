@@ -361,6 +361,20 @@ public class Generator implements Comparable<Generator> {
         return listeners.removeListener(listener, eventType);
     }
 
+    public static boolean isBlackedMiner(long minerId, int height){
+        Account minerAccount = Account.getAccount(minerId, height);
+        // check the black list
+        if(blackedGenerators.contains(minerId)) {
+            if(Logger.printNow(Logger.Generator_startMining)) {
+                Logger.logWarningMessage("Invalid miner account %s. Because this account is in the black list! ",
+                        minerAccount.getRsAddress(),
+                        Conch.getHeight());
+            }
+            return true;
+        }
+        return false;
+    }
+
     /**
      * the miner whether is valid
      * @param minerId account id of miner
@@ -375,16 +389,8 @@ public class Generator implements Comparable<Generator> {
             }
             return false;
         }
-        // check the black list
-        if(blackedGenerators.contains(minerId)) {
-            if(Logger.printNow(Logger.Generator_startMining)) {
-                Logger.logWarningMessage("Invalid miner account %s(it didn't linked to a certified peer before the height %d). " +
-                                "Maybe it didn't create a PocNodeTypeTx. please INIT or RESET the client firstly! ",
-                        minerAccount.getRsAddress(),
-                        Conch.getHeight());
-            }
-            return false;
-        }
+
+        if(isBlackedMiner(minerId, height)) return false;
 
         //check the peer statement
         boolean isCertifiedPeer = Conch.getPocProcessor().isCertifiedPeerBind(minerId, height);
