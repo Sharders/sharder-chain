@@ -108,7 +108,14 @@ public class SharderGenesis {
             return ToStringBuilder.reflectionToString(this);
         }
     }
-    
+
+    public static boolean isGenesisPeerAccount(long accountId){
+        for(GenesisPeer genesisPeer : GenesisPeer.getAll()){
+            if(genesisPeer.accountId == accountId) return true;
+        }
+        return false;
+    }
+
     public static boolean isGenesisRecipients(long accountId){
         GenesisRecipient recipient = GenesisRecipient.getByAccountId(accountId);
         return recipient == null ? false : true;

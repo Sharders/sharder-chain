@@ -235,6 +235,8 @@ public final class Constants {
     // the poc calculate algorithm changed height.
     // NOTE: set the height to 0 when reset the chain or start a new chain
     public static final int POC_CAL_ALGORITHM = isTestnet() ? 0 : 0;
+    // mw-holding score algo. changed; re-calculate the hardware and mw-holding score
+    public static final int POC_MW_POC_SCORE_CHANGE_HEIGHT = isTestnet() ? -1 : -1;
 
     //not opened yet
     public static final int PHASING_BLOCK_HEIGHT = Integer.MAX_VALUE;
