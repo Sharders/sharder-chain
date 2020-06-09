@@ -838,7 +838,7 @@
                     publicKey: SSO.publicKey,
                     requestProcessingTime: '',
                     unconfirmedBalanceNQT: '',
-                    pocScore:'',
+                    pocScore:'--',
                 },
                 selectType: '',
                 transactionType: [{
@@ -1045,6 +1045,7 @@
                 _this.accountInfo.frozenBalanceNQT = res.frozenBalanceNQT;
                 _this.accountInfo.guaranteedBalanceNQT = res.guaranteedBalanceNQT;
                 _this.accountInfo.unconfirmedBalanceNQT = res.unconfirmedBalanceNQT;
+                _this.accountInfo.pocScore = res.pocScore;
                 _this.accountInfo.name = res.name;
             });
             _this.getAccountTransactionList();
@@ -1061,7 +1062,7 @@
                 _this.hubsetting.publicAddress = res["sharder.myAddress"];
                 //_this.hubsetting.SS_Address = res["sharder.HubBindAddress"];
             });
-            _this.getLatestHubVersion();
+            //_this.getLatestHubVersion();
             _this.getPicVCode();
             _this.getPocScore();
         },
@@ -1200,7 +1201,6 @@
             activeSelectType(type) {
                 return this.selectType === type ? 'active' : ''
             },
-
             getPocScore(){
                 const _this = this;
 
@@ -1227,7 +1227,6 @@
                 });
 
             },
-
             getLatestHubVersion() {
                 const _this = this;
                 _this.$http.get('/sharder?requestType=getLatestCosVersion').then(res => {
