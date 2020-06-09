@@ -535,13 +535,21 @@
                 if (_this.$route.path === '/network') {
                     _this.networkUrlBlocks();
                     _this.httpGetNextBlockGenerators();
-                    _this.drawPeerMap();
+                    _this.fetchPeers();
                 }else{
                     clearInterval(networkDataLoader);
                 }
             }, SSO.downloadingBlockchain ? this.$global.cfg.soonInterval : this.$global.cfg.defaultInterval);
 
             this.menuAdapter()
+
+            let peerDataLoader = setInterval(() => {
+                if (_this.$route.path === '/network') {
+                    _this.drawPeerMap();
+                }else{
+                    clearInterval(peerDataLoader);
+                }
+            }, 15*60*1000);
         },
         filters: {
             generatorRSFilter(val) {
@@ -603,6 +611,15 @@
                     _this.poolCount = res.poolCount;
                     _this.systemReward = res.coinBaseCount;
                     _this.averageAmount = res.storageCount24H + res.transferCount24H;
+                }).catch(err => {
+                    console.info("error", err);
+                });
+            },
+            fetchPeers(){
+                const _this = this;
+                _this.$global.fetch("GET", {startThis:"startThis"}, "getPeers").then(res => {
+                    _this.peerNum = res.peers.length + _this.limitPeerSize;
+                    _this.declaredPeerSize = res.declaredPeerSize;
                 }).catch(err => {
                     console.info("error", err);
                 });

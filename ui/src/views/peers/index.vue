@@ -282,7 +282,11 @@
                 _this.getPeersInfo(peersList);
                 _this.activeHubCount = 0;
                 _this.minerList.forEach(function (item) {
-                    if (item.bindPeerType === "Sharder Hub") {
+                    if (item.bindPeerType === "Sharder Box"
+                        || item.bindPeerType === "Sharder Hub"
+                        || item.bindPeerType === "Community Node"
+                        || item.bindPeerType === "Foundation Node"
+                    ) {
                         _this.activeHubCount++;
                     }
                 });
