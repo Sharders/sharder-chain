@@ -617,8 +617,13 @@ public class Generator implements Comparable<Generator> {
     
     @Override
     public int compareTo(Generator g) {
-        int i = this.hit.multiply(g.pocScore).compareTo(g.hit.multiply(this.pocScore));
-        return i != 0 ? i : Long.compare(accountId, g.accountId);
+        try{
+            int i = this.hit.multiply(g.pocScore).compareTo(g.hit.multiply(this.pocScore));
+            return i != 0 ? i : Long.compare(accountId, g.accountId);
+        }catch(Exception e){
+            Logger.logErrorMessage("Generator compare failed",e);
+        }
+        return 0;
     }
 
     @Override
