@@ -119,6 +119,8 @@ public final class Constants {
     public static final int GUARANTEED_BALANCE_CONFIRMATIONS = isDevnet() ? 1 :(isTestnet()? 3 : 12);
     public static final int LEASING_DELAY = isTestnetOrDevnet() ? Conch.getIntProperty("sharder.testnetLeasingDelay", 10) : 205;
     public static final long MINING_HOLDING_LIMIT = isTestnet() ? 1000 * ONE_SS : 1000 * ONE_SS;
+    public static final long DISK_CAPACITY_MIN_TB = isTestnet() ? 1 : 1;
+    public static final long DISK_CAPACITY_MAX_TB = isTestnet() ? 96 : 96;
 
     public static final int MAX_TIMEDRIFT = 15; // allow up to 15 s clock difference
     public static final int MINING_DELAY = Conch.getIntProperty("sharder.miningDelay");
