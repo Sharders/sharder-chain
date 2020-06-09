@@ -378,7 +378,8 @@ public class Generator implements Comparable<Generator> {
         // check the black list
         if(blackedGenerators.contains(minerId)) {
             if(Logger.printNow(Logger.Generator_startMining)) {
-                Logger.logWarningMessage("Invalid miner account %s. Because this account is in the black list! ",
+                Logger.logWarningMessage("Invalid miner account %s(it didn't linked to a certified peer before the height %d). " +
+                                "Maybe it didn't create a PocNodeTypeTx. please INIT or RESET the client firstly! ",
                         minerAccount.getRsAddress(),
                         Conch.getHeight());
             }
