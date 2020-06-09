@@ -361,37 +361,61 @@ public class Generator implements Comparable<Generator> {
         return listeners.removeListener(listener, eventType);
     }
 
+    /**
+     * the miner whether is valid
+     * @param minerId account id of miner
+     * @param height validation height
+     * @return true-valid miner
+     */
+    public static boolean isValidMiner(long minerId, int height){
+        Account minerAccount = Account.getAccount(minerId, height);
+
+        // check the black list
+        if(blackedGenerators.contains(minerId)) {
+            if(Logger.printNow(Logger.Generator_startMining)) {
+                Logger.logWarningMessage("Invalid miner account %s. Because this account is in the black list! ",
+                        minerAccount.getRsAddress(),
+                        Conch.getHeight());
+            }
+        }
+
+        //check the peer statement
+        boolean isCertifiedPeer = Conch.getPocProcessor().isCertifiedPeerBind(minerId, height);
+        if(!isCertifiedPeer) {
+            if(Logger.printNow(Logger.Generator_startMining)) {
+                Logger.logWarningMessage("Invalid miner account %s(it didn't linked to a certified peer before the height %d). " +
+                                "Maybe it didn't create a PocNodeTypeTx. please INIT or RESET the client firstly! ",
+                        minerAccount.getRsAddress(),
+                        Conch.getHeight());
+            }
+            return false;
+        }
+
+        long accountBalanceNQT = (minerAccount != null) ? minerAccount.getEffectiveBalanceNQT(Conch.getHeight()) : 0L;
+        if(accountBalanceNQT < Constants.MINING_HOLDING_LIMIT) {
+            if(Logger.printNow(Logger.Generator_startMining)) {
+                Logger.logWarningMessage("Invalid miner account %s. Because the MW holding limit of the mining is %d and current balance is %d",
+                        minerAccount.getRsAddress(),
+                        (Constants.MINING_HOLDING_LIMIT / Constants.ONE_SS),
+                        (accountBalanceNQT / Constants.ONE_SS));
+            }
+            return false;
+        }
+        return true;
+    }
 
     public static Generator startMining(String secretPhrase) {
         if(StringUtils.isEmpty(secretPhrase)) return null;
         
         boolean isOwner = secretPhrase.equalsIgnoreCase(getAutoMiningPR());
-        // if miner is not the owner of the node
+        // check the mining max count if miner is not the owner of this node
         if(!isOwner && generators.size() >= MAX_MINERS) {
             throw new RuntimeException("The limit miners of this node is " + MAX_MINERS + ", can't allow more miners!");
         }
 
         // mining condition: holding limit check
         long accountId = Account.getId(secretPhrase);
-        Account bindMiner = Account.getAccount(accountId, Conch.getHeight());
-        String rsAddr = Account.rsAccount(accountId);
-
-        //check the peer statement
-        boolean isCertifiedPeer = Conch.getPocProcessor().isCertifiedPeerBind(accountId,Conch.getHeight());
-        if(!isCertifiedPeer) {
-            if(Logger.printNow(Logger.Generator_startMining)) {
-                Logger.logWarningMessage("Can't start the mining of the current account %s(it didn't linked to a certified peer before the height %d), the reason maybe it didn't create a PocNodeTypeTx. please INIT or RESET the client firstly! ",
-                        rsAddr,
-                        Conch.getHeight());
-            }
-            return null;
-        }
-
-        long accountBalanceNQT = (bindMiner != null) ? bindMiner.getEffectiveBalanceNQT(Conch.getHeight()) : 0L;
-        if(accountBalanceNQT < Constants.MINING_HOLDING_LIMIT) {
-            Logger.logWarningMessage("The SS holding limit of the mining is " + (Constants.MINING_HOLDING_LIMIT / Constants.ONE_SS) + ", and account " + rsAddr + "'s current balance is " + (accountBalanceNQT / Constants.ONE_SS) + ", can't start to mining");
-            return null;
-        }
+        if(!isValidMiner(accountId, Conch.getHeight())) return null;
 
         Generator generator = new Generator(secretPhrase);
         Generator old = generators.putIfAbsent(secretPhrase, generator);
@@ -730,7 +754,7 @@ public class Generator implements Comparable<Generator> {
     }
 
     /**
-     * mint the block
+     * mint a new block
      * @param lastBlock
      * @param generationLimit
      * @return
@@ -738,10 +762,11 @@ public class Generator implements Comparable<Generator> {
      * @throws BlockchainProcessor.GeneratorNotAcceptedException
      */
     boolean mint(Block lastBlock, int generationLimit) throws BlockchainProcessor.BlockNotAcceptedException, BlockchainProcessor.GeneratorNotAcceptedException {
-//        if(!isBootNode && !Constants.isDevnet()) {
-//            if(!isMintHeightReached(lastBlock)) return false;
-//            if(!isValid(this.accountId, lastBlock.getHeight())) return false;
-//        }
+        if(!isValidMiner(accountId, lastBlock.getHeight())){
+            Logger.logWarningMessage("%s failed to mint at height %d last timestamp %d, because this account is invalid miner.", this.toString(), lastBlock.getHeight(), lastBlock.getTimestamp());
+            return false;
+        }
+
         int timestamp = getTimestamp(generationLimit);
         if (!verifyHit(hit, pocScore, lastBlock, timestamp)) {
             Logger.logInfoMessage(this.toString() + " failed to mint at " + timestamp + " height " + lastBlock.getHeight() + " last timestamp " + lastBlock.getTimestamp());
