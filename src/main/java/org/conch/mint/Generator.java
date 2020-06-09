@@ -138,7 +138,7 @@ public class Generator implements Comparable<Generator> {
         if(isBootNode && Conch.getHeight() < Constants.LAST_KNOWN_BLOCK) {
             if(Logger.isLevel(Logger.Level.DEBUG)) {
                 Logger.logInfoMessage("[BootNode] Start to mining directly at height[%d].", lastBlock.getHeight());
-            }else if(Logger.printNow(Constants.Generator_isMintHeightReached)) {
+            }else if(Logger.printNow(Logger.Generator_isMintHeightReached)) {
                 Logger.logInfoMessage("[BootNode] Start to mining directly at height[%d].", lastBlock.getHeight());
             }
             return true;
@@ -151,7 +151,7 @@ public class Generator implements Comparable<Generator> {
 
             // wait till Conch initialized finished
         if(!Conch.isInitialized()) {
-            if(Logger.printNow(Constants.Generator_isMintHeightReached)) {
+            if(Logger.printNow(Logger.Generator_isMintHeightReached)) {
                 Logger.logDebugMessage("Wait for Conch initialized...");
             }
             return false;
@@ -159,7 +159,7 @@ public class Generator implements Comparable<Generator> {
         
         // last known block check for the normal nodes
         if (lastBlock == null || lastBlock.getHeight() < Constants.LAST_KNOWN_BLOCK) {
-            if(Logger.printNow(Constants.Generator_isMintHeightReached)) {
+            if(Logger.printNow(Logger.Generator_isMintHeightReached)) {
                 Logger.logWarningMessage("last known block height is " + Constants.LAST_KNOWN_BLOCK
                         + ", and current height is " + lastBlock.getHeight()
                         + ", don't mining till blocks sync finished...");
@@ -193,7 +193,7 @@ public class Generator implements Comparable<Generator> {
                     return false;
                 }
             }else{
-                if(Logger.printNow(Constants.Generator_isBlockStuckOnBootNode)) {
+                if(Logger.printNow(Logger.Generator_isBlockStuckOnBootNode)) {
                     String nodeType = isBootNode ? "Boot" : "Normal";
                     Logger.logInfoMessage("[ TIPS ] Current node is %s node and block chain state isn't UP_TO_DATE, maybe it is downloading blocks or stuck at height[%d]. wait for blocks synchronizing finished...", nodeType, lastBlock.getHeight());
                 }
@@ -203,7 +203,7 @@ public class Generator implements Comparable<Generator> {
         }
         
         if(!Conch.getPocProcessor().pocTxsProcessed(lastBlock.getHeight())) {
-            if(Logger.printNow(Constants.Generator_isPocTxsProcessed)) {
+            if(Logger.printNow(Logger.Generator_isPocTxsProcessed)) {
                 Logger.logDebugMessage("[ TIPS ] Delayed or old poc txs haven't processed, don't mining till poc txs be processed before height[%d]...", lastBlock.getHeight());
             }
             return false;
@@ -375,6 +375,17 @@ public class Generator implements Comparable<Generator> {
         long accountId = Account.getId(secretPhrase);
         Account bindMiner = Account.getAccount(accountId, Conch.getHeight());
         String rsAddr = Account.rsAccount(accountId);
+
+        //check the peer statement
+        boolean isCertifiedPeer = Conch.getPocProcessor().isCertifiedPeerBind(accountId,Conch.getHeight());
+        if(!isCertifiedPeer) {
+            if(Logger.printNow(Logger.Generator_startMining)) {
+                Logger.logWarningMessage("Can't start the mining of the current account %s(it didn't linked to a certified peer before the height %d), the reason maybe it didn't create a PocNodeTypeTx. please INIT or RESET the client firstly! ",
+                        rsAddr,
+                        Conch.getHeight());
+            }
+            return null;
+        }
 
         long accountBalanceNQT = (bindMiner != null) ? bindMiner.getEffectiveBalanceNQT(Conch.getHeight()) : 0L;
         if(accountBalanceNQT < Constants.MINING_HOLDING_LIMIT) {
@@ -829,7 +840,7 @@ public class Generator implements Comparable<Generator> {
             generatorList = Lists.newArrayList(minersOnCurNode);
             generatorList.addAll(activeGeneratorMp.values());
             Collections.sort(generatorList);
-            if(Logger.printNow(Constants.Generator_getNextGenerators)){
+            if(Logger.printNow(Logger.Generator_getNextGenerators)){
                 Logger.logDebugMessage(generatorList.size() + " generators found");
             }
         }
@@ -970,10 +981,22 @@ public class Generator implements Comparable<Generator> {
      */
     public static void checkOrStartAutoMining(){
         if(autoMintRunning) {
-            if(Logger.printNow(Constants.Generator_checkOrStartAutoMining, 600)) {
-                Logger.logInfoMessage("Account %s is mining [next mining time is %s] ...", linkedGenerator.rsAddress, Convert.dateFromEpochTime(linkedGenerator.hitTime));
+            if(Logger.printNow(Logger.Generator_checkOrStartAutoMining, 600)) {
+                if(linkedGenerator == null) {
+                    Logger.logInfoMessage("Can't start auto mining because no linked account, please finish the client initial firstly ...");
+                }else {
+                    Logger.logInfoMessage("Account %s is mining [next mining time is %s] ...",
+                            linkedGenerator.rsAddress,
+                            Convert.dateFromEpochTime(linkedGenerator.hitTime));
+                }
             }else{
-                Logger.logDebugMessage("Account %s is mining [next mining time is %s] ...", linkedGenerator.rsAddress, Convert.dateFromEpochTime(linkedGenerator.hitTime));  
+                if(linkedGenerator == null) {
+                    Logger.logDebugMessage("Can't start auto mining because no linked account, please finish the client initial firstly ...");
+                }else {
+                    Logger.logDebugMessage("Account %s is mining [next mining time is %s] ...",
+                            linkedGenerator.rsAddress,
+                            Convert.dateFromEpochTime(linkedGenerator.hitTime));
+                }
             }
             return;
         }

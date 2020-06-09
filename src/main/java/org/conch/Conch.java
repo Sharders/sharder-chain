@@ -847,7 +847,7 @@ public final class Conch {
 
                 if (isDesktopMode()) runtimeMode.launchDesktopApplication();
 
-                if (Constants.isTestnetOrDevnet()) Logger.logMessage("RUNNING ON " +  Constants.getNetwork()  + " - DO NOT USE REAL ACCOUNTS!");
+                if (Constants.isTestnetOrDevnet()) Logger.logMessage("RUNNING ON " +  Constants.getNetwork()  + " - DO NOT USE MAINNET ACCOUNTS!");
 
                 Peers.sysInitialed = true;
             } catch (Exception e) {
@@ -1007,7 +1007,7 @@ public final class Conch {
         if(Constants.isDevnet() && Generator.isBootNode) return true;
         int height = Conch.getHeight();
         if (height < Constants.LAST_KNOWN_BLOCK) {
-            if(Logger.printNow(Constants.CONCH_P_reachLastKnownBlock)) {
+            if(Logger.printNow(Logger.CONCH_P_reachLastKnownBlock)) {
                 Logger.logDebugMessage("current height %d is less than last known height %s and current state is %s, wait till blocks sync finished..."
                         , height, Constants.LAST_KNOWN_BLOCK, Peers.getMyBlockchainState());
             }

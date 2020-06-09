@@ -443,7 +443,7 @@ public class IpUtil {
             json.put("X", ne.substring(ne.indexOf("(") + 1, ne.indexOf(",")));
             json.put("Y", ne.substring(ne.indexOf(",") + 2, ne.indexOf(")")));
         } catch (IOException e) {
-            Logger.logWarningMessage("requestIpLocationTools failed" + e.getMessage());
+            Logger.logDebugMessage("requestIpLocationTools failed" + e.getMessage());
         }
     }
 
@@ -462,7 +462,7 @@ public class IpUtil {
             }
 
         } catch (IOException e) {
-            Logger.logWarningMessage("requestIpIp failed" + e.getMessage());
+            Logger.logDebugMessage("requestIpIp failed" + e.getMessage());
         }
     }
 
@@ -479,7 +479,7 @@ public class IpUtil {
             }
 
         } catch (IOException e) {
-            Logger.logWarningMessage("requestGeoIpTool failed" + e.getMessage());
+            Logger.logDebugMessage("requestGeoIpTool failed" + e.getMessage());
         }
     }
 

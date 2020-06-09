@@ -312,12 +312,12 @@ public class GetNodeHardware {
                 return false;
             }
         }catch(ConnectException e){
-            if (Logger.printNow(Constants.GetNodeHardware_P_report)) {
+            if (Logger.printNow(Logger.GetNodeHardware_P_report)) {
                 Logger.logDebugMessage("connection refused[" + NODE_CONFIG_REPORT_URL + "]");
             }
             return false;
         }catch(Exception e){
-            if (Logger.printNow(Constants.GetNodeHardware_P_report)) {
+            if (Logger.printNow(Logger.GetNodeHardware_P_report)) {
                 Logger.logErrorMessage("unknown exception[" + NODE_CONFIG_REPORT_URL + "]", e);
             }
             return false;
