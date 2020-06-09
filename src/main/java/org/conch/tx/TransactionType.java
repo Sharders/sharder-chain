@@ -73,6 +73,7 @@ public abstract class TransactionType {
     public static final byte TYPE_CONTRACT = 10;
     public static final byte TYPE_STORAGE = 11;
     public static final byte TYPE_POC = 12;
+    public static final byte TYPE_BURN_DEAL = 18;
 
     private static final byte SUBTYPE_PAYMENT_ORDINARY_PAYMENT = 0;
 
@@ -658,6 +659,87 @@ public abstract class TransactionType {
             }
         };
 
+    }
+
+    public static abstract class BurnDeal extends TransactionType {
+        private BurnDeal() {}
+
+        @Override
+        public byte getType() {
+            return TransactionType.TYPE_BURN_DEAL;
+        }
+
+        @Override
+        public final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+            return true;
+        }
+
+        @Override
+        public final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {}
+
+        @Override
+        public final boolean canHaveRecipient() {
+            return true;
+        }
+
+        @Override
+        public final boolean isPhasingSafe() {
+            return false;
+        }
+
+        @Override
+        public boolean mustHaveRecipient() {
+            return false;
+        }
+
+        public static final TransactionType ORDINARY = new BurnDeal() {
+
+            @Override
+            public byte getSubtype() {
+                return 0;
+            }
+
+            @Override
+            public AccountLedger.LedgerEvent getLedgerEvent() {
+                return AccountLedger.LedgerEvent.BURN;
+            }
+
+            @Override
+            public AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+                return new Attachment.BurnDeal(buffer, transactionVersion);
+            }
+
+            @Override
+            public AbstractAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+                return new Attachment.BurnDeal(attachmentData);
+            }
+
+            @Override
+            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+                Attachment.BurnDeal burnDeal = (Attachment.BurnDeal) transaction.getAttachment();
+                if (Constants.BURN_ADDRESS_ID != burnDeal.getReceiver() ) {
+                    throw new ConchException.NotValidException("burn deal receiver error");
+                }
+            }
+
+            @Override
+            public boolean isDuplicate(Transaction transaction, Map<TransactionType, Map<String, Integer>> duplicates) {
+                return isDuplicate(BurnDeal.ORDINARY, "BurnDeal", duplicates, true);
+            }
+
+            @Override
+            public void applyAttachment(Transaction transaction, Account account, Account recipientAccount) {
+                long amount = transaction.getAmountNQT();
+//                account.addBalanceAddUnconfirmed(getLedgerEvent(), transaction.getId(), amount, 0);
+                Logger.logDebugMessage("[burn apply] burn %d of %s and add it in mined amount of tx %d at height %d",
+                        amount, account.getRsAddress(), transaction.getId() , transaction.getHeight());
+            }
+
+            @Override
+            public String getName() {
+                return "BurnDeal";
+            }
+        };
     }
 
     public static abstract class Messaging extends TransactionType {

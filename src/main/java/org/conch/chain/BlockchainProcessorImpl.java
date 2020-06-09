@@ -27,6 +27,7 @@ import org.conch.account.Account;
 import org.conch.account.AccountLedger;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
+import org.conch.consensus.burn.BurnCalculator;
 import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.consensus.poc.PocScore;
 import org.conch.consensus.poc.tx.PocTxBody;
@@ -2318,8 +2319,15 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         }
 
         List<TransactionImpl> tempBlockTransactions = new ArrayList<>();
+        List<UnconfirmedTransaction> tempErrorTransactions = new ArrayList<>();
         for(UnconfirmedTransaction unconfirmedTransaction : sortedTransactions){
             TransactionImpl transaction = unconfirmedTransaction.getTransaction();
+
+            if (transaction.getSenderId() == Constants.BURN_ADDRESS_ID) {
+                TransactionProcessorImpl.getInstance().removeUnconfirmedTransaction(transaction);
+                tempErrorTransactions.add(unconfirmedTransaction);
+            }
+
             if(transaction.getAttachment().getTransactionType().getType() == TYPE_SHARDER_POOL){//确认矿池交易
                 if(transaction.getAttachment().getJSONObject().get("version.destroyPool") != null){//判断是否有销毁交易
                     tempBlockTransactions.add(transaction);//将销毁交易加入临时列表
@@ -2362,6 +2370,30 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 payloadLength += transaction.getFullSize();
             }
 
+        }
+
+        try {
+            // burn tx
+            long burnNQT = BurnCalculator.burnAmount(totalFeeNQT);
+            if (burnNQT > 0) {
+                TransactionImpl transaction =
+                        new TransactionImpl.BuilderImpl(
+                                publicKey,
+                                burnNQT,
+                                0,
+                                (short) 10,
+                                new Attachment.BurnDeal(Constants.BURN_ADDRESS_ID))
+                                .timestamp(blockTimestamp)
+                                .recipientId(Constants.BURN_ADDRESS_ID)
+                                .build(secretPhrase);
+                blockTransactions.add(transaction);
+                digest.update(transaction.bytes());
+                totalAmountNQT += transaction.getAmountNQT();
+                payloadLength += transaction.getFullSize();
+                Logger.logDebugMessage("create burn transaction: burn " + burnNQT + " SS");
+            }
+        } catch (ConchException.ValidationException e) {
+            e.printStackTrace();
         }
 
         byte[] payloadHash = digest.digest();

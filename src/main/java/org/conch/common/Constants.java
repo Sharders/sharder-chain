@@ -93,6 +93,9 @@ public final class Constants {
     public static final List<String> bootNodesHost = parseBootNodesHost();
     public static final String bootNodeHost = parseBootNodeHost();
 
+    public static final Long BURN_OPENING_HEIGHT = isTestnetOrDevnet() ? (-1L) : 10L;
+    public static final Long BURN_ADDRESS_ID = -1L;
+
 //    public static final int MAX_NUMBER_OF_TRANSACTIONS = 255;
     public static final int MAX_NUMBER_OF_TRANSACTIONS = 5000;
     public static final int MIN_TRANSACTION_SIZE = 176;
