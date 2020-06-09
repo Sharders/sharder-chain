@@ -230,6 +230,9 @@ public final class Constants {
     public static final int POC_POOL_NEVER_END_HEIGHT = isTestnet() ? 13777 : 0;
     public static final int POC_BALANCE_CORRECTION_HEIGHT = isTestnet() ? 15777 : 0;
     public static final int POC_TX_ALLOW_RECIPIENT = isTestnet() ? 0 : 0;
+    // the poc calculate algorithm changed height.
+    // NOTE: set the height to 0 when reset the chain or start a new chain
+    public static final int POC_CAL_ALGORITHM = isTestnet() ? 0 : 0;
 
     //not opened yet
     public static final int PHASING_BLOCK_HEIGHT = Integer.MAX_VALUE;

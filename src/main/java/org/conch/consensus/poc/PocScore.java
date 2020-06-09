@@ -205,9 +205,9 @@ public class PocScore implements Serializable {
         BigInteger effectiveSS = BigInteger.ZERO;
         if (account == null) return effectiveSS;
 
-        // pool not opening
-        if(Constants.POOL_OPENING_HEIGHT == -1
-                || Conch.getHeight() <= Constants.POOL_OPENING_HEIGHT){
+        // pool not opening and reach the poc algo changed height
+        if((Constants.POOL_OPENING_HEIGHT == -1 || Conch.getHeight() <= Constants.POOL_OPENING_HEIGHT)
+                && height > Constants.POC_CAL_ALGORITHM) {
             return effectiveSS;
         }
 
