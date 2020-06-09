@@ -122,9 +122,10 @@ public class PocProcessorImpl implements PocProcessor {
         }
 
         if(height == Constants.POC_MW_POC_SCORE_CHANGE_HEIGHT + 1) {
+            int reCalCount = 0;
             try{
                 FORCE_RE_CALCULATE = true;
-                Logger.logInfoMessage("Exceed the poc score change height " + Constants.POC_MW_POC_SCORE_CHANGE_HEIGHT
+                Logger.logInfoMessage("Exceed the poc score change height " + (Constants.POC_MW_POC_SCORE_CHANGE_HEIGHT+1)
                         + ", start to re-calculate the poc score of miners");
 
                 Map<Long,TransactionImpl> pocTxMap = Maps.newConcurrentMap();
@@ -205,9 +206,6 @@ public class PocProcessorImpl implements PocProcessor {
                 // re-calculate the hardware and mw holding score
                 Set<Long> accountIds = PocHolder.inst.scoreMap.keySet();
                 for(Long accountId : accountIds){
-                    if("CDW-4HDK-U9N5-2H97-97M93".equals(Account.rsAccount(accountId))) {
-                        System.out.println("Re-calculate the account CDW-4HDK-U9N5-2H97-97M93");
-                    }
                     PocScore scoreToReCalculation = PocHolder.inst.scoreMap.get(accountId);
                     if(scoreToReCalculation != null) {
                         scoreToReCalculation.ssCal();
@@ -244,12 +242,14 @@ public class PocProcessorImpl implements PocProcessor {
 
                     // save the new poc score into db
                     PocHolder.saveOrUpdate(scoreToReCalculation.setHeight(height));
+                    reCalCount++;
                 }
             }catch(Exception e){
                 Logger.logErrorMessage("Occur exception in the poc score reprocessing", e);
             }finally {
                 FORCE_RE_CALCULATE = false;
             }
+            Logger.logInfoMessage("Finish the " + reCalCount  + " re-calculation of the poc score of miners at height " + (Constants.POC_MW_POC_SCORE_CHANGE_HEIGHT+1));
         }
     }
 

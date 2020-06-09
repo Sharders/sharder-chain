@@ -208,7 +208,7 @@ public class PocScore implements Serializable {
         // pool not opening and reach the poc algo changed height
         if(height >= Constants.POC_MW_POC_SCORE_CHANGE_HEIGHT
                 || PocProcessorImpl.FORCE_RE_CALCULATE) {
-            // genesis peer's miner force to limit to 100,000
+            // the effective ss of genesis peer's miner force to limit to 100,000
             if(SharderGenesis.isGenesisPeerAccount(account.getId())){
                 if(accountBalanceNQT >  100000L * Constants.ONE_SS) {
                     effectiveSS = BigInteger.valueOf(100000L);
