@@ -315,6 +315,49 @@ public interface Attachment extends Appendix {
         }
     }
 
+    final class BurnDeal extends AbstractAttachment {
+
+        private final long receiver;
+
+        public BurnDeal(long receiver) {
+            this.receiver = receiver;
+        }
+
+        public BurnDeal(ByteBuffer buffer, byte transactionVersion) {
+            super(buffer, transactionVersion);
+            this.receiver = buffer.getLong();
+        }
+
+        public BurnDeal(JSONObject attachmentData) {
+            super(attachmentData);
+            this.receiver = (long) attachmentData.get("receiver");
+        }
+
+        @Override
+        public int getMySize() {
+            return 8;
+        }
+
+        @Override
+        public void putMyBytes(ByteBuffer buffer) {
+            buffer.put(Convert.toBytes(receiver));
+        }
+
+        @Override
+        public void putMyJSON(JSONObject attachment) {
+            attachment.put("receiver", receiver);
+        }
+
+        @Override
+        public TransactionType getTransactionType() {
+            return TransactionType.BurnDeal.ORDINARY;
+        }
+
+        public long getReceiver() {
+            return receiver;
+        }
+    }
+
     // the message payload is in the Appendix
     EmptyAttachment ARBITRARY_MESSAGE = new EmptyAttachment() {
         @Override

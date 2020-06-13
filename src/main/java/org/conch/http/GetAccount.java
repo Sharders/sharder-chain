@@ -21,17 +21,21 @@
 
 package org.conch.http;
 
+import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.common.ConchException;
+import org.conch.consensus.poc.PocScore;
 import org.conch.db.Db;
 import org.conch.db.DbIterator;
 import org.conch.db.DbUtils;
 import org.conch.util.Convert;
+import org.conch.util.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
+import java.math.BigInteger;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -150,6 +154,16 @@ public final class GetAccount extends APIServlet.APIRequestHandler {
             }finally {
                 DbUtils.close(accountCurrencies);
             }
+        }
+
+        // poc score
+        BigInteger pocScore = BigInteger.ZERO;
+        try{
+            PocScore scoreObj = Conch.getPocProcessor().calPocScore(account, Conch.getHeight());
+            pocScore = scoreObj.total();
+            response.put("pocScore",  pocScore);
+        }catch(Exception e){
+            Logger.logErrorMessage("can't get the poc score", e);
         }
 
         return response;

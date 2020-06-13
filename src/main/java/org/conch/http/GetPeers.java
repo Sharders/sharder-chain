@@ -115,6 +115,7 @@ public final class GetPeers extends APIServlet.APIRequestHandler {
 
         JSONObject response = new JSONObject();
 
+        // convert the ip to coordinate
         String startThis =  req.getParameter("startThis");
         if (startThis != null) {
             response.put("coordinates", IpUtil.parseAndConvertToCoordinates(peersJSON).toJSONString());

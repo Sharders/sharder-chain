@@ -27,6 +27,7 @@ import org.conch.account.Account;
 import org.conch.account.AccountLedger;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
+import org.conch.consensus.burn.BurnCalculator;
 import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.consensus.poc.PocScore;
 import org.conch.consensus.poc.tx.PocTxBody;
@@ -136,7 +137,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 while (true) {
                     
                     if (!getMoreBlocks) {
-                        if (Logger.printNow(Constants.BlockchainProcessor_getMoreBlocks)) {
+                        if (Logger.printNow(Logger.BlockchainProcessor_getMoreBlocks)) {
                             Logger.logDebugMessage("Don't synchronize blocks when the getMoreBlocks is set to false");
                         }
                         
@@ -148,7 +149,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                     }
 
                     if (Conch.hasSerialNum() && !Constants.hubLinked) {
-                        if (Logger.printNow(Constants.BlockchainProcessor_getMoreBlocks)) {
+                        if (Logger.printNow(Logger.BlockchainProcessor_getMoreBlocks)) {
                             Logger.logDebugMessage("Don't synchronize blocks before the Client initialization is completed");
                         }
                         return;
@@ -215,7 +216,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             connectedPublicPeers = Peers.getPublicPeers(Peer.State.CONNECTED, true);
             int connectedSize = connectedPublicPeers.size();
             if (connectedSize <= limitConnectedSize) {
-                if (Logger.printNow(Constants.BlockchainProcessor_downloadPeer_sizeCheck)) {
+                if (Logger.printNow(Logger.BlockchainProcessor_downloadPeer_sizeCheck)) {
                     Logger.logDebugMessage("No enough connected peers[limit size=" + (limitConnectedSize + 1) + ",current connected size=" + connectedSize + "], break syn blocks...");
 //                    Logger.logDebugMessage("Current peers => " + Arrays.toString(connectedPublicPeers.toArray()));
                 }
@@ -231,8 +232,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             final Peer peer = forceSwitchToBootNodesFork ? 
                     Peers.checkOrConnectBootNode() : Peers.getWeightedPeer(connectedPublicPeers);
             if (peer == null
-                    && Logger.printNow(Constants.BlockchainProcessor_downloadPeer_getWeightedPeer)) {
-                Logger.logDebugMessage("Can't find a weighted peer to sync the blocks, the reasons are follow: \n\r a) current peer's version %s is larger than other peers.\n b) can't connect to boot nodes or other peers which have the public IP.\n Wait for next turn.", Conch.getFullVersion());
+                    && Logger.printNow(Logger.BlockchainProcessor_downloadPeer_getWeightedPeer)) {
+                Logger.logDebugMessage("Can't find a weighted peer to sync the blocks, the reasons are follow:  a) current peer's version %s is larger than other peers. b) can't connect to boot nodes or other peers which have the public IP.  Wait for next turn.", Conch.getFullVersion());
                 return;
             }
 
@@ -1626,7 +1627,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             } catch (Exception e) {
                 Db.db.rollbackTransaction();
                 blockchain.setLastBlock(previousLastBlock);
-                Logger.logErrorMessage("push block failed caused by: %s", e.getMessage());
+                Logger.logErrorMessage("push block failed", e);
                 throw e;
             } finally {
                 Db.db.endTransaction();
@@ -1675,8 +1676,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
 
     private void validate(BlockImpl block, BlockImpl previousLastBlock, int curTime) throws BlockNotAcceptedException, GeneratorNotAcceptedException {
-
-        if (!Generator.isValid(block.getGeneratorId(), block.getHeight())) {
+        if (Generator.isBlackedMiner(block.getGeneratorId())) {
             throw new GeneratorNotAcceptedException("Invalid generator", block.getGeneratorId());
         }
 
@@ -2318,8 +2318,15 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         }
 
         List<TransactionImpl> tempBlockTransactions = new ArrayList<>();
+        List<UnconfirmedTransaction> tempErrorTransactions = new ArrayList<>();
         for(UnconfirmedTransaction unconfirmedTransaction : sortedTransactions){
             TransactionImpl transaction = unconfirmedTransaction.getTransaction();
+
+            if (transaction.getSenderId() == Constants.BURN_ADDRESS_ID) {
+                TransactionProcessorImpl.getInstance().removeUnconfirmedTransaction(transaction);
+                tempErrorTransactions.add(unconfirmedTransaction);
+            }
+
             if(transaction.getAttachment().getTransactionType().getType() == TYPE_SHARDER_POOL){//确认矿池交易
                 if(transaction.getAttachment().getJSONObject().get("version.destroyPool") != null){//判断是否有销毁交易
                     tempBlockTransactions.add(transaction);//将销毁交易加入临时列表
@@ -2362,6 +2369,30 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 payloadLength += transaction.getFullSize();
             }
 
+        }
+
+        try {
+            // burn tx
+            long burnNQT = BurnCalculator.burnAmount(totalFeeNQT);
+            if (burnNQT > 0) {
+                TransactionImpl transaction =
+                        new TransactionImpl.BuilderImpl(
+                                publicKey,
+                                burnNQT,
+                                0,
+                                (short) 10,
+                                new Attachment.BurnDeal(Constants.BURN_ADDRESS_ID))
+                                .timestamp(blockTimestamp)
+                                .recipientId(Constants.BURN_ADDRESS_ID)
+                                .build(secretPhrase);
+                blockTransactions.add(transaction);
+                digest.update(transaction.bytes());
+                totalAmountNQT += transaction.getAmountNQT();
+                payloadLength += transaction.getFullSize();
+                Logger.logDebugMessage("create burn transaction: burn " + burnNQT + " SS");
+            }
+        } catch (ConchException.ValidationException e) {
+            e.printStackTrace();
         }
 
         byte[] payloadHash = digest.digest();

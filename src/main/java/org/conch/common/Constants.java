@@ -93,6 +93,9 @@ public final class Constants {
     public static final List<String> bootNodesHost = parseBootNodesHost();
     public static final String bootNodeHost = parseBootNodeHost();
 
+    public static final Long BURN_OPENING_HEIGHT = isTestnetOrDevnet() ? (-1L) : 10L;
+    public static final Long BURN_ADDRESS_ID = -1L;
+
 //    public static final int MAX_NUMBER_OF_TRANSACTIONS = 255;
     public static final int MAX_NUMBER_OF_TRANSACTIONS = 5000;
     public static final int MIN_TRANSACTION_SIZE = 176;
@@ -116,6 +119,8 @@ public final class Constants {
     public static final int GUARANTEED_BALANCE_CONFIRMATIONS = isDevnet() ? 1 :(isTestnet()? 3 : 12);
     public static final int LEASING_DELAY = isTestnetOrDevnet() ? Conch.getIntProperty("sharder.testnetLeasingDelay", 10) : 205;
     public static final long MINING_HOLDING_LIMIT = isTestnet() ? 1000 * ONE_SS : 1000 * ONE_SS;
+    public static final long DISK_CAPACITY_MIN_TB = isTestnet() ? 1 : 1;
+    public static final long DISK_CAPACITY_MAX_TB = isTestnet() ? 96 : 96;
 
     public static final int MAX_TIMEDRIFT = 15; // allow up to 15 s clock difference
     public static final int MINING_DELAY = Conch.getIntProperty("sharder.miningDelay");
@@ -227,6 +232,11 @@ public final class Constants {
     public static final int POC_POOL_NEVER_END_HEIGHT = isTestnet() ? 13777 : 0;
     public static final int POC_BALANCE_CORRECTION_HEIGHT = isTestnet() ? 15777 : 0;
     public static final int POC_TX_ALLOW_RECIPIENT = isTestnet() ? 0 : 0;
+    // the poc calculate algorithm changed height.
+    // NOTE: set the height to 0 when reset the chain or start a new chain
+    public static final int POC_CAL_ALGORITHM = isTestnet() ? 0 : 0;
+    // mw-holding score algo. changed; re-calculate the hardware and mw-holding score
+    public static final int POC_MW_POC_SCORE_CHANGE_HEIGHT = isTestnet() ? -1 : -1;
 
     //not opened yet
     public static final int PHASING_BLOCK_HEIGHT = Integer.MAX_VALUE;
@@ -251,6 +261,7 @@ public final class Constants {
     public static final long EPOCH_BEGINNING = launchedTime(0).getTimeInMillis();
 
     //Mining pool
+    public static final int POOL_OPENING_HEIGHT = isTestnetOrDevnet() ? -1 : -1;
     public static final int SHARDER_POOL_DELAY = isDevnet() ? 1 : 1; //transaction become effective
     public static final int SHARDER_POOL_MAX_BLOCK_DESTROY = 5; //pool can be destroyed by manual
     public static final int SHARDER_POOL_DEADLINE = isDevnet() ? 60 * 24 : 60 * 24 * 7; 
@@ -428,18 +439,6 @@ public final class Constants {
     public static final String BRACKET = "[";
 
     public static final String HOST_FILTER_INFO = "Not valid host! ONLY {} can do this operation!";
-    
-    /** log count check key **/
-    public static final String Generator_getNextGenerators = Generator.class.getName() + "#getNextGenerators";
-    public static final String Generator_isMintHeightReached = Generator.class.getName() + "#isMintHeightReached";
-    public static final String Generator_checkOrStartAutoMining = Generator.class.getName() + "#checkOrStartAutoMining";
-    public static final String Generator_isBlockStuckOnBootNode = Generator.class.getName() + "#isBlockStuckOnBootNode";
-    public static final String Generator_isPocTxsProcessed = Generator.class.getName() + "#isPocTxsProcessed";
-    public static final String CONCH_P_reachLastKnownBlock = Conch.class.getName() + "#reachLastKnownBlock";
-    public static final String BlockchainProcessor_downloadPeer_sizeCheck = BlockchainProcessorImpl.class.getName() + "#downloadPeer#sizeCheck";
-    public static final String BlockchainProcessor_downloadPeer_getWeightedPeer = BlockchainProcessorImpl.class.getName() + "#downloadPeer#getWeightedPeer";
-    public static final String BlockchainProcessor_getMoreBlocks = BlockchainProcessorImpl.class.getName() + "#getMoreBlocks";
-    public static final String GetNodeHardware_P_report = GetNodeHardware.class.getName() + "#report";
     
     public static final boolean hubLinked = Conch.getBooleanProperty("sharder.HubBind");
     public static final boolean initFromArchivedDbFile = Conch.getBooleanProperty("sharder.initFromArchivedDbFile");

@@ -38,6 +38,7 @@
                 userConfig: [],
                 hubBindAddress:"",
                 hubBind:false,
+                displayBindAddr: true,
                 hubSettingDialog: false,
                 hubsetting: {
                     openPunchthrough: true,
@@ -64,6 +65,7 @@
                 console.log(res, "getUserConfiggetUserConfiggetUserConfiggetUserConfiggetUserConfiggetUserConfig");
                 _this.$store.state.isHubInit = res["sharder.HubBindAddress"] ? false : true;
                 _this.$store.state.userConfig = res;
+                _this.displayBindAddr = this.checkAndSetdisplayBindAddr();
                 _this.hubBind = res["sharder.HubBind"];
                 _this.hubBindAddress = res["sharder.HubBindAddress"];
                 _this.autoLogin(res);
@@ -72,13 +74,13 @@
             SSO.init();
         },
         methods: {
-            displayBindAddr(){
+            checkAndSetdisplayBindAddr(){
                 const _this = this;
-
-                if(_this.$store.state.userConfig["sharder.myAddress"]
-                    && (_this.$store.state.userConfig["sharder.myAddress"].contains("sharder.io")
-                        || _this.$store.state.userConfig["sharder.myAddress"].contains("sharder.org"))){
-                    return false
+                if(_this.$store.state.userConfig["sharder.myAddress"]) {
+                    if(_this.$store.state.userConfig["sharder.myAddress"].indexOf("sharder.io") != -1
+                        || _this.$store.state.userConfig["sharder.myAddress"].indexOf("sharder.org") != -1) {
+                        return false;
+                    }
                 }
                 return true
             },

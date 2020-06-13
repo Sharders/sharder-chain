@@ -31,7 +31,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 
+ *
  * @author <a href="mailto:xy@sharder.org">Ben</a>
  * @since 2019/1/11
  */
@@ -47,7 +47,7 @@ public class CheckSumValidator {
                     -90, -42, -57, -76, 88, -49, 127, 6, -47, -72, -39, -56, 51, 90, -90, -105,
                     121, 71, -94, -97, 49, -24, -12, 86, 7, -48, 90, -91, -24, -105, -17, -104
             };
-    
+
     // not opened yet
     private static final byte[] CHECKSUM_PHASING_BLOCK =
             Constants.isTestnet()
@@ -55,7 +55,7 @@ public class CheckSumValidator {
                     -1
             }
                     : new byte[] {
-                   -1
+                    -1
             };
 
     private static final CheckSumValidator inst = new CheckSumValidator();
@@ -108,7 +108,7 @@ public class CheckSumValidator {
         }finally {
             DbUtils.close(con);
         }
-        
+
         byte[] checksum = digest.digest();
         if (validChecksum == null) {
             Logger.logMessage("Checksum calculated:\n" + Arrays.toString(checksum));
@@ -121,40 +121,31 @@ public class CheckSumValidator {
             return true;
         }
     }
-    
+
+
+    /** DEBUG **/
     static Set<Long> debugAccounts = Sets.newHashSet(
 //            3960463107034192150L,
 //            2792673654720227339L
 //            963382008953913442L
     );
-    /** DEBUG **/
     public static boolean isDebugPoint(long accountId){
         return debugAccounts.contains(accountId);
     }
     /** DEBUG **/
-    
-    
-    
+
     static int badCount = 0;
     static boolean synIgnoreBlock = false;
-    /**  **/
     // known ignore blocks
-    private static final Set<Long> knownIgnoreBlocks = Sets.newHashSet(
-            //Testnet
-    );
-    
-    private static final Set<Long> knownIgnoreTxs = Sets.newHashSet();
-    private static final Map<Integer,Set<Long>> knownDirtyPoolTxs = Maps.newConcurrentMap();
-    private static final Map<Integer,Set<Long>> knownDirtyPocTxs = Maps.newConcurrentMap();
-    
+    private static Map<Long,JSONObject> ignoreBlockMap = loadDefaultKnownIgnoreBlocks();
+
+    private static Set<Long> knownIgnoreTxs = Sets.newHashSet();
+    private static Map<Integer,Set<Long>> knownDirtyPoolTxs = Maps.newConcurrentMap();
+    private static Map<Integer,Set<Long>> knownDirtyPocTxs = Maps.newConcurrentMap();
+
     static Map<Integer, Map<Long, PocTxBody.PocNodeTypeV2>> pocNodeTypeTxsMap = Maps.newHashMap();
 
-
-    public static final int CHECK_INTERVAL_IN_MINUTES = Conch.getIntProperty("sharder.knownBlockCheckInterval", 60);
-    
-    //TODO 
-    private static final Map<Long,JSONObject> ignoreBlockMap = Maps.newConcurrentMap();
-    
+    public static final int CHECK_INTERVAL_IN_MINUTES = Conch.getIntProperty("sharder.knownBlockCheckInterval", 30);
 
     private static final Runnable updateKnownIgnoreBlocksThread = () -> {
         try {
@@ -168,25 +159,46 @@ public class CheckSumValidator {
         }
     };
 
+    private static Map<Long,JSONObject> loadDefaultKnownIgnoreBlocks(){
+        Map<Long,JSONObject> defaultMap = Maps.newConcurrentMap();
+
+        JSONArray defaultIgnoreBlocks = JSON.parseArray("["
+                +"{\"checksum\":\"xxxx\",\"height\":111,\"id\":-1111,\"network\":\"testnet\"},"
+                + "]"
+        );
+
+        if(defaultIgnoreBlocks.size() <= 0) return defaultMap;
+
+        for(int i = 0; i < defaultIgnoreBlocks.size(); i++) {
+            JSONObject ignoreBlock = defaultIgnoreBlocks.getJSONObject(i);
+            defaultMap.put(ignoreBlock.getLong("id"), ignoreBlock);
+        }
+        return defaultMap;
+    }
+
     static {
         ThreadPool.scheduleThread("UpdateKnownIgnoreBlocksThread", updateKnownIgnoreBlocksThread, CHECK_INTERVAL_IN_MINUTES, TimeUnit.MINUTES);
     }
 
-    public static boolean isKnownIgnoreBlock(long blockId){
-        return  knownIgnoreBlocks.contains(blockId);
+    public static boolean isKnownIgnoreBlock(long blockId, byte[] blockSignature){
+        if(!ignoreBlockMap.containsKey(blockId)) return false;
+
+        // checksum compare
+        JSONObject ignoreBlock = ignoreBlockMap.get(blockId);
+        return  StringUtils.equals(Convert.toHexString(blockSignature), ignoreBlock.getString("checksum"));
     }
 
     public static boolean isDoubleSpendingIgnoreTx(TransactionImpl tx){
-        if(tx.getType() != null 
-        && TransactionType.TYPE_SHARDER_POOL == tx.getType().getType()){
+        if(tx.getType() != null
+                && TransactionType.TYPE_SHARDER_POOL == tx.getType().getType()){
             return true;
         }
         return false;
     }
-    
+
     public static boolean isKnownIgnoreTx(long txId){
         boolean result = knownIgnoreTxs.contains(txId);
-        
+
         return result;
     }
 
@@ -196,16 +208,16 @@ public class CheckSumValidator {
         }
 
         boolean result = knownDirtyPoolTxs.get(height).contains(accountId);
-        
+
         if(result){
             Logger.logDebugMessage("found a known dirty pool tx[account id=%s] at height %d, ignore this tx" , accountId, height);
         }
         return result;
     }
-    
+
 
     /**
-     * 
+     *
      * [POLYFILL]
      * @param accountId
      * @param height
@@ -213,7 +225,7 @@ public class CheckSumValidator {
      */
     public static PocTxBody.PocNodeTypeV2 isPreAccountsInTestnet(long accountId, int height){
         if(Constants.isTestnet()
-            && pocNodeTypeTxsMap.containsKey(height)) {
+                && pocNodeTypeTxsMap.containsKey(height)) {
             return pocNodeTypeTxsMap.get(height).get(accountId);
         }
         return null;
@@ -228,128 +240,135 @@ public class CheckSumValidator {
                 for(PocTxBody.PocNodeTypeV2 nodeTypeTx : nodeTypeTxs){
                     if(StringUtils.equals(host,nodeTypeTx.getIp())){
                         return nodeTypeTx;
-                    }  
+                    }
                 }
             }
         }
         return null;
     }
-    
-    
-    static private boolean closeIgnor= false;
-    
+
+
+    static private boolean closeIgnore = false;
+
     private static boolean updateSingle(JSONObject object){
         try{
-            if(closeIgnor) return true;
-            
+            if(closeIgnore) return true;
+
             try{
                 if(object.containsKey("id") && object.getLong("id") != -1L) {
                     long blockId = object.getLong("id");
-                    if (!knownIgnoreBlocks.contains(blockId)) {
-                        knownIgnoreBlocks.add(blockId);
+                    if (!ignoreBlockMap.containsKey(blockId)) {
                         ignoreBlockMap.put(blockId, object);
                     }
                 }
             } catch(Exception e){
                 Logger.logErrorMessage("parsed known ignore blocks error caused by " + e.getMessage());
             }
-            
 
             try{
                 if(object.containsKey("txs")){
                     com.alibaba.fastjson.JSONArray array = object.getJSONArray("txs");
-                    for(int i = 0; i < array.size(); i++) {
-                        Long txid = array.getLong(i);
-                        if(!knownIgnoreTxs.contains(txid)) {
-                            knownIgnoreTxs.add(txid);
+                    synchronized (knownIgnoreTxs){
+                        for(int i = 0; i < array.size(); i++) {
+                            Long txid = array.getLong(i);
+                            if(!knownIgnoreTxs.contains(txid)) {
+                                knownIgnoreTxs.add(txid);
+                            }
                         }
                     }
                 }
             } catch(Exception e){
                 Logger.logErrorMessage("parsed known ignore txs error caused by " + e.getMessage());
             }
-            
+
 
             try{
                 if(object.containsKey("dirtyPoolAccounts")){
                     Integer height = object.getInteger("height");
-                    if(!knownDirtyPoolTxs.containsKey(height)) {
-                        knownDirtyPoolTxs.put(height, Sets.newHashSet());
-                    }
-                    Set<Long> dirtyPoolAccounts = knownDirtyPoolTxs.get(height);
+                    synchronized (knownDirtyPoolTxs){
+                        if(!knownDirtyPoolTxs.containsKey(height)) {
+                            knownDirtyPoolTxs.put(height, Sets.newHashSet());
+                        }
 
-                    com.alibaba.fastjson.JSONArray array = object.getJSONArray("dirtyPoolAccounts");
-                    for(int i = 0; i < array.size(); i++) {
-                        dirtyPoolAccounts.add(array.getLong(i));
+                        Set<Long> dirtyPoolAccounts = knownDirtyPoolTxs.get(height);
+
+                        com.alibaba.fastjson.JSONArray array = object.getJSONArray("dirtyPoolAccounts");
+                        for(int i = 0; i < array.size(); i++) {
+                            dirtyPoolAccounts.add(array.getLong(i));
+                        }
                     }
                 }
             } catch(Exception e){
                 Logger.logErrorMessage("parsed known dirty pool accounts error caused by " + e.getMessage());
             }
-            
-            
+
+
             try{
                 if(object.containsKey("dirtyPocTxs")){
                     Integer height = object.getInteger("height");
-                    if(!knownDirtyPocTxs.containsKey(height)) {
-                        knownDirtyPocTxs.put(height, Sets.newHashSet());
-                    }
-                    Set<Long> dirtyPocTxs = knownDirtyPocTxs.get(height);
+                    synchronized (knownDirtyPocTxs) {
+                        if(!knownDirtyPocTxs.containsKey(height)) {
+                            knownDirtyPocTxs.put(height, Sets.newHashSet());
+                        }
+                        Set<Long> dirtyPocTxs = knownDirtyPocTxs.get(height);
 
-                    com.alibaba.fastjson.JSONArray array = object.getJSONArray("dirtyPocTxs");
-                    for(int i = 0; i < array.size(); i++) {
-                        dirtyPocTxs.add(array.getLong(i));
+                        com.alibaba.fastjson.JSONArray array = object.getJSONArray("dirtyPocTxs");
+                        for(int i = 0; i < array.size(); i++) {
+                            dirtyPocTxs.add(array.getLong(i));
+                        }
                     }
                 }
             } catch(Exception e){
                 Logger.logErrorMessage("parsed known dirty poc txs error caused by " + e.getMessage());
             }
-            
-            
+
+
             try{
                 if(object.containsKey("pocNodeTypeTxsV1")){
                     MultiValueMap pocNodeTypeTxsV1Map = JSONObject.parseObject(object.getString("pocNodeTypeTxsV1"), MultiValueMap.class);
                     Set<Integer> heightSet = pocNodeTypeTxsV1Map.keySet();
-                    
-                    for(Integer height : heightSet){
-                        Collection collection = pocNodeTypeTxsV1Map.getCollection(height);
 
-                        if(!pocNodeTypeTxsMap.containsKey(height)) {
-                            pocNodeTypeTxsMap.put(height, Maps.newHashMap());
-                        }
-                        Map<Long, PocTxBody.PocNodeTypeV2> pocNodeTypeV2Map = pocNodeTypeTxsMap.get(height);
-                        
-                        for (Iterator it = collection.iterator(); it.hasNext(); ) {
-                            Object attachment = it.next();
-                            if(attachment instanceof com.alibaba.fastjson.JSONArray) {
-                                JSONArray jsonArray = (JSONArray) attachment;
+                    synchronized (pocNodeTypeTxsMap) {
+                        for(Integer height : heightSet){
+                            Collection collection = pocNodeTypeTxsV1Map.getCollection(height);
 
-                                for(int i = 0; i < jsonArray.size(); i++) {
-                                    JSONObject jsonObject = null;
-                                    try{
-                                        jsonObject = jsonArray.getJSONObject(i);
-                                        String ip = jsonObject.getString("ip");
-                                        String accountRs = jsonObject.getString("accountRs");
-                                        int type = jsonObject.getIntValue("type");
-                                        Byte version = jsonObject.getByte("version");
-                                        Long accountId = Account.rsAccountToId(accountRs);
-                                        //String ip, Peer.Type type, long accountId
-                                        PocTxBody.PocNodeTypeV2 pocNodeTypeV2 = new PocTxBody.PocNodeTypeV2(ip, Peer.Type.getByCode(type), accountId);
-                                        pocNodeTypeV2Map.put(accountId, pocNodeTypeV2);  
-                                    } catch(Exception e){
-                                        Logger.logErrorMessage("Poc node type tx convert failed caused by[%s] and detail is %s" + e.getMessage(), jsonObject == null ? "null" : jsonObject.toString() );
+                            if(!pocNodeTypeTxsMap.containsKey(height)) {
+                                pocNodeTypeTxsMap.put(height, Maps.newHashMap());
+                            }
+                            Map<Long, PocTxBody.PocNodeTypeV2> pocNodeTypeV2Map = pocNodeTypeTxsMap.get(height);
+
+                            for (Iterator it = collection.iterator(); it.hasNext(); ) {
+                                Object attachment = it.next();
+                                if(attachment instanceof com.alibaba.fastjson.JSONArray) {
+                                    JSONArray jsonArray = (JSONArray) attachment;
+
+                                    for(int i = 0; i < jsonArray.size(); i++) {
+                                        JSONObject jsonObject = null;
+                                        try{
+                                            jsonObject = jsonArray.getJSONObject(i);
+                                            String ip = jsonObject.getString("ip");
+                                            String accountRs = jsonObject.getString("accountRs");
+                                            int type = jsonObject.getIntValue("type");
+                                            Byte version = jsonObject.getByte("version");
+                                            Long accountId = Account.rsAccountToId(accountRs);
+                                            //String ip, Peer.Type type, long accountId
+                                            PocTxBody.PocNodeTypeV2 pocNodeTypeV2 = new PocTxBody.PocNodeTypeV2(ip, Peer.Type.getByCode(type), accountId);
+                                            pocNodeTypeV2Map.put(accountId, pocNodeTypeV2);
+                                        } catch(Exception e){
+                                            Logger.logErrorMessage("Poc node type tx convert failed caused by[%s] and detail is %s" + e.getMessage(), jsonObject == null ? "null" : jsonObject.toString() );
+                                        }
                                     }
                                 }
                             }
                         }
-                        
+
                     }
                 }
             }catch(Exception e){
                 Logger.logErrorMessage("parsed known poc node type v1 txs error caused by " + e.getMessage());
             }
-           
-            
+
+
         }catch(Exception e){
             Logger.logErrorMessage("parsed and set single ignore block error caused by " + e.getMessage());
             return false;
@@ -364,7 +383,7 @@ public class CheckSumValidator {
         try {
             response = RestfulHttpClient.getClient(url).get().request();
             if(response == null) return;
-            
+
             String content = response.getContent();
             String totalIgnoreBlocks = "\n\r";
             if(content.startsWith("[")) {
@@ -382,10 +401,10 @@ public class CheckSumValidator {
                 Logger.logWarningMessage("not correct known ignore block get from " + url + " : " + content);
                 return ;
             }
-            if(totalIgnoreBlocks.length() > 4){
-                Logger.logDebugMessage("total ignore blocks get from %s as follow:" + totalIgnoreBlocks, url);
-            }
-  
+//            if(totalIgnoreBlocks.length() > 4){
+//                Logger.logDebugMessage("total ignore blocks get from %s as follow:" + totalIgnoreBlocks, url);
+//            }
+
             // remove the dirty poc txs
             if(knownDirtyPocTxs.size() > 0) {
                 Set<Long> dirtyPocTxs = Sets.newHashSet();
@@ -397,13 +416,13 @@ public class CheckSumValidator {
             if(knownDirtyPoolTxs.size() > 0) {
                 SharderPoolProcessor.removePools(knownDirtyPoolTxs);
             }
-            
+
             if(!synIgnoreBlock) synIgnoreBlock = true;
         } catch (IOException e) {
-           Logger.logErrorMessage("Can't get known ignore blocks from " + url + " caused by " + e.getMessage());
+            Logger.logErrorMessage("Can't get known ignore blocks from " + url + " caused by " + e.getMessage());
         }
     }
-    
+
     public static JSONObject generateIgnoreBlock(long id, byte[] checksum, String network){
         if(StringUtils.isEmpty(network)) network = "testnet";
 
@@ -416,6 +435,7 @@ public class CheckSumValidator {
 
     public static void main(String[] args) {
         //updateKnownIgnoreBlocks();
+        Map<Long,JSONObject> map = loadDefaultKnownIgnoreBlocks();
     }
 
 }

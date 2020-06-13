@@ -59,7 +59,7 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
             "harder.debugTraceLog",
             "sharder.closeAutoSwitchIp",
             "sharder.closeAutoUpgrade",
-            "sharder.closeSwitchToBootFork:"
+            "sharder.closeSwitchToBootFork"
     );
 
     private GetUserConfig() {

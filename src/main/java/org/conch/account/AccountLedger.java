@@ -467,7 +467,9 @@ public class AccountLedger {
         // TYPE_STORAGE
             STORAGE_UPLOAD(71, true),
             STORAGE_BACKUP(72, true),
-            STORAGE_EXTEND(73, true);
+            STORAGE_EXTEND(73, true),
+        // BURN
+            BURN(75, true);
 
         /** Event code mapping */
         private static final Map<Integer, LedgerEvent> eventMap = new HashMap<>();

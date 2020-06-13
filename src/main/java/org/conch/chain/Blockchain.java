@@ -56,6 +56,14 @@ public interface Blockchain {
 
     DbIterator<? extends Block> getAllBlocks();
 
+    /**
+     * get blocks follow the order conditions
+     * @param orderPair String[2]: orderPair[0] - sort field, orderPair[0] - sort direction, value should be 'ASC' or 'DESC'
+     *                  e.g. orderPair[0]="height", orderPair[1]="ASC"
+     * @return
+     */
+    DbIterator<? extends Block> getBlocks(int from, int to, String[] orderPair);
+
     DbIterator<? extends Block> getBlocks(int from, int to);
 
     DbIterator<? extends Block> getBlocks(long accountId, int timestamp);
