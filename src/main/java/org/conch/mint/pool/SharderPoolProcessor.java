@@ -11,6 +11,7 @@ import org.conch.chain.Block;
 import org.conch.chain.BlockchainProcessor;
 import org.conch.common.Constants;
 import org.conch.consensus.poc.db.PoolDb;
+import org.conch.consensus.reward.RewardCalculator;
 import org.conch.db.Db;
 import org.conch.db.DbIterator;
 import org.conch.db.DbUtils;
@@ -530,7 +531,7 @@ public class SharderPoolProcessor implements Serializable {
                 Attachment.CoinBase coinbaseBody = (Attachment.CoinBase) attachment;
                 if(!coinbaseBody.isType(Attachment.CoinBase.CoinBaseType.BLOCK_REWARD)) continue;
                 
-                long mintReward = TransactionType.CoinBase.mintReward(transaction,true);
+                long mintReward = RewardCalculator.blockRewardDistribution(transaction,true);
                 updateHistoricalRewards(id,mintReward);
             }
         }

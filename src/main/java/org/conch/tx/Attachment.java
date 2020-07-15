@@ -169,12 +169,12 @@ public interface Attachment extends Appendix {
     };
 
     class CoinBase extends AbstractAttachment {
-        
+
         public enum CoinBaseType {
             GENESIS,
-            BLOCK_REWARD,
-            CROWD_REWARD,
-            FOUNDING_TX, 
+            BLOCK_REWARD, // support miner and pool rewards distribution
+            CROWD_BLOCK_REWARD, // support crowd miner and pool rewards distribution
+            FOUNDING_TX,
             SPECIAL_LOGIC;
 
             public static CoinBaseType getType(String name) {
@@ -192,7 +192,10 @@ public interface Attachment extends Appendix {
         protected final long creator;
         //pool id or account id
         protected final long generatorId;
+        // account id : investment amount
+        // FIXME - change the investment amount to distribution amount
         protected final Map<Long, Long> consignors;
+        // miner's account id : poc score
         protected Map<Long, Long> crowdMiners;
 
         public CoinBase(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
@@ -201,7 +204,7 @@ public interface Attachment extends Appendix {
             this.creator = buffer.getLong();
             this.generatorId = buffer.getLong();
             // Crowd Rewards
-            if(isType(CoinBaseType.CROWD_REWARD)){
+            if(isType(CoinBaseType.CROWD_BLOCK_REWARD)){
                 Map<Long, Long> crowdMinersReader = Maps.newHashMap();
                 int crowdMinerSize = buffer.getInt();
                 for (int i = 0; i < crowdMinerSize; i++) {
@@ -231,21 +234,20 @@ public interface Attachment extends Appendix {
             this.generatorId = (Long) attachmentData.get("generatorId");
             this.consignors = jsonToMap((JSONObject) attachmentData.get("consignors"));
             // Crowd Rewards
-            if(isType(CoinBaseType.CROWD_REWARD)){
+            if(isType(CoinBaseType.CROWD_BLOCK_REWARD)){
                 this.crowdMiners = jsonToMap((JSONObject) attachmentData.get("crowdMiners"));
             }
         }
 
         /**
          * The coinbase tx that used to issue the coins when block generated
-         * @param coinBaseType see org.conch.tx.Attachment.CoinBase.CoinBaseType
          * @param creator  account id of creator
          * @param generatorId value is the pool id/ creator id when type is Block Reward; value is the recipient id when type is Genesis.
          * @param consignors pool joiner's map contains joiner id and reward amount
          * @param crowdMiners qualified miners at this height
          */
-        public CoinBase(CoinBaseType coinBaseType, long creator, long generatorId, Map<Long, Long> consignors, Map<Long, Long> crowdMiners) {
-            this(coinBaseType, creator, generatorId, consignors);
+        public CoinBase(long creator, long generatorId, Map<Long, Long> consignors, Map<Long, Long> crowdMiners) {
+            this(CoinBaseType.CROWD_BLOCK_REWARD, creator, generatorId, consignors);
             this.crowdMiners = crowdMiners;
         }
 
@@ -270,7 +272,7 @@ public interface Attachment extends Appendix {
                     + consignors.size() * 2 * 8;
 
             // Crowd Rewards
-            if(isType(CoinBaseType.CROWD_REWARD)){
+            if(isType(CoinBaseType.CROWD_BLOCK_REWARD)){
                 size += 4 + crowdMiners.size() * 2 * 8;
             }
             return size;
@@ -283,7 +285,7 @@ public interface Attachment extends Appendix {
             buffer.putLong(creator);
             buffer.putLong(generatorId);
             // Crowd Rewards
-            if(isType(CoinBaseType.CROWD_REWARD)){
+            if(isType(CoinBaseType.CROWD_BLOCK_REWARD)){
                 buffer.putInt(crowdMiners.size());
                 for (Map.Entry<Long, Long> entry : crowdMiners.entrySet()) {
                     buffer.putLong(entry.getKey());
@@ -304,7 +306,7 @@ public interface Attachment extends Appendix {
             attachment.put("generatorId", generatorId);
             attachment.put("consignors", mapToJson(consignors));
             // Crowd Rewards
-            if(isType(CoinBaseType.CROWD_REWARD)){
+            if(isType(CoinBaseType.CROWD_BLOCK_REWARD)){
                 attachment.put("crowdMiners", mapToJson(crowdMiners));
             }
         }
