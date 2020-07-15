@@ -106,6 +106,10 @@ public interface PocProcessor {
      */
     void notifySynTxNow();
 
+    /**
+     *  certified peer list
+     * @return map: account id : certified peer
+     */
     Map<Long, CertifiedPeer> getCertifiedPeers();
 
     Map<Integer, Map<Long,CertifiedPeer>>  getHistoryCertifiedPeers();
