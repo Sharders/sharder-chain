@@ -13,6 +13,7 @@ import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
 import org.conch.util.Logger;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -46,13 +47,24 @@ public class RewardCalculator {
      * how much one block reward
      * @return
      */
-    public static long blockReward() {
+    public static long blockReward(int height) {
         double turn = 0d;
-        if(Conch.getBlockchain().getHeight() > HALVE_COUNT){
-            turn = Conch.getBlockchain().getHeight() / HALVE_COUNT;
+        if(height > HALVE_COUNT){
+            turn = height / HALVE_COUNT;
         }
         double rate = Math.pow(0.5d,turn);
         return (long)(Constants.ONE_SS * RewardDef.MINT.getAmount() * rate);
+    }
+
+    public static long crowdMinerReward(int height){
+        if(height >= Constants.COINBASE_CROWD_MINER_OPEN_HEIGHT){
+            return RewardDef.CROWD_MINERS.getAmount() * Constants.ONE_SS;
+        }
+        return 0L;
+    }
+
+    public static long blockMinedReward(int height){
+        return blockReward(height) - crowdMinerReward(height);
     }
 
     /**
@@ -78,7 +90,7 @@ public class RewardCalculator {
                     && exceptAccounts.contains(certifiedPeer.getBoundAccountId())){
                 continue;
             }
-
+            // qualified miner judgement
             Account declaredAccount = Account.getAccount(certifiedPeer.getBoundAccountId());
             long holdingMwAmount = 0;
             try{
@@ -88,6 +100,7 @@ public class RewardCalculator {
             }
             if(holdingMwAmount < QUALIFIED_MINER_HOLDING_MW_MIN) continue;
 
+            // poc score judgement
             PocScore pocScore = PocHolder.getPocScore(Conch.getHeight(), declaredAccount.getId());
             if(pocScore == null || pocScore.total().longValue() <= 0) continue;
 
@@ -99,40 +112,68 @@ public class RewardCalculator {
 
     /**
      * reward calculation algo.: miner's PoC score / total miner's PoC score * 667 MW
-     * @param account
-     * @param transaction
-     * @param amount
+     * @param minerAccount block's miner account
+     * @param tx coinbase tx
+     * @param crowdMiners crowd miner map: account id : miner's poc score
      * @param stageTwo
      */
-    private static void calAndSetCrowdMinerReward(Account account, Transaction transaction, long amount, boolean stageTwo){
+    private static void calAndSetCrowdMinerReward(Account minerAccount, Transaction tx, Map<Long, Long> crowdMiners, boolean stageTwo){
+        if (crowdMiners.size() == 0) return;
 
+        Map<Long,Long> crowdMinerRewardMap = Maps.newHashMap();
+
+        long totalPocScoreLong = 0;
+        for(long pocScore : crowdMiners.values()){
+            totalPocScoreLong += pocScore;
+        }
+
+        BigDecimal totalPocScore = BigDecimal.valueOf(totalPocScoreLong);
+        long crowdMinerRewards = crowdMinerReward(tx.getHeight());
+        BigDecimal crowdMinerRewardsAmount = new BigDecimal(crowdMinerRewards);
+        // calculate the single miner's rewards
+        long allocatedRewards = 0;
+        for (Long accountId : crowdMiners.keySet()) {
+            if (crowdMinerRewardMap.containsKey(accountId)) continue;
+
+            BigDecimal pocScore = BigDecimal.valueOf(crowdMiners.get(accountId));
+            BigDecimal pocScoreRate = pocScore.divide(totalPocScore,4,BigDecimal.ROUND_DOWN);
+            long rewards = crowdMinerRewardsAmount.multiply(pocScoreRate).longValue();
+
+            updateBalanceAndFrozeIt(Account.getAccount(accountId), tx, rewards, stageTwo);
+            crowdMinerRewardMap.put(accountId, rewards);
+            allocatedRewards += rewards;
+        }
+
+        // remain amount distribute to creator
+        long remainRewards = (crowdMinerRewards > allocatedRewards) ? (crowdMinerRewards - allocatedRewards) : 0;
+        updateBalanceAndFrozeIt(minerAccount, tx, remainRewards, stageTwo);
     }
 
     /**
      *
      * @param account
-     * @param transaction
+     * @param tx
      * @param amount
      * @param stageTwo
      */
-    private static void calAndSetMiningReward(Account account, Transaction transaction, long amount, boolean stageTwo){
+    private static void updateBalanceAndFrozeIt(Account account, Transaction tx, long amount, boolean stageTwo){
         if(!stageTwo) {
-            account.addBalanceAddUnconfirmed(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), amount);
-            account.addFrozen(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), amount);
+            account.addBalanceAddUnconfirmed(AccountLedger.LedgerEvent.BLOCK_GENERATED, tx.getId(), amount);
+            account.addFrozen(AccountLedger.LedgerEvent.BLOCK_GENERATED, tx.getId(), amount);
             Logger.logDebugMessage("[Stage One]add mining rewards %d to %s unconfirmed balance and freeze it of tx %d at height %d",
-                    amount, account.getRsAddress(), transaction.getId() , transaction.getHeight());
+                    amount, account.getRsAddress(), tx.getId() , tx.getHeight());
         }else{
             if(Constants.isTestnet() && account.getFrozenBalanceNQT() <= 0) {
-                account.addFrozen(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), account.getFrozenBalanceNQT());
+                account.addFrozen(AccountLedger.LedgerEvent.BLOCK_GENERATED, tx.getId(), account.getFrozenBalanceNQT());
             }else if(Constants.isTestnet() && account.getFrozenBalanceNQT() <= amount){
-                account.addFrozen(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), -account.getFrozenBalanceNQT());
+                account.addFrozen(AccountLedger.LedgerEvent.BLOCK_GENERATED, tx.getId(), -account.getFrozenBalanceNQT());
             }else{
-                account.addFrozen(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), -amount);
+                account.addFrozen(AccountLedger.LedgerEvent.BLOCK_GENERATED, tx.getId(), -amount);
             }
             account.addMintedBalance(amount);
             account.pocChanged();
             Logger.logDebugMessage("[Stage Two]unfreeze mining rewards %d of %s and add it in mined amount of tx %d at height %d",
-                    amount, account.getRsAddress(), transaction.getId() , transaction.getHeight());
+                    amount, account.getRsAddress(), tx.getId() , tx.getHeight());
         }
     }
 
@@ -147,27 +188,27 @@ public class RewardCalculator {
     public static long blockRewardDistribution(Transaction tx, boolean stageTwo) {
         Attachment.CoinBase coinBase = (Attachment.CoinBase) tx.getAttachment();
         Account senderAccount = Account.getAccount(tx.getSenderId());
+        Account minerAccount = Account.getAccount(coinBase.getCreator());
 
-        // Crowd Block
-        // TODO change the crowd mining reward distribution logic
-        long miningReward =  tx.getAmountNQT();
+        // Crowd Miner Reward
+        long miningRewards =  tx.getAmountNQT();
         if(coinBase.isType(Attachment.CoinBase.CoinBaseType.CROWD_BLOCK_REWARD)) {
             Map<Long, Long> crowdMiners = coinBase.getCrowdMiners();
-            for (long accountId : crowdMiners.keySet()) {
-                Account account = Account.getAccount(accountId);
-                calAndSetCrowdMinerReward(account, tx, crowdMiners.get(accountId), stageTwo);
+            calAndSetCrowdMinerReward(minerAccount, tx, crowdMiners, stageTwo);
+            if(crowdMiners.size() > 0){
+                miningRewards = tx.getAmountNQT() - crowdMinerReward(tx.getHeight());
             }
-            miningReward = tx.getAmountNQT() - (RewardDef.CROWD_MINERS.getAmount() * Constants.ONE_SS);
         }
 
+        // Mining Reward (include Pool mode)
         Map<Long, Long> consignors = coinBase.getConsignors();
         if (consignors.size() == 0) {
-            calAndSetMiningReward(senderAccount, tx, miningReward, stageTwo);
+            updateBalanceAndFrozeIt(senderAccount, tx, miningRewards, stageTwo);
         } else {
-            Map<Long, Long> rewardList = PoolRule.calRewardMapAccordingToRules(senderAccount.getId(), coinBase.getGeneratorId(), miningReward, consignors);
+            Map<Long, Long> rewardList = PoolRule.calRewardMapAccordingToRules(senderAccount.getId(), coinBase.getGeneratorId(), miningRewards, consignors);
             for (long id : rewardList.keySet()) {
                 Account account = Account.getAccount(id);
-                calAndSetMiningReward(account, tx, rewardList.get(id), stageTwo);
+                updateBalanceAndFrozeIt(account, tx, rewardList.get(id), stageTwo);
             }
         }
         return tx.getAmountNQT();
