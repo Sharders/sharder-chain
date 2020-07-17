@@ -134,8 +134,11 @@ public interface PocTxBody {
             attachment.put("diskCapacity", this.diskCapacity);
         }
     }
-    
-    class PocNodeTypeV2 extends PocNodeType {
+
+     /**
+      * use the PocNodeTypeV3: org.conch.consensus.poc.tx.PocTxBody.PocNodeTypeV3
+     */
+     class PocNodeTypeV2 extends PocNodeType {
         private long accountId;
 
         public long getAccountId() {
@@ -176,6 +179,9 @@ public interface PocTxBody {
         }
     }
 
+    /**
+     * use the PocNodeTypeV3: org.conch.consensus.poc.tx.PocTxBody.PocNodeTypeV3
+     */
     class PocNodeType extends Attachment.TxBodyBase {
         /**
          * TODO need refactor
@@ -510,6 +516,7 @@ public interface PocTxBody {
 
         private String ip;
         private String port;
+        protected long accountId;
         private SystemInfo systemInfo;
 
         public String getIp() {
@@ -520,8 +527,17 @@ public interface PocTxBody {
             return port;
         }
 
+        public long getAccountId() {
+            return accountId;
+        }
+
         public SystemInfo getSystemInfo() {
             return systemInfo;
+        }
+
+        public PocNodeConf(String ip, String port, SystemInfo systemInfo, long accountId) {
+            this(ip, port, systemInfo);
+            this.accountId = accountId;
         }
 
         public PocNodeConf(String ip, String port, SystemInfo systemInfo) {
@@ -536,6 +552,7 @@ public interface PocTxBody {
                 this.ip = Convert.readString(buffer, buffer.getInt(), MAX_POC_ITEM_BYTEBUFFER);
                 this.port = Convert.readString(buffer, buffer.getInt(), MAX_POC_ITEM_BYTEBUFFER);
                 this.systemInfo = JSON.parseObject(Convert.readString(buffer, buffer.getInt(), MAX_POC_ITEM_BYTEBUFFER), SystemInfo.class);
+                this.accountId = buffer.getLong();
             } catch (ConchException.NotValidException e) {
                 e.printStackTrace();
             }
@@ -546,6 +563,7 @@ public interface PocTxBody {
             this.ip = (String) attachmentData.get("ip");
             this.port = (String) attachmentData.get("port");
             this.systemInfo = (SystemInfo) attachmentData.get("systemInfo");
+            this.accountId = (Long) attachmentData.get("accountId");
         }
         
         public String getHost(){
@@ -555,7 +573,7 @@ public interface PocTxBody {
         @Override
         public int getMySize() {
             return 4 * 3 + ip.getBytes().length + port.getBytes().length
-                    + Convert.countJsonBytes(systemInfo);
+                    + Convert.countJsonBytes(systemInfo) + 8;
         }
 
         @Override
@@ -563,6 +581,7 @@ public interface PocTxBody {
             Convert.writeString(buffer, ip);
             Convert.writeString(buffer, port);
             Convert.writeObject(buffer, systemInfo);
+            buffer.putLong(accountId);
         }
 
         @Override
@@ -570,6 +589,7 @@ public interface PocTxBody {
             attachment.put("ip", ip);
             attachment.put("port", port);
             attachment.put("systemInfo", systemInfo);
+            attachment.put("accountId", this.accountId);
         }
 
         @Override

@@ -498,20 +498,20 @@
                 //list列表
                 blocklist: [],
                 //网络总览
-                newestHeight: 0,
-                newestTime: 0,
-                averageAmount: 0,
-                peerNum: 0,
-                declaredPeerSize: 0,
+                newestHeight: '--',
+                newestTime: '--',
+                averageAmount: '--',
+                peerNum: '--',
+                declaredPeerSize: '--',
                 fetchCoordinates: false,
-                //旷工信息
-                activeCount: 0,
-                totalCount: 0,
-                storageCount: 0,
-                transferCount: 0,
-                systemReward: 0,
-                poolCount: 0,
-                aliasCount: 0,
+                //矿工信息
+                activeCount: '--',
+                totalCount: '--',
+                storageCount: '--',
+                transferCount: '--',
+                systemReward: '--',
+                poolCount: '--',
+                aliasCount: '--',
                 //分页信息
                 isMobile: false,
                 currentPage: 1,

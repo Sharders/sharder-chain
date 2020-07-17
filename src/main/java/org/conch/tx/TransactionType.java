@@ -37,6 +37,7 @@ import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.consensus.poc.tx.PocTxWrapper;
+import org.conch.consensus.reward.RewardCalculator;
 import org.conch.market.DigitalGoodsStore;
 import org.conch.market.Order;
 import org.conch.mint.Hub;
@@ -531,52 +532,6 @@ public abstract class TransactionType {
         public final boolean isPhasingSafe() {
             return true;
         }
-        
-        
-        private static void calAndSetMiningReward(Account account, Transaction transaction,long amount, boolean stageTwo){
-            if(!stageTwo) {
-                account.addBalanceAddUnconfirmed(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), amount);
-                account.addFrozen(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), amount);
-                Logger.logDebugMessage("[Stage One]add mining rewards %d to %s unconfirmed balance and freeze it of tx %d at height %d",
-                        amount, account.getRsAddress(), transaction.getId() , transaction.getHeight());
-            }else{
-                if(Constants.isTestnet() && account.getFrozenBalanceNQT() <= 0) {
-                    account.addFrozen(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), account.getFrozenBalanceNQT());
-                }else if(Constants.isTestnet() && account.getFrozenBalanceNQT() <= amount){
-                    account.addFrozen(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), -account.getFrozenBalanceNQT());
-                }else{
-                    account.addFrozen(AccountLedger.LedgerEvent.BLOCK_GENERATED, transaction.getId(), -amount);
-                }
-                account.addMintedBalance(amount);
-                account.pocChanged();
-                Logger.logDebugMessage("[Stage Two]unfreeze mining rewards %d of %s and add it in mined amount of tx %d at height %d",
-                        amount, account.getRsAddress(), transaction.getId() , transaction.getHeight());
-            }
-        }
-        /**
-         * total 2 stages: 
-         * stage one is in tx accepted, the rewards need be lock; 
-         * stage two is the block confirmations reached, means unlock the rewards and record mined amount
-         * @param tx reward tx
-         * @param stageTwo true - stage two; false - stage one
-         * @return
-         */
-        public static long mintReward(Transaction tx, boolean stageTwo) {
-            Attachment.CoinBase coinBase = (Attachment.CoinBase) tx.getAttachment();
-            Account senderAccount = Account.getAccount(tx.getSenderId());
-            Map<Long, Long> consignors = coinBase.getConsignors();
-            
-            if (consignors.size() == 0) {
-                calAndSetMiningReward(senderAccount, tx, tx.getAmountNQT(), stageTwo);
-            } else {
-                Map<Long, Long> rewardList = PoolRule.calRewardMapAccordingToRules(senderAccount.getId(), coinBase.getGeneratorId(), tx.getAmountNQT(), consignors);
-                for (long id : rewardList.keySet()) {
-                    Account account = Account.getAccount(id);
-                    calAndSetMiningReward(account, tx, rewardList.get(id), stageTwo);
-                }
-            }
-            return tx.getAmountNQT();
-        }
 
         public static final TransactionType ORDINARY = new CoinBase() {
 
@@ -635,7 +590,7 @@ public abstract class TransactionType {
             private void applyByType(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 Attachment.CoinBase coinBase = (Attachment.CoinBase) transaction.getAttachment();
                 if (Attachment.CoinBase.CoinBaseType.BLOCK_REWARD == coinBase.getCoinBaseType()) {
-                    mintReward(transaction,false);
+                    RewardCalculator.blockRewardDistribution(transaction,false);
                 } else if (Attachment.CoinBase.CoinBaseType.GENESIS == coinBase.getCoinBaseType()) {
                     if (SharderGenesis.isGenesisCreator(coinBase.getCreator()) && SharderGenesis.isGenesisRecipients(senderAccount.getId())) {
                         if (Constants.isDevnet()) {

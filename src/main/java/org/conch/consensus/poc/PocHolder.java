@@ -31,7 +31,7 @@ import java.util.*;
  * @since 2019-01-29
  */
 
-class PocHolder implements Serializable {
+public class PocHolder implements Serializable {
     
     // you can use the key word 'transient' exclude the attribute to persist
     
@@ -298,7 +298,7 @@ class PocHolder implements Serializable {
      * @param accountId
      * @return
      */
-    static PocScore getPocScore(int height, long accountId) {
+    public static PocScore getPocScore(int height, long accountId) {
         if(height < 0) height = 0;
 
         PocScore pocScore = inst.scoreMap.containsKey(accountId) ? inst.scoreMap.get(accountId) : null;

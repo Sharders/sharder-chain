@@ -13,7 +13,6 @@ import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.consensus.poc.db.PocDb;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.consensus.poc.tx.PocTxWrapper;
-import org.conch.consensus.reward.RewardCalculator;
 import org.conch.db.Db;
 import org.conch.db.DbIterator;
 import org.conch.db.DbUtils;
@@ -117,15 +116,15 @@ public class PocProcessorImpl implements PocProcessor {
     // and not limited hardware score at Constants.POC_MW_POC_SCORE_CHANGE_HEIGHT
     public static boolean FORCE_RE_CALCULATE = false;
     private static synchronized void reCalculateWhenExceedPocAlgoChangeHeight(int height){
-        if(Constants.POC_MW_POC_SCORE_CHANGE_HEIGHT == -1) {
+        if(Constants.POC_SCORE_CHANGE_HEIGHT == -1) {
             return;
         }
 
-        if(height == Constants.POC_MW_POC_SCORE_CHANGE_HEIGHT + 1) {
+        if(height == Constants.POC_SCORE_CHANGE_HEIGHT + 1) {
             int reCalCount = 0;
             try{
                 FORCE_RE_CALCULATE = true;
-                Logger.logInfoMessage("Exceed the poc score change height " + (Constants.POC_MW_POC_SCORE_CHANGE_HEIGHT+1)
+                Logger.logInfoMessage("Exceed the poc score change height " + (Constants.POC_SCORE_CHANGE_HEIGHT +1)
                         + ", start to re-calculate the poc score of miners");
 
                 Map<Long,TransactionImpl> pocTxMap = Maps.newConcurrentMap();
@@ -249,7 +248,7 @@ public class PocProcessorImpl implements PocProcessor {
             }finally {
                 FORCE_RE_CALCULATE = false;
             }
-            Logger.logInfoMessage("Finish the " + reCalCount  + " re-calculation of the poc score of miners at height " + (Constants.POC_MW_POC_SCORE_CHANGE_HEIGHT+1));
+            Logger.logInfoMessage("Finish the " + reCalCount  + " re-calculation of the poc score of miners at height " + (Constants.POC_SCORE_CHANGE_HEIGHT +1));
         }
     }
 

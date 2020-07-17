@@ -35,6 +35,7 @@ import org.conch.common.UrlManager;
 import org.conch.consensus.poc.PocScore;
 import org.conch.consensus.poc.db.PocDb;
 import org.conch.consensus.poc.db.PoolDb;
+import org.conch.consensus.reward.RewardCalculator;
 import org.conch.db.Db;
 import org.conch.db.DbUtils;
 import org.conch.mint.Generator;
@@ -493,8 +494,8 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
     
                         Attachment.CoinBase coinbaseBody = (Attachment.CoinBase) attachment;
                         if(!coinbaseBody.isType(Attachment.CoinBase.CoinBaseType.BLOCK_REWARD)) continue;
-    
-                        TransactionType.CoinBase.mintReward(transaction,false);
+
+                        RewardCalculator.blockRewardDistribution(transaction,false);
                     }
                     i--;
                 }

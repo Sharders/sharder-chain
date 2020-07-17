@@ -236,7 +236,7 @@ public final class Constants {
     // NOTE: set the height to 0 when reset the chain or start a new chain
     public static final int POC_CAL_ALGORITHM = isTestnet() ? 0 : 0;
     // mw-holding score algo. changed; re-calculate the hardware and mw-holding score
-    public static final int POC_MW_POC_SCORE_CHANGE_HEIGHT = isTestnet() ? -1 : -1;
+    public static final int POC_SCORE_CHANGE_HEIGHT = isTestnet() ? -1 : -1;
 
     //not opened yet
     public static final int PHASING_BLOCK_HEIGHT = Integer.MAX_VALUE;
@@ -270,6 +270,7 @@ public final class Constants {
 
     //Coinbase
     public static final int MAX_COINBASE_TYPE_LENGTH = 16;
+    public static final int COINBASE_CROWD_MINER_OPEN_HEIGHT = isDevnet() ? 1 : (isTestnet() ? -1 : -1);
 
     //OSS
     public static final String OSS_PREFIX = "https://sharder.oss-cn-hangzhou.aliyuncs.com/";

@@ -1627,7 +1627,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             } catch (Exception e) {
                 Db.db.rollbackTransaction();
                 blockchain.setLastBlock(previousLastBlock);
-                Logger.logErrorMessage("push block failed", e);
+                Logger.logErrorMessage(String.format("push block at height %d failed", previousLastBlock.getHeight()), e);
                 throw e;
             } finally {
                 Db.db.endTransaction();
@@ -2284,7 +2284,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             TransactionImpl transaction =
                     new TransactionImpl.BuilderImpl(
                             publicKey,
-                            RewardCalculator.mintReward(),
+                            RewardCalculator.blockReward(Conch.getHeight()),
                             0,
                             (short) 10,
                             new Attachment.CoinBase(
