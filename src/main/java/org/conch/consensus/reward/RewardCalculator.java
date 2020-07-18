@@ -1,5 +1,7 @@
 package org.conch.consensus.reward;
 
+import cn.hutool.json.JSONObject;
+import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.conch.Conch;
@@ -64,13 +66,14 @@ public class RewardCalculator {
     }
 
     public static long crowdMinerReward(int height){
-        if(height >= Constants.COINBASE_CROWD_MINER_OPEN_HEIGHT){
+        if(height >= Constants.COINBASE_CROWD_MINER_OPEN_HEIGHT
+                || LocalDebugTool.isLocalDebugAndBootNodeMode){
             return RewardDef.CROWD_MINERS.getAmount() * Constants.ONE_SS;
         }
         return 0L;
     }
 
-    public static long blockMinedReward(int height){
+    public static long blockMiningReward(int height){
         return blockReward(height) - crowdMinerReward(height);
     }
 
@@ -139,11 +142,14 @@ public class RewardCalculator {
             }
             // qualified miner judgement
             Account declaredAccount = Account.getAccount(certifiedPeer.getBoundAccountId());
+            if(declaredAccount == null) continue;
+
             long holdingMwAmount = 0;
             try{
                 holdingMwAmount = declaredAccount.getEffectiveBalanceSS(height);
             }catch(Exception e){
-                Logger.logErrorMessage("[QualifiedMiner]can't get balance of account %s at height %d",  declaredAccount.getRsAddress(), height);
+                Logger.logWarningMessage("[QualifiedMiner] not valid miner because can't get balance of account %s at height %d, caused by %s",  declaredAccount.getRsAddress(), height, e.getMessage());
+                holdingMwAmount = 0;
             }
             if(holdingMwAmount < QUALIFIED_MINER_HOLDING_MW_MIN) continue;
 
@@ -157,17 +163,57 @@ public class RewardCalculator {
         return crowdMinerPocScoreMap;
     }
 
+    private static JSONArray calAndSetCrowdMinerReward(Account minerAccount, Transaction tx, Map<Long, Long> crowdMiners, boolean stageTwo){
+        return _calAndSetCrowdMinerReward(true, minerAccount, tx, crowdMiners, stageTwo);
+    }
+
+    /**
+     *
+     * @param minerAccount
+     * @param tx
+     * @param crowdMiners
+     * @return crowd miner reward json array:[{accountId:,accountRS:,pocScore:,rewardAmount:}]
+     */
+    public static  JSONArray calCrowdMinerReward(Account minerAccount, Transaction tx, Map<Long, Long> crowdMiners){
+        return _calAndSetCrowdMinerReward(false, minerAccount, tx, crowdMiners, false);
+    }
+
+    /**
+     *
+     * @param senderId
+     * @param blockGeneratorId
+     * @param tx
+     * @param consignors
+     * @return pool reward json array:[{accountId:,accountRS:,pocScore:,rewardAmount:}]
+     */
+    public static JSONArray calPoolReward(long senderId, long blockGeneratorId, Transaction tx, Map<Long, Long> consignors){
+        JSONArray poolRewardArray = new JSONArray();
+        Map<Long, Long> poolRewardMap = PoolRule.calRewardMapAccordingToRules(senderId, blockGeneratorId, blockMiningReward(tx.getHeight()), consignors);
+        for (long accountId : poolRewardMap.keySet()) {
+            Account account = Account.getAccount(accountId);
+            poolRewardArray.add(new JSONObject()
+                    .put("accountId", accountId)
+                    .put("accountRS", account.getRsAddress())
+                    .put("investAmount", consignors.get(accountId))
+                    .put("rewardAmount", poolRewardMap.get(accountId)));
+        }
+        return poolRewardArray;
+    }
+
     /**
      * reward calculation algo.: miner's PoC score / total miner's PoC score * 667 MW
+     * @param updateBalance true: update and froze the balance after calculate, false: just calculate the rewards
      * @param minerAccount block's miner account
      * @param tx coinbase tx
      * @param crowdMiners crowd miner map: account id : miner's poc score
      * @param stageTwo
+     * @return crowd miner reward json array:[{accountId:,accountRS:,pocScore:,rewardAmount:}]
      */
-    private static void calAndSetCrowdMinerReward(Account minerAccount, Transaction tx, Map<Long, Long> crowdMiners, boolean stageTwo){
-        if (crowdMiners.size() == 0) return;
-
+    private static JSONArray _calAndSetCrowdMinerReward(boolean updateBalance, Account minerAccount, Transaction tx, Map<Long, Long> crowdMiners, boolean stageTwo){
+        JSONArray crowdMinerRewardArray = new JSONArray();
         Map<Long,Long> crowdMinerRewardMap = Maps.newHashMap();
+
+        if (crowdMiners.size() == 0) return crowdMinerRewardArray;
 
         long totalPocScoreLong = 0;
         for(long pocScore : crowdMiners.values()){
@@ -182,18 +228,35 @@ public class RewardCalculator {
         for (Long accountId : crowdMiners.keySet()) {
             if (crowdMinerRewardMap.containsKey(accountId)) continue;
 
-            BigDecimal pocScore = BigDecimal.valueOf(crowdMiners.get(accountId));
-            BigDecimal pocScoreRate = pocScore.divide(totalPocScore,4,BigDecimal.ROUND_DOWN);
+            long pocScoreLong = crowdMiners.get(accountId);
+            BigDecimal pocScore = BigDecimal.valueOf(pocScoreLong);
+            BigDecimal pocScoreRate = pocScore.divide(totalPocScore, 10, BigDecimal.ROUND_DOWN);
             long rewards = crowdMinerRewardsAmount.multiply(pocScoreRate).longValue();
-
-            updateBalanceAndFrozeIt(Account.getAccount(accountId), tx, rewards, stageTwo);
+            if(updateBalance){
+                updateBalanceAndFrozeIt(Account.getAccount(accountId), tx, rewards, stageTwo);
+            }
             crowdMinerRewardMap.put(accountId, rewards);
+
+            crowdMinerRewardArray.add(new JSONObject()
+                    .put("accountId", accountId)
+                    .put("accountRS", Account.rsAccount(accountId))
+                    .put("pocScore", pocScoreLong)
+                    .put("rewardAmount", rewards));
             allocatedRewards += rewards;
         }
 
         // remain amount distribute to creator
         long remainRewards = (crowdMinerRewards > allocatedRewards) ? (crowdMinerRewards - allocatedRewards) : 0;
-        updateBalanceAndFrozeIt(minerAccount, tx, remainRewards, stageTwo);
+        if(updateBalance) {
+            updateBalanceAndFrozeIt(minerAccount, tx, remainRewards, stageTwo);
+        }
+//        crowdMinerRewardMap.put(minerAccount.getId(), remainRewards);
+        crowdMinerRewardArray.add(new JSONObject()
+                .put("accountId", minerAccount.getId())
+                .put("accountRS", minerAccount.getRsAddress())
+                .put("pocScore", -1L)
+                .put("rewardAmount", remainRewards));
+        return crowdMinerRewardArray;
     }
 
     /**
@@ -207,7 +270,7 @@ public class RewardCalculator {
         if(!stageTwo) {
             account.addBalanceAddUnconfirmed(AccountLedger.LedgerEvent.BLOCK_GENERATED, tx.getId(), amount);
             account.addFrozen(AccountLedger.LedgerEvent.BLOCK_GENERATED, tx.getId(), amount);
-            Logger.logDebugMessage("[Stage One]add mining rewards %d to %s unconfirmed balance and freeze it of tx %d at height %d",
+            Logger.logDebugMessage("[Stage One] add mining rewards %d to %s unconfirmed balance and freeze it of tx %d at height %d",
                     amount, account.getRsAddress(), tx.getId() , tx.getHeight());
         }else{
             if(Constants.isTestnet() && account.getFrozenBalanceNQT() <= 0) {
@@ -219,7 +282,7 @@ public class RewardCalculator {
             }
             account.addMintedBalance(amount);
             account.pocChanged();
-            Logger.logDebugMessage("[Stage Two]unfreeze mining rewards %d of %s and add it in mined amount of tx %d at height %d",
+            Logger.logDebugMessage("[Stage Two] unfreeze mining rewards %d of %s and add it in mined amount of tx %d at height %d",
                     amount, account.getRsAddress(), tx.getId() , tx.getHeight());
         }
     }

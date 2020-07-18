@@ -29,6 +29,7 @@ import org.conch.asset.token.*;
 import org.conch.chain.Block;
 import org.conch.common.Constants;
 import org.conch.common.Token;
+import org.conch.consensus.reward.RewardCalculator;
 import org.conch.crypto.Crypto;
 import org.conch.crypto.EncryptedData;
 import org.conch.db.DbIterator;
@@ -926,37 +927,37 @@ public final class JSONData {
         return unconfirmedTransaction(transaction, null);
     }
 
-    static JSONObject unconfirmedTransaction(Transaction transaction, Filter<Appendix> filter) {
+    static JSONObject unconfirmedTransaction(Transaction tx, Filter<Appendix> filter) {
         JSONObject json = new JSONObject();
-        json.put("type", transaction.getType().getType());
-        json.put("subtype", transaction.getType().getSubtype());
-        json.put("phased", transaction.getPhasing() != null);
-        json.put("timestamp", transaction.getTimestamp());
-        json.put("deadline", transaction.getDeadline());
-        json.put("senderPublicKey", Convert.toHexString(transaction.getSenderPublicKey()));
-        if (transaction.getRecipientId() != 0) {
-            putAccount(json, "recipient", transaction.getRecipientId());
+        json.put("type", tx.getType().getType());
+        json.put("subtype", tx.getType().getSubtype());
+        json.put("phased", tx.getPhasing() != null);
+        json.put("timestamp", tx.getTimestamp());
+        json.put("deadline", tx.getDeadline());
+        json.put("senderPublicKey", Convert.toHexString(tx.getSenderPublicKey()));
+        if (tx.getRecipientId() != 0) {
+            putAccount(json, "recipient", tx.getRecipientId());
         }
-        json.put("amountNQT", String.valueOf(transaction.getAmountNQT()));
-        json.put("feeNQT", String.valueOf(transaction.getFeeNQT()));
-        String referencedTransactionFullHash = transaction.getReferencedTransactionFullHash();
+        json.put("amountNQT", String.valueOf(tx.getAmountNQT()));
+        json.put("feeNQT", String.valueOf(tx.getFeeNQT()));
+        String referencedTransactionFullHash = tx.getReferencedTransactionFullHash();
         if (referencedTransactionFullHash != null) {
             json.put("referencedTransactionFullHash", referencedTransactionFullHash);
         }
-        byte[] signature = Convert.emptyToNull(transaction.getSignature());
+        byte[] signature = Convert.emptyToNull(tx.getSignature());
         if (signature != null) {
             json.put("signature", Convert.toHexString(signature));
             json.put("signatureHash", Convert.toHexString(Crypto.sha256().digest(signature)));
-            json.put("fullHash", transaction.getFullHash());
-            json.put("transaction", transaction.getStringId());
+            json.put("fullHash", tx.getFullHash());
+            json.put("transaction", tx.getStringId());
         }
         JSONObject attachmentJSON = new JSONObject();
         if (filter == null) {
-            for (Appendix appendage : transaction.getAppendages(true)) {
+            for (Appendix appendage : tx.getAppendages(true)) {
                 attachmentJSON.putAll(appendage.getJSONObject());
             }
         } else {
-            for (Appendix appendage : transaction.getAppendages(filter, true)) {
+            for (Appendix appendage : tx.getAppendages(filter, true)) {
                 attachmentJSON.putAll(appendage.getJSONObject());
             }
         }
@@ -966,14 +967,14 @@ public final class JSONData {
                     entry.setValue(String.valueOf(entry.getValue()));
                 }
             }
-            if(TransactionType.Data.TAGGED_DATA_UPLOAD.equals(transaction.getType())){
+            if(TransactionType.Data.TAGGED_DATA_UPLOAD.equals(tx.getType())){
 
                 attachmentJSON.replace("data","");
             }
             
             // quit pool tx
-            if(transaction.getType().isType(TransactionType.TYPE_SHARDER_POOL)
-                    && transaction.getType().isSubType(TransactionType.SUBTYPE_SHARDER_POOL_QUIT)
+            if(tx.getType().isType(TransactionType.TYPE_SHARDER_POOL)
+                    && tx.getType().isSubType(TransactionType.SUBTYPE_SHARDER_POOL_QUIT)
                     && attachmentJSON.containsKey("txId")){
                 
                 String txId = String.valueOf(attachmentJSON.get("txId"));
@@ -988,25 +989,29 @@ public final class JSONData {
             // join pool tx or deletion poo tx: convert the pool id
 
             // coinbase
-            if(transaction.getType().isType(TransactionType.TYPE_COIN_BASE)) {
+            if(tx.getType().isType(TransactionType.TYPE_COIN_BASE)) {
+                Attachment.CoinBase coinBase = (Attachment.CoinBase) tx.getAttachment();
 
-                String txId = String.valueOf(attachmentJSON.get("txId"));
-                Transaction joinTx = Conch.getBlockchain().getTransaction(Long.valueOf(txId));
-                attachmentJSON.put("txSId",joinTx != null ? joinTx.getStringId() : "none");
+                if(coinBase.isType(Attachment.CoinBase.CoinBaseType.CROWD_BLOCK_REWARD)
+                        && coinBase.getCrowdMiners().size() > 0){
+                    Map<Long, Long> crowdMiners = coinBase.getCrowdMiners();
+                    Account minerAccount = Account.getAccount(coinBase.getCreator());
+                    attachmentJSON.put("crowdMiners", RewardCalculator.calCrowdMinerReward(minerAccount, tx, crowdMiners));
+                }
 
-                if(joinTx != null && joinTx.getAttachment() != null){
-                    attachmentJSON.put("amount", joinTx.getAttachment().getJSONObject().get("amount"));
+                if( coinBase.getConsignors().size() > 0){
+                    attachmentJSON.put("consignors",RewardCalculator.calPoolReward(tx.getSenderId(), coinBase.getGeneratorId(), tx, coinBase.getConsignors()));
                 }
             }
 
             json.put("attachment", attachmentJSON);
         }
-        putAccount(json, "sender", transaction.getSenderId());
-        json.put("height", transaction.getHeight());
-        json.put("version", transaction.getVersion());
-        if (transaction.getVersion() > 0) {
-            json.put("ecBlockId", Long.toUnsignedString(transaction.getECBlockId()));
-            json.put("ecBlockHeight", transaction.getECBlockHeight());
+        putAccount(json, "sender", tx.getSenderId());
+        json.put("height", tx.getHeight());
+        json.put("version", tx.getVersion());
+        if (tx.getVersion() > 0) {
+            json.put("ecBlockId", Long.toUnsignedString(tx.getECBlockId()));
+            json.put("ecBlockHeight", tx.getECBlockHeight());
         }
         
       
