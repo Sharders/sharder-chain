@@ -1056,7 +1056,7 @@ const en = {
         'hardware_disk': "Disk",
         'hardware_has_ip': "Public IP",
         'hardware_bandwidth': "Bandwidth",
-        'hardware_tx_performance': "Txns Performance",
+        'hardware_tx_performance': "Txs Performance",
         'hardware_open_services': "Services"
     },
     ...enLocale

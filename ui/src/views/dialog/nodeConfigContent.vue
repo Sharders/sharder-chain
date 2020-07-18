@@ -22,9 +22,9 @@
                         <span>{{ pocInfo.hadPublicIp }}</span>
                         <span>{{$t('poc.hardware_bandwidth')}}: </span>
                         <span>{{ pocInfo.bandWidth }} Mbps</span>
-                        <span>{{$t('poc.hardware_tx_performance')}}交易处理性能: </span>
+                        <span>{{$t('poc.hardware_tx_performance')}}: </span>
                         <span>{{ pocInfo.tradePerformance }}</span>
-                        <span>{{$t('poc.hardware_open_services')}}开启服务: </span>
+                        <span>{{$t('poc.hardware_open_services')}}: </span>
                         <el-tag v-for="openServiceCode in pocInfo.openServices">
                             {{ openServicesMapping(openServiceCode) }}
                         </el-tag>
