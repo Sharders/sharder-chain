@@ -891,6 +891,7 @@ const en = {
         'block_info_title2': " information",
         'block_info_all_transaction': "All Transactions",
         'block_info_all_block_detail': "Block Details",
+        'block_reward_distribution_detail': "Reward Distribution",
         'block_info_previous_block_hash': "Previous Block Hash",
         'block_info_payload_length': "Payload Length",
         'block_info_total_amount': "Gross Amount",

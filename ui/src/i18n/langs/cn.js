@@ -891,6 +891,7 @@ const cn = {
         'block_info_title2': " 信息",
         'block_info_all_transaction': "所有交易",
         'block_info_all_block_detail': "区块详情",
+        'block_reward_distribution_detail': "奖励分配",
         'block_info_previous_block_hash': "上一个区块哈希",
         'block_info_payload_length': "载荷长度",
         'block_info_total_amount': "总金额",

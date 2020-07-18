@@ -164,21 +164,21 @@
             </div>
             <div class="modal-body">
                 <el-radio-group v-model="tabTitle" class="title">
-                    <el-radio-button label="account" class="btn">{{$t('dialog.block_info_all_transaction')}}
-                    </el-radio-button>
-                    <el-radio-button label="blockInfo" class="btn">{{$t('dialog.block_info_all_block_detail')}}
-                    </el-radio-button>
+                    <el-radio-button label="account" class="btn">{{$t('dialog.block_info_all_transaction')}}</el-radio-button>
+                    <el-radio-button label="blockInfo" class="btn">{{$t('dialog.block_info_all_block_detail')}}</el-radio-button>
+                    <el-radio-button label="blockRewardInfo" class="btn">{{$t('dialog.block_reward_distribution_detail')}}</el-radio-button>
                     <el-radio-button v-if="pocInfoList.length > 0" label="pocInfo" class="btn">PoC</el-radio-button>
                     <el-radio-button v-if="poolInfoList.length > 0" label="poolInfo" class="btn">Pool</el-radio-button>
                     <el-radio-button v-if="messageInfoList.length > 0" label="messageInfo" class="btn">{{$t('sendMessage.infomation')}}</el-radio-button>
+                    <el-radio-button v-if="storageFileInfo.length > 0 && typeof(secretPhrase) !== 'undefined'" label="storageFileInfo" class="btn">{{$t('transaction.transaction_type_storage_service')}}</el-radio-button>
                 </el-radio-group>
 
                 <div v-if="tabTitle === 'account'" class="account_list">
-                    <table class="table">
+                    <table  class="table">
                         <tbody>
                         <tr>
                             <th class="pc-table">{{$t('dialog.account_transaction_time')}}</th>
-                            <th>{{$t('dialog.account_transaction_id')}}</th>
+                            <th class="mobile-th">{{$t('dialog.account_transaction_id')}}</th>
                             <th class="pc-table">{{$t('dialog.account_transaction_type')}}</th>
                             <th class="pc-table">{{$t('dialog.account_transaction_amount')}}</th>
                             <th class="pc-table">{{$t('dialog.account_info_fee')}}</th>
@@ -191,7 +191,7 @@
                                 <span>{{$global.myFormatTime(transaction.timestamp,'YMDHMS',true)}}</span><br>
                                 <span class="utc-time">{{$global.formatTime(transaction.timestamp)}} +UTC</span>
                             </td>
-                            <td class="linker" @click="openTransactionDialog(transaction.transaction)">{{transaction.transaction}}</td>
+                            <td class="linker mobile-td" @click="openTransactionDialog(transaction.transaction)">{{transaction.transaction}}</td>
                             <td class="transaction-img pc-table">
                                 <span class="bg" :class="'type' + transaction.type + transaction.subtype"></span>
                                 <span>{{$global.getTransactionTypeStr(transaction)}}</span>
@@ -215,6 +215,7 @@
                         </tbody>
                     </table>
                 </div>
+
                 <div v-if="tabTitle === 'blockInfo'" class="blockInfo">
                     <table class="table">
                         <tbody>
@@ -288,6 +289,11 @@
                         </tbody>
                     </table>
                 </div>
+
+                <div v-if="tabTitle === 'blockRewardInfo'" class="reward_list">
+
+                </div>
+
                 <div v-if="tabTitle === 'pocInfo'" class="blockInfo">
                     <el-table :data="pocInfoList" class="poc pc" style="width: 100%">
                         <el-table-column type="expand">
