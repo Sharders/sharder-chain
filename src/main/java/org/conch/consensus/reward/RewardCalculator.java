@@ -121,10 +121,10 @@ public class RewardCalculator {
      * - qualified condition:
      * a) create a tx to declared the node;
      * b) lined the mining address;
-     * c) balance at current height > 1064 MW（8T staking amount）;
+     * c) current height's balance  > 4256 Coins（32T staking amount）;
      * @return map: miner's account id : poc score
      */
-    private static long QUALIFIED_MINER_HOLDING_MW_MIN = 1064L;
+    private static long QUALIFIED_CROWD_MINER_HOLDING_AMOUNT_MIN = 32*133L; // 1T-133 Coins
     private static Map<Long, Long> generateCrowdMinerPocScoreMap(List<Long> exceptAccounts, int height){
         Map<Long, Long> crowdMinerPocScoreMap = Maps.newHashMap();
         // read the qualified miner list
@@ -151,7 +151,7 @@ public class RewardCalculator {
                 Logger.logWarningMessage("[QualifiedMiner] not valid miner because can't get balance of account %s at height %d, caused by %s",  declaredAccount.getRsAddress(), height, e.getMessage());
                 holdingMwAmount = 0;
             }
-            if(holdingMwAmount < QUALIFIED_MINER_HOLDING_MW_MIN) continue;
+            if(holdingMwAmount < QUALIFIED_CROWD_MINER_HOLDING_AMOUNT_MIN) continue;
 
             // poc score judgement
             PocScore pocScore = PocHolder.getPocScore(height, declaredAccount.getId());
@@ -163,7 +163,7 @@ public class RewardCalculator {
         return crowdMinerPocScoreMap;
     }
 
-    private static JSONArray calAndSetCrowdMinerReward(Account minerAccount, Transaction tx, Map<Long, Long> crowdMiners, boolean stageTwo){
+    private static  JSONArray calAndSetCrowdMinerReward(Account minerAccount, Transaction tx, Map<Long, Long> crowdMiners, boolean stageTwo){
         return _calAndSetCrowdMinerReward(true, minerAccount, tx, crowdMiners, stageTwo);
     }
 
@@ -184,7 +184,13 @@ public class RewardCalculator {
      * @param blockGeneratorId
      * @param tx
      * @param consignors
-     * @return pool reward json array:[{accountId:,accountRS:,pocScore:,rewardAmount:}]
+     * @return pool reward json array:
+     * [{
+     *  accountId: -7108135922261388000,
+     *  accountRS: "CDW-P6TU-3A78-GRF2-BNQQU",
+     *  investAmount: 16000,
+     *  rewardAmount: 11491
+     * }]
      */
     public static JSONArray calPoolReward(long senderId, long blockGeneratorId, Transaction tx, Map<Long, Long> consignors){
         JSONArray poolRewardArray = new JSONArray();
@@ -201,13 +207,19 @@ public class RewardCalculator {
     }
 
     /**
-     * reward calculation algo.: miner's PoC score / total miner's PoC score * 667 MW
+     * reward calculation algo.: miner's PoC score / total miner's PoC score * 667
      * @param updateBalance true: update and froze the balance after calculate, false: just calculate the rewards
      * @param minerAccount block's miner account
      * @param tx coinbase tx
      * @param crowdMiners crowd miner map: account id : miner's poc score
      * @param stageTwo
-     * @return crowd miner reward json array:[{accountId:,accountRS:,pocScore:,rewardAmount:}]
+     * @return crowd miner reward json array:
+     * [{
+     *  accountId: -7108135922261388000,
+     *  accountRS: "CDW-P6TU-3A78-GRF2-BNQQU",
+     *  pocScore: 3836000,
+     *  rewardAmount: 2451491
+     * }]
      */
     private static JSONArray _calAndSetCrowdMinerReward(boolean updateBalance, Account minerAccount, Transaction tx, Map<Long, Long> crowdMiners, boolean stageTwo){
         JSONArray crowdMinerRewardArray = new JSONArray();
