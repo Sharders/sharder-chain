@@ -22,10 +22,10 @@
                     <div v-if="tabTitle === 'account'" class="account_list">
                         <table class="table">
                             <tr>
-                                <th class="pc-table">{{$t('dialog.account_transaction_time')}}</th>
-                                <th>{{$t('dialog.account_transaction_id')}}</th>
-                                <th class="pc-table">{{$t('dialog.account_transaction_type')}}</th>
-                                <th class="pc-table">{{$t('dialog.account_transaction_amount')}}</th>
+                                <th class="mobile-th">{{$t('dialog.account_transaction_time')}}</th>
+                                <th class="pc-table">{{$t('dialog.account_transaction_id')}}</th>
+                                <th class="mobile-th">{{$t('dialog.account_transaction_type')}}</th>
+                                <th class="mobile-th">{{$t('dialog.account_transaction_amount')}}</th>
                                 <th class="pc-table">{{$t('dialog.account_info_fee')}}</th>
                                 <th class="pc-table">{{$t('dialog.account_info_account')}}</th>
                                 <th class="pc-table">{{$t('dialog.account_info_operating')}}</th>
@@ -37,17 +37,17 @@
                             <table class="table">
                                 <tbody>
                                 <tr v-for="transactions in accountTransactionInfo" @click="openTransactionDialogMobile(transactions.transaction)">
-                                    <td class="pc-table">
-                                        <span>{{$global.myFormatTime(transactions.timestamp,'YMDHMS',true)}}</span><br>
+                                    <td class="mobile-td compact-style">
+                                        <span class="compact-hidden">{{$global.myFormatTime(transactions.timestamp,'YMDHMS',true)}}</span><br>
                                         <span class="utc-time">{{$global.formatTime(transactions.timestamp)}} +UTC</span>
                                     </td>
-                                    <td>{{transactions.transaction}}</td>
-                                    <td class="transaction-img pc-table">
+                                    <td class="pc-table">{{transactions.transaction}}</td>
+                                    <td class="transaction-img mobile-td">
                                         <span class="bg"
                                               :class="'type' + transactions.type + transactions.subtype"></span>
                                         <span>{{$global.getTransactionTypeStr(transactions)}}</span>
                                     </td>
-                                    <td class="pc-table">{{$global.getTransactionAmountNQT(transactions,accountInfo.accountRS)}}</td>
+                                    <td class="mobile-td">{{$global.getTransactionAmountNQT(transactions,accountInfo.accountRS)}}</td>
                                     <td class="pc-table">{{$global.getTransactionFeeNQT(transactions)}}</td>
                                     <td class="linker pc-table" style="font-size:11px;" @click="checkAccountInfo(transactions.senderRS)">
                                         <span>{{transactions.senderRS}}</span>
@@ -55,7 +55,7 @@
                                     <td class="linker pc-table" style="font-size:11px;" @click="openTransactionDialog(transactions.transaction)">
                                         {{$t('dialog.account_info_view_detail')}}
                                     </td>
-                                    <td class="mobile icon-box" style="width: 20px"><i class="el-icon-arrow-right"></i></td>
+                                    <td class="mobile icon-box" style="width: 20px"  @click="openTransactionDialog(transaction.transaction)"><i class="el-icon-arrow-right"></i></td>
                                 </tr>
                                 </tbody>
                             </table>
