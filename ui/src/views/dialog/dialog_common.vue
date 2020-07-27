@@ -166,7 +166,7 @@
                 <el-radio-group v-model="tabTitle" class="title">
                     <el-radio-button label="account" class="btn">{{$t('dialog.block_info_all_transaction')}}</el-radio-button>
                     <el-radio-button label="blockInfo" class="btn">{{$t('dialog.block_info_all_block_detail')}}</el-radio-button>
-                    <el-radio-button label="blockRewardInfo" class="btn">{{$t('dialog.block_reward_distribution_detail')}}</el-radio-button>
+                    <el-radio-button v-if="containRewardTxs()" label="blockRewardInfo" class="btn">{{$t('dialog.block_reward_distribution_detail')}}</el-radio-button>
                     <el-radio-button v-if="pocInfoList.length > 0" label="pocInfo" class="btn">PoC</el-radio-button>
                     <el-radio-button v-if="poolInfoList.length > 0" label="poolInfo" class="btn">Pool</el-radio-button>
                     <el-radio-button v-if="messageInfoList.length > 0" label="messageInfo" class="btn">{{$t('sendMessage.infomation')}}</el-radio-button>
@@ -575,7 +575,17 @@
             }
         },
         methods: {
+            containRewardTxs() {
+                const _this = this;
 
+                if(_this.coinBaseTx !== ''
+                    && _this.coinBaseTx.attachment.crowdMiners
+                    && _this.coinBaseTx.attachment.crowdMiners.length > 0){
+                    return true;
+                }
+
+                return false;
+            },
             httpGetAccountInfo(accountID) {
                 const _this = this;
                 return new Promise((resolve, reject) => {
