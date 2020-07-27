@@ -311,27 +311,27 @@
                         <tbody>
                         <tr>
                             <th class="pc-table">{{$t('dialog.account_info_account_id')}}</th>
-                            <th class="pc-table">{{$t('dialog.block_info_mining')}}</th>
-                            <th class="pc-table">{{$t('dialog.account_info_staking_amount')}}</th>
-                            <th class="pc-table">{{$t('dialog.account_transaction_amount')}}</th>
+                            <th class="mobile-th">{{$t('dialog.block_info_mining')}}</th>
+                            <th class="mobile-th">{{$t('dialog.account_info_staking_amount')}}</th>
+                            <th class="mobile-th">{{$t('dialog.account_transaction_amount')}}</th>
                             <th class="pc-table">{{$t('dialog.account_transaction_sender')}}</th>
                             <th class="mobile" style="width: 20px"></th>
                         </tr>
                         <tr v-if="containMiningRewardTxs()">
                             <template v-for="(poolJoiner,index) in coinBaseTx.attachment.consignors">
-                                <td class="linker mobile-td" >{{poolJoiner.accountId}}</td>
-                                <td class="linker mobile-td" >{{poolJoiner.accountRS}}</td>
-                                <td class="pc-table">{{$global.getAmountFormat(poolJoiner.investAmount)}}</td>
-                                <td class="pc-table">{{$global.getAmountFormat(poolJoiner.rewardAmount)}}</td>
+                                <td class="linker pc-table" >{{poolJoiner.accountId}}</td>
+                                <td class="linker mobile-td compact-style" >{{poolJoiner.accountRS}}</td>
+                                <td class="pc-table mobile-td compact-style">{{$global.getAmountFormat(poolJoiner.investAmount)}}</td>
+                                <td class="pc-table mobile-td compact-style">{{$global.getAmountFormat(poolJoiner.rewardAmount)}}</td>
                                 <td class="pc-table">CoinBase</td>
                                 <td class="mobile icon-box" style="width: 20px"><i class="el-icon-arrow-right"></i></td>
                             </template>
                         </tr>
                         <tr v-else>
-                            <td class="linker mobile-td" >{{blockInfo.generator}}</td>
-                            <td class="linker mobile-td" >{{blockInfo.generatorRS}}</td>
-                            <td class="pc-table">--</td>
-                            <td class="pc-table">{{$global.getAmountFormat(coinBaseTx.attachment.blockMiningRewardAmount)}}</td>
+                            <td class="linker pc-table" >{{blockInfo.generator}}</td>
+                            <td class="linker mobile-td compact-style" >{{blockInfo.generatorRS}}</td>
+                            <td class="mobile-td compact-style">--</td>
+                            <td class="mobile-td compact-style">{{$global.getAmountFormat(coinBaseTx.attachment.blockMiningRewardAmount)}}</td>
                             <td class="pc-table">CoinBase</td>
                             <td class="mobile icon-box" style="width: 20px"><i class="el-icon-arrow-right"></i></td>
                         </tr>
@@ -343,18 +343,18 @@
                         <tbody>
                         <tr>
                             <th class="pc-table">{{$t('dialog.account_info_account_id')}}</th>
-                            <th class="pc-table">{{$t('dialog.block_info_mining')}}</th>
-                            <th class="pc-table">{{$t('dialog.account_info_poc_score')}}</th>
-                            <th class="pc-table">{{$t('dialog.account_transaction_amount')}}</th>
+                            <th class="mobile-th compact-style">{{$t('dialog.block_info_mining')}}</th>
+                            <th class="mobile-th compact-style">{{$t('dialog.account_info_poc_score')}}</th>
+                            <th class="mobile-th compact-style">{{$t('dialog.account_transaction_amount')}}</th>
                             <th class="pc-table">{{$t('dialog.account_transaction_sender')}}</th>
                             <th class="mobile" style="width: 20px"></th>
                         </tr>
                         <tr v-for="(crowdMiner,index) in coinBaseTx.attachment.crowdMiners">
-                            <td class="linker mobile-td" >{{crowdMiner.accountId}}</td>
-                            <td class="linker mobile-td" >{{crowdMiner.accountRS}}</td>
-                            <td class="pc-table" v-if="crowdMiner.pocScore === -1">--</td>
-                            <td class="pc-table" v-else>{{crowdMiner.pocScore}}</td>
-                            <td class="pc-table">{{$global.getAmountFormat(crowdMiner.rewardAmount)}}</td>
+                            <td class="linker pc-table" >{{crowdMiner.accountId}}</td>
+                            <td class="linker mobile-td compact-style" >{{crowdMiner.accountRS}}</td>
+                            <td class="mobile-td compact-style" v-if="crowdMiner.pocScore === -1">--</td>
+                            <td class="mobile-td compact-style" v-else>{{crowdMiner.pocScore}}</td>
+                            <td class="mobile-td compact-style">{{$global.getAmountFormat(crowdMiner.rewardAmount)}}</td>
                             <td class="pc-table">CoinBase</td>
                             <td class="mobile icon-box" style="width: 20px"><i class="el-icon-arrow-right"></i></td>
                         </tr>
