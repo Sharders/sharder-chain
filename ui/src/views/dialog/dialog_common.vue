@@ -292,8 +292,8 @@
 
                 <div v-if="tabTitle === 'blockRewardInfo'" class="account_list">
                     <el-radio-group v-model="rewardTabs" class="title">
-                        <el-radio-button v-if="containCrowdRewardTxs()" label="crowdMinerRewards" class="btn">{{$t('dialog.block_reward_distribution_crowd')}}</el-radio-button>
-                        <el-radio-button v-if="containMiningRewardTxs()" label="miningRewards" class="btn">{{$t('dialog.block_reward_distribution_mining')}}</el-radio-button>
+                        el-radio-button v-if="containCrowdRewardTxs()" label="crowdMinerRewards" class="reward-tab">{{$t('dialog.block_reward_distribution_crowd')}}</el-radio-button>
+                        <el-radio-button v-if="containMiningRewardTxs()" label="miningRewards" class="reward-tab">{{$t('dialog.block_reward_distribution_mining')}}</el-radio-button>
                     </el-radio-group>
 
                     <table v-if="(rewardTabs === 'crowdMinerRewards') && containCrowdRewardTxs()" class="table">
@@ -1072,6 +1072,19 @@
 </script>
 
 <style scoped type="text/scss" lang="scss">
+    .is-active /deep/.el-radio-button__inner {
+        border-bottom: 2px solid #3fb09a !important;
+    }
+
+    .reward-tab /deep/.el-radio-button__inner {
+        background: #fff !important;
+        color: #333 !important;
+        margin-top: 5px !important;
+        border-radius: 0 !important;;
+        border: 0;
+        box-shadow: 0 0 0 0 #409EFF;
+    }
+
     #block_info {
         .modal-body {
             max-height: 600px;
