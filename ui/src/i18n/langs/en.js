@@ -858,6 +858,7 @@ const en = {
         'account_info_alias': "Alias",
         'account_info_total_transaction': "All Transactions",
         'account_info_account': "Account",
+        'account_info_account_id': "Account ID",
         'account_info_fee': "Fee",
         'account_info_operating': "Details",
         'account_info_payment': "Transfer",
@@ -867,6 +868,7 @@ const en = {
         'account_info_data_storage': "Data Storage",
         'account_info_forge_pool': "Pool",
         'account_info_poc': "PoC",
+        'account_info_poc_score': "PoC Score",
         'account_info_view_detail': "View Details",
         'account_transaction_detail': "Transaction Details",
         'account_transaction_return': "Return to Account Info",
@@ -891,6 +893,7 @@ const en = {
         'block_info_title2': " information",
         'block_info_all_transaction': "All Transactions",
         'block_info_all_block_detail': "Block Details",
+        'block_reward_distribution_detail': "Reward Distribution",
         'block_info_previous_block_hash': "Previous Block Hash",
         'block_info_payload_length': "Payload Length",
         'block_info_total_amount': "Gross Amount",
@@ -1056,7 +1059,7 @@ const en = {
         'hardware_disk': "Disk",
         'hardware_has_ip': "Public IP",
         'hardware_bandwidth': "Bandwidth",
-        'hardware_tx_performance': "Txns Performance",
+        'hardware_tx_performance': "Txs Performance",
         'hardware_open_services': "Services"
     },
     ...enLocale

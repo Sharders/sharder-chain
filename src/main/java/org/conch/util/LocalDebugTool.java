@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.conch.account.Account;
 import org.conch.env.RuntimeEnvironment;
+import org.conch.mint.Generator;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -32,6 +33,8 @@ public class LocalDebugTool {
             }
         }
     }
+
+    public static final boolean isLocalDebugAndBootNodeMode = Generator.isBootNode && isLocalDebug();
 
     /**
      * used to local debug

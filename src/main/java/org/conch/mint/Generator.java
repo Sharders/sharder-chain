@@ -372,6 +372,8 @@ public class Generator implements Comparable<Generator> {
      * @return true-valid miner
      */
     public static boolean isValidMiner(long minerId, int height){
+        if(LocalDebugTool.isLocalDebugAndBootNodeMode) return true;
+
         Account minerAccount = Account.getAccount(minerId, height);
         if(minerAccount == null) {
             if(Logger.printNow(Logger.Generator_startMining)) {
