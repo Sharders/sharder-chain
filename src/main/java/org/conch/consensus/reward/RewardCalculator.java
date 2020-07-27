@@ -282,7 +282,7 @@ public class RewardCalculator {
         if(!stageTwo) {
             account.addBalanceAddUnconfirmed(AccountLedger.LedgerEvent.BLOCK_GENERATED, tx.getId(), amount);
             account.addFrozen(AccountLedger.LedgerEvent.BLOCK_GENERATED, tx.getId(), amount);
-            Logger.logDebugMessage("[Stage One] add mining rewards %d to %s unconfirmed balance and freeze it of tx %d at height %d",
+            Logger.logDebugMessage("[Stage One] add mining/crowdMiners rewards %d to %s unconfirmed balance and freeze it of tx %d at height %d",
                     amount, account.getRsAddress(), tx.getId() , tx.getHeight());
         }else{
             if(Constants.isTestnet() && account.getFrozenBalanceNQT() <= 0) {
@@ -294,7 +294,7 @@ public class RewardCalculator {
             }
             account.addMintedBalance(amount);
             account.pocChanged();
-            Logger.logDebugMessage("[Stage Two] unfreeze mining rewards %d of %s and add it in mined amount of tx %d at height %d",
+            Logger.logDebugMessage("[Stage Two] unfreeze mining/crowdMiners rewards %d of %s and add it in mined amount of tx %d at height %d",
                     amount, account.getRsAddress(), tx.getId() , tx.getHeight());
         }
     }
@@ -334,6 +334,19 @@ public class RewardCalculator {
             }
         }
         return tx.getAmountNQT();
+    }
+
+    /**
+     * CoinBase tx attachment judgement
+     * @param attachment
+     * @return
+     */
+    public static boolean isBlockRewardTx(Attachment attachment) {
+        if(!(attachment instanceof Attachment.CoinBase)) return false;
+
+        Attachment.CoinBase coinbaseBody = (Attachment.CoinBase) attachment;
+        return coinbaseBody.isType(Attachment.CoinBase.CoinBaseType.BLOCK_REWARD)
+                || coinbaseBody.isType(Attachment.CoinBase.CoinBaseType.CROWD_BLOCK_REWARD);
     }
 
     /**
