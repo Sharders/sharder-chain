@@ -293,40 +293,18 @@
                 <div v-if="tabTitle === 'blockRewardInfo'" class="account_list">
                     <!-- tabs -->
                     <el-radio-group v-model="rewardTabs" class="title">
-                        <el-radio-button v-if="containCrowdRewardTxs()" label="crowdMinerRewards" class="reward-tab">{{$t('dialog.block_reward_distribution_crowd')}}</el-radio-button>
-                        <!--                        <el-radio-button v-if="containMiningRewardTxs()" label="miningRewards" class="reward-tab">{{$t('dialog.block_reward_distribution_mining')}}</el-radio-button>-->
                         <el-radio-button label="miningRewards" class="reward-tab">{{$t('dialog.block_reward_distribution_mining')}}</el-radio-button>
+                        <el-radio-button v-if="containCrowdRewardTxs()" label="crowdMinerRewards" class="reward-tab">{{$t('dialog.block_reward_distribution_crowd')}}</el-radio-button>
+
                     </el-radio-group>
 
-                    <div v-if="(rewardTabs === 'crowdMinerRewards') && containCrowdRewardTxs()">
-                        <p class="testnet-tips">{{$t('dialog.block_reward_distribution_crowd')}}: {{$global.getAmountFormat(coinBaseTx.attachment.crowdMinerRewardAmount)}}</p>
-                    </div>
-                    <div v-else-if="(rewardTabs === 'miningRewards') && containMiningRewardTxs()">
+                    <div v-if="(rewardTabs === 'miningRewards') && containMiningRewardTxs()">
                         <p class="testnet-tips">{{$t('dialog.block_reward_distribution_mining')}}: {{$global.getAmountFormat(coinBaseTx.attachment.blockMiningRewardAmount)}}</p>
                     </div>
+                    <div v-else-if="(rewardTabs === 'crowdMinerRewards') && containCrowdRewardTxs()">
+                        <p class="testnet-tips">{{$t('dialog.block_reward_distribution_crowd')}}: {{$global.getAmountFormat(coinBaseTx.attachment.crowdMinerRewardAmount)}}</p>
+                    </div>
 
-                    <!-- crowd miners rewards distribution table -->
-                    <table v-if="(rewardTabs === 'crowdMinerRewards') && containCrowdRewardTxs()" class="table">
-                        <tbody>
-                        <tr>
-                            <th class="pc-table">{{$t('dialog.account_info_account_id')}}</th>
-                            <th class="pc-table">{{$t('dialog.block_info_mining')}}</th>
-                            <th class="pc-table">{{$t('dialog.account_info_poc_score')}}</th>
-                            <th class="pc-table">{{$t('dialog.account_transaction_amount')}}</th>
-                            <th class="pc-table">{{$t('dialog.account_transaction_sender')}}</th>
-                            <th class="mobile" style="width: 20px"></th>
-                        </tr>
-                        <tr v-for="(crowdMiner,index) in coinBaseTx.attachment.crowdMiners">
-                            <td class="linker mobile-td" >{{crowdMiner.accountId}}</td>
-                            <td class="linker mobile-td" >{{crowdMiner.accountRS}}</td>
-                            <td class="pc-table" v-if="crowdMiner.pocScore === -1">--</td>
-                            <td class="pc-table" v-else>{{crowdMiner.pocScore}}</td>
-                            <td class="pc-table">{{$global.getAmountFormatBySpecifiedPrecision(crowdMiner.rewardAmount,8)}}</td>
-                            <td class="pc-table">CoinBase</td>
-                            <td class="mobile icon-box" style="width: 20px"><i class="el-icon-arrow-right"></i></td>
-                        </tr>
-                        </tbody>
-                    </table>
 
                     <!-- mining rewards(include pool mode) distribution table -->
                     <table v-if="(rewardTabs === 'miningRewards')" class="table">
@@ -354,6 +332,29 @@
                             <td class="linker mobile-td" >{{blockInfo.generatorRS}}</td>
                             <td class="pc-table">--</td>
                             <td class="pc-table">{{$global.getAmountFormat(coinBaseTx.attachment.blockMiningRewardAmount)}}</td>
+                            <td class="pc-table">CoinBase</td>
+                            <td class="mobile icon-box" style="width: 20px"><i class="el-icon-arrow-right"></i></td>
+                        </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- crowd miners rewards distribution table -->
+                    <table v-if="(rewardTabs === 'crowdMinerRewards') && containCrowdRewardTxs()" class="table">
+                        <tbody>
+                        <tr>
+                            <th class="pc-table">{{$t('dialog.account_info_account_id')}}</th>
+                            <th class="pc-table">{{$t('dialog.block_info_mining')}}</th>
+                            <th class="pc-table">{{$t('dialog.account_info_poc_score')}}</th>
+                            <th class="pc-table">{{$t('dialog.account_transaction_amount')}}</th>
+                            <th class="pc-table">{{$t('dialog.account_transaction_sender')}}</th>
+                            <th class="mobile" style="width: 20px"></th>
+                        </tr>
+                        <tr v-for="(crowdMiner,index) in coinBaseTx.attachment.crowdMiners">
+                            <td class="linker mobile-td" >{{crowdMiner.accountId}}</td>
+                            <td class="linker mobile-td" >{{crowdMiner.accountRS}}</td>
+                            <td class="pc-table" v-if="crowdMiner.pocScore === -1">--</td>
+                            <td class="pc-table" v-else>{{crowdMiner.pocScore}}</td>
+                            <td class="pc-table">{{$global.getAmountFormat(crowdMiner.rewardAmount)}}</td>
                             <td class="pc-table">CoinBase</td>
                             <td class="mobile icon-box" style="width: 20px"><i class="el-icon-arrow-right"></i></td>
                         </tr>
