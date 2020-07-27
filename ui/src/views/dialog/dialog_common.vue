@@ -177,26 +177,26 @@
                     <table  class="table">
                         <tbody>
                         <tr>
-                            <th class="pc-table">{{$t('dialog.account_transaction_time')}}</th>
-                            <th class="mobile-th">{{$t('dialog.account_transaction_id')}}</th>
-                            <th class="pc-table">{{$t('dialog.account_transaction_type')}}</th>
-                            <th class="pc-table">{{$t('dialog.account_transaction_amount')}}</th>
+                            <th class="mobile-th">{{$t('dialog.account_transaction_time')}}</th>
+                            <th class="pc-table">{{$t('dialog.account_transaction_id')}}</th>
+                            <th class="mobile-th">{{$t('dialog.account_transaction_type')}}</th>
+                            <th class="mobile-th">{{$t('dialog.account_transaction_amount')}}</th>
                             <th class="pc-table">{{$t('dialog.account_info_fee')}}</th>
                             <th class="pc-table">{{$t('dialog.account_transaction_sender')}}</th>
                             <th class="pc-table">{{$t('dialog.account_transaction_recipient')}}</th>
                             <th class="mobile" style="width: 20px"></th>
                         </tr>
                         <tr v-for="(transaction,index) in blockInfo.transactions">
-                            <td class="pc-table">
-                                <span>{{$global.myFormatTime(transaction.timestamp,'YMDHMS',true)}}</span><br>
-                                <span class="utc-time">{{$global.formatTime(transaction.timestamp)}} +UTC</span>
+                            <td class="mobile-th compact-style">
+                                <span class="compact-hidden">{{$global.myFormatTime(transaction.timestamp,'YMDHMS',true)}}</span><br>
+                                <span class="utc-time compact-small-font">{{$global.formatTime(transaction.timestamp)}} +UTC</span>
                             </td>
-                            <td class="linker mobile-td" @click="openTransactionDialog(transaction.transaction)">{{transaction.transaction}}</td>
-                            <td class="transaction-img pc-table">
+                            <td class="linker pc-table" @click="openTransactionDialog(transaction.transaction)">{{transaction.transaction}}</td>
+                            <td class="transaction-img mobile-td compact-style">
                                 <span class="bg" :class="'type' + transaction.type + transaction.subtype"></span>
                                 <span>{{$global.getTransactionTypeStr(transaction)}}</span>
                             </td>
-                            <td class="pc-table">{{$global.getTransactionAmountNQT(transaction,"")}}</td>
+                            <td class="mobile-th">{{$global.getTransactionAmountNQT(transaction,"")}}</td>
                             <td class="pc-table">{{$global.getTransactionFeeNQT(transaction)}}</td>
                             <td class="pc-table" v-if="transaction.type === 9">CoinBase</td>
                             <td class="pc-table" v-else-if="transaction.type === 12">System</td>
@@ -210,7 +210,7 @@
                             <td class="linker pc-table" style="font-size:11px;" v-else @click="openAccountInfo(transaction.recipientRS)">
                                 {{transaction.recipientRS}}
                             </td>
-                            <td class="mobile icon-box" style="width: 20px"><i class="el-icon-arrow-right"></i></td>
+                            <td class="mobile icon-box" style="width: 20px" @click="openTransactionDialog(transaction.transaction)"><i class="el-icon-arrow-right"></i></td>
                         </tr>
                         </tbody>
                     </table>
@@ -1379,6 +1379,14 @@
         }
     }
 
+    .compact-style {
+        text-align: center!important;
+        text-indent: 5px!important;
+    }
+
+    .compact-small-font {
+        font-size: 9px;
+    }
 
     @media only screen and (max-width: 780px) {
         #account_info .modal-body .account_allInfo .account_list .table td {
@@ -1386,6 +1394,10 @@
         }
         #account_info .modal-body .account_allInfo .account_list .table_body {
             max-height: 300px;
+        }
+
+        .compact-hidden {
+            display: none;
         }
     }
 
