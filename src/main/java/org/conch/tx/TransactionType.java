@@ -602,7 +602,7 @@ public abstract class TransactionType {
 
             private void applyByType(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 Attachment.CoinBase coinBase = (Attachment.CoinBase) transaction.getAttachment();
-                if (Attachment.CoinBase.CoinBaseType.BLOCK_REWARD == coinBase.getCoinBaseType()) {
+                if (RewardCalculator.isBlockRewardTx(transaction.getAttachment())) {
                     RewardCalculator.blockRewardDistribution(transaction,false);
                 } else if (Attachment.CoinBase.CoinBaseType.GENESIS == coinBase.getCoinBaseType()) {
                     if (SharderGenesis.isGenesisCreator(coinBase.getCreator()) && SharderGenesis.isGenesisRecipients(senderAccount.getId())) {

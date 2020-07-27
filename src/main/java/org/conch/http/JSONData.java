@@ -1003,7 +1003,8 @@ public final class JSONData {
                     attachmentJSON.put("consignors",RewardCalculator.calPoolReward(tx.getSenderId(), coinBase.getGeneratorId(), tx, coinBase.getConsignors()));
                 }
             }
-
+            attachmentJSON.put("blockMiningRewardAmount",RewardCalculator.blockMiningReward(tx.getHeight()));
+            attachmentJSON.put("crowdMinerRewardAmount",RewardCalculator.crowdMinerReward(tx.getHeight()));
             json.put("attachment", attachmentJSON);
         }
         putAccount(json, "sender", tx.getSenderId());

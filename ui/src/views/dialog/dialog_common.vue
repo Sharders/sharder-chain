@@ -292,9 +292,17 @@
 
                 <div v-if="tabTitle === 'blockRewardInfo'" class="account_list">
                     <el-radio-group v-model="rewardTabs" class="title">
-                        el-radio-button v-if="containCrowdRewardTxs()" label="crowdMinerRewards" class="reward-tab">{{$t('dialog.block_reward_distribution_crowd')}}</el-radio-button>
-                        <el-radio-button v-if="containMiningRewardTxs()" label="miningRewards" class="reward-tab">{{$t('dialog.block_reward_distribution_mining')}}</el-radio-button>
+                        <el-radio-button v-if="containCrowdRewardTxs()" label="crowdMinerRewards" class="reward-tab">{{$t('dialog.block_reward_distribution_crowd')}}</el-radio-button>
+                        <!--                        <el-radio-button v-if="containMiningRewardTxs()" label="miningRewards" class="reward-tab">{{$t('dialog.block_reward_distribution_mining')}}</el-radio-button>-->
+                        <el-radio-button label="miningRewards" class="reward-tab">{{$t('dialog.block_reward_distribution_mining')}}</el-radio-button>
                     </el-radio-group>
+
+                    <div v-if="(rewardTabs === 'crowdMinerRewards') && containCrowdRewardTxs()">
+                        <p class="testnet-tips">{{$t('dialog.block_reward_distribution_crowd')}}: {{$global.convertNQTtoUnit(coinBaseTx.attachment.crowdMinerRewardAmount)}}</p>
+                    </div>
+                    <div v-else-if="(rewardTabs === 'miningRewards') && containMiningRewardTxs()">
+                        <p class="testnet-tips">{{$t('dialog.block_reward_distribution_mining')}}: {{$global.convertNQTtoUnit(coinBaseTx.attachment.blockMiningRewardAmount)}}</p>
+                    </div>
 
                     <table v-if="(rewardTabs === 'crowdMinerRewards') && containCrowdRewardTxs()" class="table">
                         <tbody>
@@ -318,7 +326,7 @@
                         </tbody>
                     </table>
 
-                    <table v-if="(rewardTabs === 'miningRewards') && containMiningRewardTxs()" class="table">
+                    <table v-if="(rewardTabs === 'miningRewards')" class="table">
                         <tbody>
                         <tr>
                             <th class="pc-table">{{$t('dialog.account_info_account_id')}}</th>
@@ -328,17 +336,26 @@
                             <th class="pc-table">{{$t('dialog.account_transaction_sender')}}</th>
                             <th class="mobile" style="width: 20px"></th>
                         </tr>
-                        <tr v-for="(poolJoiner,index) in coinBaseTx.attachment.consignors">
-                            <td class="linker mobile-td" >{{poolJoiner.accountId}}</td>
-                            <td class="linker mobile-td" >{{poolJoiner.accountRS}}</td>
-                            <td class="pc-table">{{$global.convertNQTtoUnit(poolJoiner.investAmount)}}</td>
-                            <td class="pc-table">{{$global.convertNQTtoUnit(poolJoiner.rewardAmount)}}</td>
+                        <tr v-if="containMiningRewardTxs()">
+                            <template v-for="(poolJoiner,index) in coinBaseTx.attachment.consignors">
+                                <td class="linker mobile-td" >{{poolJoiner.accountId}}</td>
+                                <td class="linker mobile-td" >{{poolJoiner.accountRS}}</td>
+                                <td class="pc-table">{{$global.convertNQTtoUnit(poolJoiner.investAmount)}}</td>
+                                <td class="pc-table">{{$global.convertNQTtoUnit(poolJoiner.rewardAmount)}}</td>
+                                <td class="pc-table">CoinBase</td>
+                                <td class="mobile icon-box" style="width: 20px"><i class="el-icon-arrow-right"></i></td>
+                            </template>
+                        </tr>
+                        <tr v-else>
+                            <td class="linker mobile-td" >{{blockInfo.generator}}</td>
+                            <td class="linker mobile-td" >{{blockInfo.generatorRS}}</td>
+                            <td class="pc-table">--</td>
+                            <td class="pc-table">{{$global.convertNQTtoUnit(coinBaseTx.attachment.blockMiningRewardAmount)}}</td>
                             <td class="pc-table">CoinBase</td>
                             <td class="mobile icon-box" style="width: 20px"><i class="el-icon-arrow-right"></i></td>
                         </tr>
                         </tbody>
                     </table>
-
                 </div>
 
                 <div v-if="tabTitle === 'pocInfo'" class="blockInfo">
