@@ -951,18 +951,19 @@ export default {
         return this.placeholder
     },
     /**
-     * 格式化SS数量 + "SS"
+     * 格式化Token数量
      * @param num
      * @param f
      * @returns {string}
      */
-    getSSNumberFormat(num, f) {
-        if (!num || num <= 0) {
+    getAmountFormat(amount, f) {
+        if (!amount || amount <= 0) {
             return this.placeholder
         } else if (f) {
-            return num + this.unit
+            return amount + this.unit
         } else {
-            return new BigNumber(num).dividedBy("100000000").toFixed(2) + this.unit
+            var precision = amount < 100000000 ? 8 : 2;
+            return new BigNumber(amount).dividedBy("100000000").toFixed(precision) + this.unit
         }
     },
     /**

@@ -21,7 +21,7 @@
                             <div class="tag">
                                 <p>
                                     <img src="../../assets/img/kuangchisouyi.png">
-                                    <span>{{$t('mining.index.pool_income') + $global.getSSNumberFormat(mining.earnings)}}</span>
+                                    <span>{{$t('mining.index.pool_income') + $global.getAmountFormat(mining.earnings)}}</span>
                                 </p>
                                 <p>
                                     <img src="../../assets/img/kuagnchifhenpei.png">
@@ -54,7 +54,7 @@
                             <div class="tag">
                                 <p>
                                     <img src="../../assets/img/kuangchisouyi.png">
-                                    <span>{{$t('mining.index.pool_income') + $global.getSSNumberFormat(mining.earnings)}}</span>
+                                    <span>{{$t('mining.index.pool_income') + $global.getAmountFormat(mining.earnings)}}</span>
                                 </p>
                                 <p>
                                     <img src="../../assets/img/kuagnchifhenpei.png">

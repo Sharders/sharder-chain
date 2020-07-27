@@ -24,7 +24,7 @@
             <p>{{$t('mining.diamond_exchange.description')}}{{exchange.info}}</p>
             <button @click="exchangeFun(exchange)">{{$t("reward.exchange")}}</button>
         </div>
-        
+
         <div class="exchange-list info" v-if="displayDefault">
             {{$t('reward.insufficient_redemption')}}
         </div>
@@ -36,7 +36,7 @@
                 {{$t('mining.diamond_exchange.not_open')}}
             </span>
         </div>
-        
+
         <!--申请兑换SS列表-->
         <div v-if="exchangeOpen && sharderAccount" class="block_list"  style="clear:both">
             <p class="block_title" style="padding-bottom: 10px;">
@@ -169,8 +169,8 @@
             checkExchangeNum(){
                 const _this = this;
                 _this.loadingExchangeSS = true;
-                let forgedBalanceNQT = _this.$global.getSSNumberFormat(_this.forgedBalanceNQT);
-                /*let effectiveBalanceNQT = _this.$global.getSSNumberFormat(SSO.accountInfo.effectiveBalanceNQT);*/
+                let forgedBalanceNQT = _this.$global.getAmountFormat(_this.forgedBalanceNQT);
+                /*let effectiveBalanceNQT = _this.$global.getAmountFormat(SSO.accountInfo.effectiveBalanceNQT);*/
                 let exchangeSS = _this.exchangeSS;
                 let data = new FormData();
                /* effectiveBalanceNQT = Number(effectiveBalanceNQT.substring(0,effectiveBalanceNQT.length-2));*/

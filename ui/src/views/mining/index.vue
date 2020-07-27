@@ -18,10 +18,10 @@
                             </li>
                             <li class="myAddressLi">{{$t('mining.index.my_address')}}{{accountInfo.accountRS}}
                             </li>
-                            <li>{{$t('mining.index.my_assets')}}{{$global.getSSNumberFormat(accountInfo.effectiveBalanceNQT)}}
+                            <li>{{$t('mining.index.my_assets')}}{{$global.getAmountFormat(accountInfo.effectiveBalanceNQT)}}
                             </li>
                             <li>
-                                {{$t('mining.index.my_income')}}{{$global.getSSNumberFormat(accountInfo.forgedBalanceNQT)}}
+                                {{$t('mining.index.my_income')}}{{$global.getAmountFormat(accountInfo.forgedBalanceNQT)}}
                             </li>
                             <li class="strong" id="viewRankingId">
                                 <img src="../../assets/img/kuangchii_chakan.png">
@@ -33,7 +33,7 @@
                     <div class="state">
                         <div class="state-info">
                             <span>{{$t('mining.attribute.mining')}}</span><br/>
-                            <span>{{$t('mining.index.net_income') + $global.getSSNumberFormat(allIncome)}}</span>
+                            <span>{{$t('mining.index.net_income') + $global.getAmountFormat(allIncome)}}</span>
                         </div>
                     </div>
                     <div class="instructions" @click="$router.push({name: 'rule-description'})">
@@ -67,7 +67,7 @@
                     <img src="../../assets/img/guangbo.png" class="notice-img">
                     <span class="notice-info">
                     {{$t('mining.index.mineral') + $t('mining.index.net_mining_number',{number:newestBlock.height})}} |
-                    {{$t('mining.index.blocker') + newestBlockCreator}} | {{$t('mining.index.reward') + $global.getSSNumberFormat(newBlockReward)}}
+                    {{$t('mining.index.blocker') + newestBlockCreator}} | {{$t('mining.index.reward') + $global.getAmountFormat(newBlockReward)}}
                 </span>
                 </div>
                 <div class ="sort_type">
@@ -121,7 +121,7 @@
 
                                     <p>
                                         <img src="../../assets/img/kuangchisouyi.png">
-                                        <span>{{$t('mining.index.pool_income') + $global.getSSNumberFormat(mining.mintRewards)}}</span>
+                                        <span>{{$t('mining.index.pool_income') + $global.getAmountFormat(mining.mintRewards)}}</span>
                                     </p>
                                     <p>
                                         <img src="../../assets/img/kuagnchifhenpei.png">
@@ -260,12 +260,12 @@
                                 {{idToAccountRs(ranking.ID)}}
                             </td>
                             <td>
-                                {{ranking.FORGED_BALANCE > 0 ? $global.getSSNumberFormat(ranking.FORGED_BALANCE) : 0}}
+                                {{ranking.FORGED_BALANCE > 0 ? $global.getAmountFormat(ranking.FORGED_BALANCE) : 0}}
                             </td>
                         </tr>
                     </table>
                     <div class="my-assets" v-loading="loadingRankingNo">
-                        {{$t('mining.index.my_assets') + $global.getSSNumberFormat(accountInfo.balanceNQT)}}
+                        {{$t('mining.index.my_assets') + $global.getAmountFormat(accountInfo.balanceNQT)}}
                         | {{$t('mining.index.sort') + ' '+myRanking}}
                     </div>
                 </div>
@@ -292,7 +292,7 @@
                         </p>
                         <p>
                             <span class="strong">{{$t('mining.index.pool_capacity')}}</span>:
-                            <span>{{$global.getSSNumberFormat(maxPoolInvestment+$global.poolPledgeAmount)}}</span>
+                            <span>{{$global.getAmountFormat(maxPoolInvestment+$global.poolPledgeAmount)}}</span>
                         </p>
 <!--                        <p>-->
 <!--                            <span class="strong">{{$t('mining.index.mining_time')}}</span>:-->
@@ -416,9 +416,9 @@
                     clearInterval(miningDataLoader);
                 }
                 // if (_this.$router.currentRoute.name !== "mining") return;
-            
+
             }, SSO.downloadingBlockchain ? this.$global.cfg.soonInterval : this.$global.cfg.defaultInterval);
-            
+
             document.getElementsByClassName('header')[0].style.display = 'none'
         },
         created(){
@@ -508,7 +508,7 @@
             },
             createPool() {
                 let _this = this;
-                
+
                 if (SSO.downloadingBlockchain) {
                     return _this.$message.warning(_this.$t("account.synchronization_block"));
                 }
@@ -941,7 +941,7 @@
         width: 140px;
         padding: 12px 25px;
     }
-    
+
     .my-pool-title {
         color: #14c6fc;
     }

@@ -11,7 +11,7 @@
             <div class="modal-body">
                 <div class="account_preInfo">
                     <span v-if="accountInfo.name">{{$t('dialog.account_info_name') + ': ' + accountInfo.name}} | </span>
-                    <span>{{$t('dialog.account_info_available_asset') + ': ' + $global.getSSNumberFormat(accountInfo.unconfirmedBalanceNQT)}}</span>
+                    <span>{{$t('dialog.account_info_available_asset') + ': ' + $global.getAmountFormat(accountInfo.unconfirmedBalanceNQT)}}</span>
                 </div>
                 <div class="account_allInfo">
                     <el-radio-group v-model="tabTitle" class="title">
@@ -75,7 +75,7 @@
             <div class="modal-body">
                 <div class="account_preInfo">
                     <span v-if="accountInfo.name">{{$t('dialog.account_info_name') + accountInfo.name}} |</span>
-                    <span>{{$t('dialog.account_info_available_asset') + ": " + $global.getSSNumberFormat(accountInfo.unconfirmedBalanceNQT)}}</span>
+                    <span>{{$t('dialog.account_info_available_asset') + ": " + $global.getAmountFormat(accountInfo.unconfirmedBalanceNQT)}}</span>
                 </div>
                 <div class="account_transactionInfo">
                     <p class="fl">{{$t('dialog.account_transaction_detail')}}</p>
