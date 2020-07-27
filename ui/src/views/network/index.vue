@@ -751,6 +751,18 @@
     /*@import '~scss_vars';*/
     @import './style.scss';
 
+    @media only screen and (max-width: 780px) {
+        .list_pagination /deep/ .el-pagination__jump {
+            display: initial!important;
+            float: right!important;
+            margin-top: 11px!important;
+        }
+
+        .el-pagination--small .el-pagination__editor, .el-pagination--small .el-pagination__editor.el-input .el-input__inner {
+            height: 26px!important;
+        }
+    }
+
     .el-table {
         th > .cell {
             background-color: white;

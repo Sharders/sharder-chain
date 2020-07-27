@@ -92,7 +92,7 @@
                 </div>
             </nav>
         </div>
-        
+
         <div class="mobile">
             <div class="navbar">
                 <el-menu class="navbar_left el-menu-demo" :class="this.$i18n.locale === 'en'? 'en_menu' : ''"
@@ -107,8 +107,8 @@
                         {{$t('header.mining')}}
                     </el-menu-item>
                 </el-menu>
-        
-        
+
+
                 <div class="nav-right">
                     <div class="navbar_lang">
                         <el-select v-model="selectLan">
@@ -136,7 +136,7 @@
                 </div>
             </div>
         </div>
-        
+
         <dialogCommon :searchValue="search_val" :isSearch="isSearch" @isClose="isClose"></dialogCommon>
 
         <div class="modal" id="start_forging_modal" v-show="startForgingDialog">
@@ -214,7 +214,7 @@
 </template>
 
 <script>
-    
+
     export default {
         name: "Header",
         props: ["openSidebar", "title"],
@@ -312,7 +312,7 @@
             setInterval(() => {
                 _this.getData();
             }, SSO.downloadingBlockchain ? this.$global.cfg.soonInterval : this.$global.cfg.defaultInterval);
-    
+
             if (/(iPhone|iPad|iPod|iOS|Android)/i.test(navigator.userAgent)) { //移动端
                 this.search_focus()
             }
@@ -597,6 +597,13 @@
     @import './style.scss';
 </style>
 <style scoped lang="scss" type="text/scss">
+    @media only screen and (max-width: 780px) {
+        .navbar_left /deep/ .el-menu--horizontal .el-menu-item:not(.is-disabled):focus, .el-menu--horizontal .el-menu-item:not(.is-disabled):hover {
+            border-bottom: 2px solid #3fb09a!important;
+            color: #3fb09a!important;
+        }
+    }
+
     .el-select-dropdown {
         .el-select-dropdown__item.selected {
             background-color: #493eda !important;
@@ -647,7 +654,7 @@
         right: 0;
         z-index: 9999;
         box-shadow: 1px 1px 10px #493eda;
-        
+
         .modal-header {
             .modal-title {
                 text-align: center;
@@ -657,12 +664,12 @@
                 line-height: 60px;
             }
         }
-        
+
         .modal-body {
             padding: 20px 20px 60px !important;
-            
+
             .version-info {
-                
+
                 span:last-child {
                     display: inline-block;
                     margin-top: 10px;
@@ -672,19 +679,19 @@
                     color: #493eda;
                     font-weight: bold;
                 }
-                
+
                 .no-new-version {
                     color: #ccc;
                 }
             }
-            
+
             .el-form {
                 margin-top: 20px !important;
 
                 .el-form-item {
                     margin-top: 15px !important;
                 }
-                
+
                 .create_account a {
                     position: absolute;
                     right: 20px;
@@ -696,14 +703,14 @@
                 padding: 10px 0px 10px 10px;
                 float: right;
                 margin: 20px 0 15px 0;
-                
+
                 button {
                     padding: 5px 15px 5px 15px;
                 }
             }
         }
     }
-    
+
     #set_admin_password_modal {
         top: 100px;
         width: 300px;
