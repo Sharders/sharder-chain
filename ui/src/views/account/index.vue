@@ -671,7 +671,7 @@
                                 <p class="el-icon-info"></p>
                             </el-tooltip>
                         </th>
-                        <td>{{$global.getSSNumberFormat(accountInfo.balanceNQT)}}</td>
+                        <td>{{$global.getAmountFormat(accountInfo.balanceNQT)}}</td>
                     </tr>
                     <tr>
                         <th>
@@ -680,11 +680,11 @@
                                 <p class="el-icon-info"></p>
                             </el-tooltip>
                         </th>
-                        <td>{{$global.getSSNumberFormat(accountInfo.effectiveBalanceNQT)}}</td>
+                        <td>{{$global.getAmountFormat(accountInfo.effectiveBalanceNQT)}}</td>
                     </tr>
                     <tr>
                         <th>{{$t('account_info.frozen_balance_nqt')}}</th>
-                        <td>{{$global.getSSNumberFormat(accountInfo.frozenBalanceNQT)}}</td>
+                        <td>{{$global.getAmountFormat(accountInfo.frozenBalanceNQT)}}</td>
                     </tr>
                     <tr>
                         <th>
@@ -693,7 +693,7 @@
                                 <p class="el-icon-info"></p>
                             </el-tooltip>
                         </th>
-                        <td>{{$global.getSSNumberFormat(accountInfo.forgedBalanceNQT)}}</td>
+                        <td>{{$global.getAmountFormat(accountInfo.forgedBalanceNQT)}}</td>
                     </tr>
                     <tr>
                         <th>{{$t('network.poc_score')}}</th>
@@ -2763,6 +2763,20 @@
     @import './style.scss';
 </style>
 <style scoped lang="scss" type="text/scss">
+    @media only screen and (max-width: 780px) {
+        .list_pagination /deep/ .el-pagination__jump {
+            display: initial!important;
+            float: right!important;
+            margin-top: 11px!important;
+        }
+
+        .list_pagination /deep/ .list_pagination .el-pagination--small .el-pagination__jump {
+            display: initial!important;
+            float: right!important;
+            margin-top: 11px!important;
+        }
+    }
+
     .el-select-dropdown {
         .el-select-dropdown__item.selected {
             background-color: #493eda !important;

@@ -11,7 +11,7 @@
             <div class="modal-body">
                 <div class="account_preInfo">
                     <span v-if="accountInfo.name">{{$t('dialog.account_info_name') + ': ' + accountInfo.name}} | </span>
-                    <span>{{$t('dialog.account_info_available_asset') + ': ' + $global.getSSNumberFormat(accountInfo.unconfirmedBalanceNQT)}}</span>
+                    <span>{{$t('dialog.account_info_available_asset') + ': ' + $global.getAmountFormat(accountInfo.unconfirmedBalanceNQT)}}</span>
                 </div>
                 <div class="account_allInfo">
                     <el-radio-group v-model="tabTitle" class="title">
@@ -22,10 +22,10 @@
                     <div v-if="tabTitle === 'account'" class="account_list">
                         <table class="table">
                             <tr>
-                                <th class="pc-table">{{$t('dialog.account_transaction_time')}}</th>
-                                <th>{{$t('dialog.account_transaction_id')}}</th>
-                                <th class="pc-table">{{$t('dialog.account_transaction_type')}}</th>
-                                <th class="pc-table">{{$t('dialog.account_transaction_amount')}}</th>
+                                <th class="mobile-th">{{$t('dialog.account_transaction_time')}}</th>
+                                <th class="pc-table">{{$t('dialog.account_transaction_id')}}</th>
+                                <th class="mobile-th">{{$t('dialog.account_transaction_type')}}</th>
+                                <th class="mobile-th">{{$t('dialog.account_transaction_amount')}}</th>
                                 <th class="pc-table">{{$t('dialog.account_info_fee')}}</th>
                                 <th class="pc-table">{{$t('dialog.account_info_account')}}</th>
                                 <th class="pc-table">{{$t('dialog.account_info_operating')}}</th>
@@ -37,17 +37,17 @@
                             <table class="table">
                                 <tbody>
                                 <tr v-for="transactions in accountTransactionInfo" @click="openTransactionDialogMobile(transactions.transaction)">
-                                    <td class="pc-table">
-                                        <span>{{$global.myFormatTime(transactions.timestamp,'YMDHMS',true)}}</span><br>
+                                    <td class="mobile-td compact-style">
+                                        <span class="compact-hidden">{{$global.myFormatTime(transactions.timestamp,'YMDHMS',true)}}</span><br>
                                         <span class="utc-time">{{$global.formatTime(transactions.timestamp)}} +UTC</span>
                                     </td>
-                                    <td>{{transactions.transaction}}</td>
-                                    <td class="transaction-img pc-table">
+                                    <td class="pc-table">{{transactions.transaction}}</td>
+                                    <td class="transaction-img mobile-td">
                                         <span class="bg"
                                               :class="'type' + transactions.type + transactions.subtype"></span>
                                         <span>{{$global.getTransactionTypeStr(transactions)}}</span>
                                     </td>
-                                    <td class="pc-table">{{$global.getTransactionAmountNQT(transactions,accountInfo.accountRS)}}</td>
+                                    <td class="mobile-td">{{$global.getTransactionAmountNQT(transactions,accountInfo.accountRS)}}</td>
                                     <td class="pc-table">{{$global.getTransactionFeeNQT(transactions)}}</td>
                                     <td class="linker pc-table" style="font-size:11px;" @click="checkAccountInfo(transactions.senderRS)">
                                         <span>{{transactions.senderRS}}</span>
@@ -55,7 +55,7 @@
                                     <td class="linker pc-table" style="font-size:11px;" @click="openTransactionDialog(transactions.transaction)">
                                         {{$t('dialog.account_info_view_detail')}}
                                     </td>
-                                    <td class="mobile icon-box" style="width: 20px"><i class="el-icon-arrow-right"></i></td>
+                                    <td class="mobile icon-box" style="width: 20px"  @click="openTransactionDialog(transaction.transaction)"><i class="el-icon-arrow-right"></i></td>
                                 </tr>
                                 </tbody>
                             </table>
@@ -75,7 +75,7 @@
             <div class="modal-body">
                 <div class="account_preInfo">
                     <span v-if="accountInfo.name">{{$t('dialog.account_info_name') + accountInfo.name}} |</span>
-                    <span>{{$t('dialog.account_info_available_asset') + ": " + $global.getSSNumberFormat(accountInfo.unconfirmedBalanceNQT)}}</span>
+                    <span>{{$t('dialog.account_info_available_asset') + ": " + $global.getAmountFormat(accountInfo.unconfirmedBalanceNQT)}}</span>
                 </div>
                 <div class="account_transactionInfo">
                     <p class="fl">{{$t('dialog.account_transaction_detail')}}</p>
@@ -166,7 +166,7 @@
                 <el-radio-group v-model="tabTitle" class="title">
                     <el-radio-button label="account" class="btn">{{$t('dialog.block_info_all_transaction')}}</el-radio-button>
                     <el-radio-button label="blockInfo" class="btn">{{$t('dialog.block_info_all_block_detail')}}</el-radio-button>
-                    <el-radio-button label="blockRewardInfo" class="btn">{{$t('dialog.block_reward_distribution_detail')}}</el-radio-button>
+                    <el-radio-button v-if="containRewardTxs()" label="blockRewardInfo" class="btn">{{$t('dialog.block_reward_distribution_detail')}}</el-radio-button>
                     <el-radio-button v-if="pocInfoList.length > 0" label="pocInfo" class="btn">PoC</el-radio-button>
                     <el-radio-button v-if="poolInfoList.length > 0" label="poolInfo" class="btn">Pool</el-radio-button>
                     <el-radio-button v-if="messageInfoList.length > 0" label="messageInfo" class="btn">{{$t('sendMessage.infomation')}}</el-radio-button>
@@ -177,26 +177,26 @@
                     <table  class="table">
                         <tbody>
                         <tr>
-                            <th class="pc-table">{{$t('dialog.account_transaction_time')}}</th>
-                            <th class="mobile-th">{{$t('dialog.account_transaction_id')}}</th>
-                            <th class="pc-table">{{$t('dialog.account_transaction_type')}}</th>
-                            <th class="pc-table">{{$t('dialog.account_transaction_amount')}}</th>
+                            <th class="mobile-th">{{$t('dialog.account_transaction_time')}}</th>
+                            <th class="pc-table">{{$t('dialog.account_transaction_id')}}</th>
+                            <th class="mobile-th">{{$t('dialog.account_transaction_type')}}</th>
+                            <th class="mobile-th">{{$t('dialog.account_transaction_amount')}}</th>
                             <th class="pc-table">{{$t('dialog.account_info_fee')}}</th>
                             <th class="pc-table">{{$t('dialog.account_transaction_sender')}}</th>
                             <th class="pc-table">{{$t('dialog.account_transaction_recipient')}}</th>
                             <th class="mobile" style="width: 20px"></th>
                         </tr>
                         <tr v-for="(transaction,index) in blockInfo.transactions">
-                            <td class="pc-table">
-                                <span>{{$global.myFormatTime(transaction.timestamp,'YMDHMS',true)}}</span><br>
-                                <span class="utc-time">{{$global.formatTime(transaction.timestamp)}} +UTC</span>
+                            <td class="mobile-th compact-style">
+                                <span class="compact-hidden">{{$global.myFormatTime(transaction.timestamp,'YMDHMS',true)}}</span><br>
+                                <span class="utc-time compact-small-font">{{$global.formatTime(transaction.timestamp)}} +UTC</span>
                             </td>
-                            <td class="linker mobile-td" @click="openTransactionDialog(transaction.transaction)">{{transaction.transaction}}</td>
-                            <td class="transaction-img pc-table">
+                            <td class="linker pc-table" @click="openTransactionDialog(transaction.transaction)">{{transaction.transaction}}</td>
+                            <td class="transaction-img mobile-td compact-style">
                                 <span class="bg" :class="'type' + transaction.type + transaction.subtype"></span>
                                 <span>{{$global.getTransactionTypeStr(transaction)}}</span>
                             </td>
-                            <td class="pc-table">{{$global.getTransactionAmountNQT(transaction,"")}}</td>
+                            <td class="mobile-th">{{$global.getTransactionAmountNQT(transaction,"")}}</td>
                             <td class="pc-table">{{$global.getTransactionFeeNQT(transaction)}}</td>
                             <td class="pc-table" v-if="transaction.type === 9">CoinBase</td>
                             <td class="pc-table" v-else-if="transaction.type === 12">System</td>
@@ -210,7 +210,7 @@
                             <td class="linker pc-table" style="font-size:11px;" v-else @click="openAccountInfo(transaction.recipientRS)">
                                 {{transaction.recipientRS}}
                             </td>
-                            <td class="mobile icon-box" style="width: 20px"><i class="el-icon-arrow-right"></i></td>
+                            <td class="mobile icon-box" style="width: 20px" @click="openTransactionDialog(transaction.transaction)"><i class="el-icon-arrow-right"></i></td>
                         </tr>
                         </tbody>
                     </table>
@@ -289,24 +289,72 @@
                         </tbody>
                     </table>
                 </div>
-
+                <!-- block reward distribution section -->
                 <div v-if="tabTitle === 'blockRewardInfo'" class="account_list">
-                    <table  class="table">
+                    <!-- tabs -->
+                    <el-radio-group v-model="rewardTabs" class="title">
+                        <el-radio-button label="miningRewards" class="reward-tab">{{$t('dialog.block_reward_distribution_mining')}}</el-radio-button>
+                        <el-radio-button v-if="containCrowdRewardTxs()" label="crowdMinerRewards" class="reward-tab">{{$t('dialog.block_reward_distribution_crowd')}}</el-radio-button>
+
+                    </el-radio-group>
+
+                    <div v-if="(rewardTabs === 'miningRewards') && containMiningRewardTxs()">
+                        <p class="testnet-tips">{{$t('dialog.block_reward_distribution_mining')}}: {{$global.getAmountFormat(coinBaseTx.attachment.blockMiningRewardAmount)}}</p>
+                    </div>
+                    <div v-else-if="(rewardTabs === 'crowdMinerRewards') && containCrowdRewardTxs()">
+                        <p class="testnet-tips">{{$t('dialog.block_reward_distribution_crowd')}}: {{$global.getAmountFormat(coinBaseTx.attachment.crowdMinerRewardAmount)}}</p>
+                    </div>
+
+
+                    <!-- mining rewards(include pool mode) distribution table -->
+                    <table v-if="(rewardTabs === 'miningRewards')" class="table">
                         <tbody>
                         <tr>
                             <th class="pc-table">{{$t('dialog.account_info_account_id')}}</th>
-                            <th class="pc-table">{{$t('dialog.block_info_mining')}}</th>
-                            <th class="pc-table">{{$t('dialog.account_info_poc_score')}}</th>
-                            <th class="pc-table">{{$t('dialog.account_transaction_amount')}}</th>
+                            <th class="mobile-th">{{$t('dialog.block_info_mining')}}</th>
+                            <th class="mobile-th">{{$t('dialog.account_info_staking_amount')}}</th>
+                            <th class="mobile-th">{{$t('dialog.account_transaction_amount')}}</th>
+                            <th class="pc-table">{{$t('dialog.account_transaction_sender')}}</th>
+                            <th class="mobile" style="width: 20px"></th>
+                        </tr>
+                        <tr v-if="containMiningRewardTxs()">
+                            <template v-for="(poolJoiner,index) in coinBaseTx.attachment.consignors">
+                                <td class="linker pc-table" >{{poolJoiner.accountId}}</td>
+                                <td class="linker mobile-td compact-style" >{{poolJoiner.accountRS}}</td>
+                                <td class="pc-table mobile-td compact-style">{{$global.getAmountFormat(poolJoiner.investAmount)}}</td>
+                                <td class="pc-table mobile-td compact-style">{{$global.getAmountFormat(poolJoiner.rewardAmount)}}</td>
+                                <td class="pc-table">CoinBase</td>
+                                <td class="mobile icon-box" style="width: 20px"><i class="el-icon-arrow-right"></i></td>
+                            </template>
+                        </tr>
+                        <tr v-else>
+                            <td class="linker pc-table" >{{blockInfo.generator}}</td>
+                            <td class="linker mobile-td compact-style" >{{blockInfo.generatorRS}}</td>
+                            <td class="mobile-td compact-style">--</td>
+                            <td class="mobile-td compact-style">{{$global.getAmountFormat(coinBaseTx.attachment.blockMiningRewardAmount)}}</td>
+                            <td class="pc-table">CoinBase</td>
+                            <td class="mobile icon-box" style="width: 20px"><i class="el-icon-arrow-right"></i></td>
+                        </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- crowd miners rewards distribution table -->
+                    <table v-if="(rewardTabs === 'crowdMinerRewards') && containCrowdRewardTxs()" class="table">
+                        <tbody>
+                        <tr>
+                            <th class="pc-table">{{$t('dialog.account_info_account_id')}}</th>
+                            <th class="mobile-th compact-style">{{$t('dialog.block_info_mining')}}</th>
+                            <th class="mobile-th compact-style">{{$t('dialog.account_info_poc_score')}}</th>
+                            <th class="mobile-th compact-style">{{$t('dialog.account_transaction_amount')}}</th>
                             <th class="pc-table">{{$t('dialog.account_transaction_sender')}}</th>
                             <th class="mobile" style="width: 20px"></th>
                         </tr>
                         <tr v-for="(crowdMiner,index) in coinBaseTx.attachment.crowdMiners">
-                            <td class="linker mobile-td" >{{crowdMiner.accountId}}</td>
-                            <td class="linker mobile-td" >{{crowdMiner.accountRS}}</td>
-                            <td class="pc-table" v-if="crowdMiner.pocScore === -1">--</td>
-                            <td class="pc-table" v-else>{{crowdMiner.pocScore}}</td>
-                            <td class="pc-table">{{$global.getBlockRewardNQT(crowdMiner.rewardAmount)}}</td>
+                            <td class="linker pc-table" >{{crowdMiner.accountId}}</td>
+                            <td class="linker mobile-td compact-style" >{{crowdMiner.accountRS}}</td>
+                            <td class="mobile-td compact-style" v-if="crowdMiner.pocScore === -1">--</td>
+                            <td class="mobile-td compact-style" v-else>{{crowdMiner.pocScore}}</td>
+                            <td class="mobile-td compact-style">{{$global.getAmountFormat(crowdMiner.rewardAmount)}}</td>
                             <td class="pc-table">CoinBase</td>
                             <td class="mobile icon-box" style="width: 20px"><i class="el-icon-arrow-right"></i></td>
                         </tr>
@@ -555,6 +603,7 @@
         data() {
             return {
                 tabTitle: 'account',
+                rewardTabs: 'miningRewards',
                 accountInfoDialog: this.accountInfoOpen,
                 accountInfo: [],
                 accountTransactionInfo: [],
@@ -575,7 +624,28 @@
             }
         },
         methods: {
+            containCrowdRewardTxs() {
+                const _this = this;
 
+                if(_this.coinBaseTx !== ''
+                    && _this.coinBaseTx.attachment.crowdMiners
+                    && _this.coinBaseTx.attachment.crowdMiners.length > 0){
+                    return true;
+                }
+
+                return false;
+            },
+            containMiningRewardTxs() {
+                const _this = this;
+
+                if(_this.coinBaseTx !== ''
+                    && _this.coinBaseTx.attachment.consignors
+                    && _this.coinBaseTx.attachment.consignors.length > 0){
+                    return true;
+                }
+
+                return false;
+            },
             httpGetAccountInfo(accountID) {
                 const _this = this;
                 return new Promise((resolve, reject) => {
@@ -1023,6 +1093,19 @@
 </script>
 
 <style scoped type="text/scss" lang="scss">
+    .is-active /deep/.el-radio-button__inner {
+        border-bottom: 2px solid #3fb09a !important;
+    }
+
+    .reward-tab /deep/.el-radio-button__inner {
+        background: #fff !important;
+        color: #333 !important;
+        margin-top: 5px !important;
+        border-radius: 0 !important;;
+        border: 0;
+        box-shadow: 0 0 0 0 #409EFF;
+    }
+
     #block_info {
         .modal-body {
             max-height: 600px;
@@ -1296,6 +1379,14 @@
         }
     }
 
+    .compact-style {
+        text-align: center!important;
+        text-indent: 5px!important;
+    }
+
+    .compact-small-font {
+        font-size: 9px;
+    }
 
     @media only screen and (max-width: 780px) {
         #account_info .modal-body .account_allInfo .account_list .table td {
@@ -1303,6 +1394,10 @@
         }
         #account_info .modal-body .account_allInfo .account_list .table_body {
             max-height: 300px;
+        }
+
+        .compact-hidden {
+            display: none;
         }
     }
 

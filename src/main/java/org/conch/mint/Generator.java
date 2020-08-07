@@ -254,6 +254,9 @@ public class Generator implements Comparable<Generator> {
                             List<Generator> forgers = new ArrayList<>();
                             for (Generator generator : generators.values()) {
                                 generator.setLastBlock(lastBlock);
+
+                                if(generator.pocScore == null) continue;
+
                                 if (generator.pocScore.signum() > 0) {
                                     forgers.add(generator);
                                 }

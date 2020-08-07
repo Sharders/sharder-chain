@@ -567,29 +567,42 @@ public abstract class TransactionType {
 
             private void validateByType(Transaction transaction) throws ConchException.NotValidException {
                 Attachment.CoinBase coinBase = (Attachment.CoinBase) transaction.getAttachment();
-                if (Attachment.CoinBase.CoinBaseType.BLOCK_REWARD == coinBase.getCoinBaseType()) {
-                    Map<Long, Long> consignors = coinBase.getConsignors();
-                    
-                    if(consignors.size() <= 0) return;
-                    
-                    long id = SharderPoolProcessor.findOwnPoolId(transaction.getSenderId(), Conch.getBlockchain().getHeight());
-                    SharderPoolProcessor poolProcessor = (id == -1) ? null : SharderPoolProcessor.getPool(id);
-//                    SharderPoolProcessor poolProcessor = SharderPoolProcessor.getPool(id);
-//                    if (poolProcessor != null 
-//                        && poolProcessor.getState().equals(SharderPoolProcessor.State.WORKING)
-//                        && !poolProcessor.validateConsignorsAmount(consignors)) {
-//                        throw new ConchException.NotValidException("The pool allocation rule validation failed in BLOCK_REWARD processing[block id=%d, height=%d]", transaction.getBlockId(), transaction.getHeight());
-//                    }
-                } else if (Attachment.CoinBase.CoinBaseType.GENESIS == coinBase.getCoinBaseType()) {
+                if (Attachment.CoinBase.CoinBaseType.GENESIS == coinBase.getCoinBaseType()) {
                     if (!SharderGenesis.isGenesisCreator(coinBase.getCreator())) {
                         throw new ConchException.NotValidException("the Genesis coin base tx is not created by genesis creator");
                     }
                 }
+
+                /**
+                 * close the validation of the block reward and crowd miner reward, see detail at:
+                 * org.conch.consensus.reward.RewardCalculator#validateCoinbaseTx(org.conch.tx.Transaction)
+                 */
+//                Attachment.CoinBase coinBase = (Attachment.CoinBase) transaction.getAttachment();
+//                if (Attachment.CoinBase.CoinBaseType.BLOCK_REWARD == coinBase.getCoinBaseType()) {
+//
+//                    Map<Long, Long> consignors = coinBase.getConsignors();
+//
+//                    if(consignors.size() <= 0) return;
+//
+//                    long id = SharderPoolProcessor.findOwnPoolId(transaction.getSenderId(), Conch.getBlockchain().getHeight());
+//                    SharderPoolProcessor poolProcessor = (id == -1) ? null : SharderPoolProcessor.getPool(id);
+////                    SharderPoolProcessor poolProcessor = SharderPoolProcessor.getPool(id);
+////                    if (poolProcessor != null
+////                        && poolProcessor.getState().equals(SharderPoolProcessor.State.WORKING)
+////                        && !poolProcessor.validateConsignorsAmount(consignors)) {
+////                        throw new ConchException.NotValidException("The pool allocation rule validation failed in BLOCK_REWARD processing[block id=%d, height=%d]", transaction.getBlockId(), transaction.getHeight());
+////                    }
+//                } else if (Attachment.CoinBase.CoinBaseType.GENESIS == coinBase.getCoinBaseType()) {
+//                    if (!SharderGenesis.isGenesisCreator(coinBase.getCreator())) {
+//                        throw new ConchException.NotValidException("the Genesis coin base tx is not created by genesis creator");
+//                    }
+//                }
+
             }
 
             private void applyByType(Transaction transaction, Account senderAccount, Account recipientAccount) {
                 Attachment.CoinBase coinBase = (Attachment.CoinBase) transaction.getAttachment();
-                if (Attachment.CoinBase.CoinBaseType.BLOCK_REWARD == coinBase.getCoinBaseType()) {
+                if (RewardCalculator.isBlockRewardTx(transaction.getAttachment())) {
                     RewardCalculator.blockRewardDistribution(transaction,false);
                 } else if (Attachment.CoinBase.CoinBaseType.GENESIS == coinBase.getCoinBaseType()) {
                     if (SharderGenesis.isGenesisCreator(coinBase.getCreator()) && SharderGenesis.isGenesisRecipients(senderAccount.getId())) {

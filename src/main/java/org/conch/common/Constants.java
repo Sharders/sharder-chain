@@ -29,6 +29,7 @@ import org.conch.consensus.poc.hardware.GetNodeHardware;
 import org.conch.env.RuntimeEnvironment;
 import org.conch.mint.Generator;
 import org.conch.peer.Peer;
+import org.conch.util.LocalDebugTool;
 
 import java.util.*;
 
@@ -368,8 +369,12 @@ public final class Constants {
      */
     public static int getBlockGapSeconds(){
         int gap = blockGapInProperties > 1 ? blockGapInProperties : 1;
-        // offline mode: 10 seconds
-//        return Constants.isOffline ? 10 : (gap*60); 
+        
+        // debug in the local offline mode
+        if(LocalDebugTool.isLocalDebugAndBootNodeMode) {
+            return Constants.isOffline ? 10 : (gap*60);
+        }
+
         return gap*60; 
     }
 
