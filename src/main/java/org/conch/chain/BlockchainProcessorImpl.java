@@ -326,7 +326,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 long lastBlockId = blockchain.getLastBlock().getId();
                 int syncHeightCount = lastBlockchainFeederHeight - blockchain.getHeight();
                 long estimatedProcessingSeconds = syncHeightCount * 30;
-                Logger.logInfoMessage("Synchronize the blocks from feeder %s[%s], current height %d -> feeder's height %d, sync count %d estimated processing time is %d S ...",
+                Logger.logInfoMessage("Synchronize the blocks from feeder %s[%s], current height %d -> feeder's height %d, sync %d blocks estimated processing time is %d S ...",
                         lastBlockchainFeeder.getAnnouncedAddress(), lastBlockchainFeeder.getHost()
                         , blockchain.getHeight(), lastBlockchainFeederHeight, syncHeightCount, estimatedProcessingSeconds);
                 downloadBlockchain(peer, commonBlock, commonBlock.getHeight());
