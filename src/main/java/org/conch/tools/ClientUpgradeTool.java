@@ -107,7 +107,8 @@ public class ClientUpgradeTool {
 
     private static final String KEY_DB_LAST_ARCHIVE = "LastArchive";
     private static final String KEY_DB_ARCHIVE_KNOWN_HEIGHT = "KnownArchive";
-    
+    private static final String KEY_DB_DOWNLOAD_URL = "DownloadUrl";
+
     public static String lastDbArchive = null;
     public static Integer lastDbArchiveHeight = null;
     public static int restoredDbArchiveHeight = 0;
@@ -289,11 +290,29 @@ public class ClientUpgradeTool {
         try{
 //            if(restoring) return;
 //            restoring = true;
-            
-            if(StringUtils.isEmpty(dbFileName)) {
+
+            if(StringUtils.isEmpty(dbFileName)
+                    || lastDbArchiveObj == null) {
                 Logger.logDebugMessage("[ UPGRADE DB ] upgrade db file name is null, break.");
                 return;
             }
+
+            String urlPrefix = lastDbArchiveObj.getString(ENV_PREFIX + KEY_DB_DOWNLOAD_URL);
+            String downloadingUrl = UrlManager.getDbArchiveUrl(urlPrefix + dbFileName);
+            try {
+                if (!FileUtils.toFile(new URL(downloadingUrl)).exists()) {
+                    Logger.logWarningMessage("[ UPGRADE DB ] db archive %s dose not exist, break and wait for next check turn.", downloadingUrl);
+                    return;
+                }
+                //            if(!RestfulHttpClient.containResource(downloadingUrl)) {
+                //                Logger.logWarningMessage("[ UPGRADE DB ] db archive %s dose not exist, break.");
+                //                return;
+                //            }
+            }catch(Exception e){
+                Logger.logWarningMessage("[ UPGRADE DB ] db archive exist judgement occur error: %s, break and wait for next check turn.", e.getMessage());
+                return;
+            }
+
             Logger.logDebugMessage("[ UPGRADE DB ] Start to update the local db, pause the mining and blocks sync firstly");
 
             // check the last db file's download time and delete old file before download the new one.
@@ -302,10 +321,10 @@ public class ClientUpgradeTool {
             boolean downloadFromOSS = true;
             if(archivedDbFile.exists()){
                 if(forceDownloadFromOSS || downloadNewDbArchiveNow(archivedDbFile)){
+                    String lastDownloadTime = new Date(archivedDbFile.lastModified()).toString();
                     archivedDbFile.delete();
                 }else{
                     long intervalHours = DOWNLOAD_DB_ARCHIVE_INTERVAL_MS / (60*60*1000L);
-//                    String lastDownloadTime = new Date(archivedDbFile.lastModified()).toString();
                     String nextDownloadTime = new Date(lastDownloadDbArchiveTime + DOWNLOAD_DB_ARCHIVE_INTERVAL_MS).toString();
                     String currentTime = new Date(System.currentTimeMillis()).toString();
                     Logger.logInfoMessage("[ UPGRADE DB ] Don't fetch the new db archive from OSS caused by: not reached the db archive download time[%s], " +
@@ -314,17 +333,21 @@ public class ClientUpgradeTool {
                     downloadFromOSS = false;
                 }
             }
-            
-            Conch.pause();
-        
+
             // fetch the specified archived db file
             if(downloadFromOSS) {
                 FileUtil.clearOrDelFiles("temp/", false);
-                String downloadingUrl = UrlManager.getDbArchiveUrl(dbFileName);
                 Logger.logInfoMessage("[ UPGRADE DB ] Downloading archived db file %s from %s", dbFileName, downloadingUrl);
-                FileUtils.copyURLToFile(new URL(downloadingUrl), archivedDbFile);
+                try{
+                    FileUtils.copyURLToFile(new URL(downloadingUrl), archivedDbFile);
+                }catch(Exception e){
+                    Logger.logWarningMessage("[ UPGRADE DB ] db archive downloading occur error: %s, break and wait for next check turn.", e.getMessage());
+                    return;
+                }
                 lastDownloadDbArchiveTime = System.currentTimeMillis();
             }
+
+            Conch.pause();
 
             // backup the old db folder
             Logger.logInfoMessage("[ UPGRADE DB ] Delete the bak folder");
@@ -347,7 +370,7 @@ public class ClientUpgradeTool {
                     }
                 }
             }
-           
+
             Logger.logInfoMessage("[ UPGRADE DB ] Success to update the local db[upgrade db file=%s]", dbFileName);
         }catch(Exception e) {
             Logger.logErrorMessage("[ UPGRADE DB ] Failed to update the local db[upgrade db file=%s] caused by [%s]", dbFileName, e.getMessage());

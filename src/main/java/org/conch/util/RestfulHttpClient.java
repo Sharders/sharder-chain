@@ -36,7 +36,18 @@ public class RestfulHttpClient {
     public static final String METHOD_PATCH = "PATCH";
     public static final String METHOD_DELETE = "DELETE";
 
-    private RestfulHttpClient() {
+    private RestfulHttpClient() {}
+
+    public static boolean containResource(String url){
+        try{
+            HttpResponse response = getClient(url)
+                    .get()
+                    .request();
+            return response.getCode() == 200;
+        }catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
     }
 
     /**
