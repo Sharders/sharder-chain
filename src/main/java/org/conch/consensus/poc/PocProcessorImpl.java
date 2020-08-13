@@ -461,8 +461,14 @@ public class PocProcessorImpl implements PocProcessor {
 
             // reset the score map
             synchronized (PocHolder.inst.scoreMap) {
-                PocHolder.inst.scoreMap.clear();
-                PocHolder.inst.scoreMap = PocDb.listAllScore();
+                PocHolder.inst.scoreMap.values().forEach(pocScore -> {
+                    if(pocScore.getHeight() > height) {
+                        PocHolder.inst.scoreMap.remove(pocScore.getAccountId());
+                    }
+                });
+//
+//                PocHolder.inst.scoreMap.clear();
+//                PocHolder.inst.scoreMap = PocDb.listAllScore();
             }
 
             // rollback the history certified peers
@@ -479,8 +485,13 @@ public class PocProcessorImpl implements PocProcessor {
 
             // reset the certified peers
             synchronized (PocHolder.inst.certifiedPeers) {
-                PocHolder.inst.certifiedPeers.clear();
-                PocHolder.inst.certifiedPeers = PocDb.listAllPeers();
+                PocHolder.inst.certifiedPeers.values().forEach(certifiedPeer -> {
+                    if(certifiedPeer.getHeight() > height) {
+                        PocHolder.inst.certifiedPeers.remove(certifiedPeer.getBoundAccountId());
+                    }
+                });
+//                PocHolder.inst.certifiedPeers.clear();
+//                PocHolder.inst.certifiedPeers = PocDb.listAllPeers();
             }
 
             // set the latest certified peer
@@ -644,16 +655,11 @@ public class PocProcessorImpl implements PocProcessor {
                 return;
             }
 
+            boolean reprocessBefore = Conch.containProperty(PROPERTY_REPROCESS_POC_TXS);
             // old poc txs process: a) miss the poc tx, b) restart the cos client
             if (reprocessAllPocTxs) {
                 // total poc txs from last height
-                int fromHeight = 0;
-                if(reprocessAllPocTxs){
-                    fromHeight = 0;
-                }else if(PocHolder.inst.lastHeight > 0) {
-                    fromHeight = PocHolder.inst.lastHeight;
-                }
-
+                int fromHeight = reprocessBefore ? PocDb.getLastScoreHeight() : 0;
                 reProcessPocTxs(fromHeight, Conch.getHeight());
                 reprocessAllPocTxs = false;
                 Conch.storePropertieToFile(PROPERTY_REPROCESS_POC_TXS, "false");

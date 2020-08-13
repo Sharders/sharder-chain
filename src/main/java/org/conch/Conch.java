@@ -684,6 +684,11 @@ public final class Conch {
         return false;
     }
 
+    public static boolean containProperty(String name){
+        String value = properties.getProperty(name);
+        return StringUtils.isNotEmpty(value);
+    }
+
     public static int getHeight(){
         return getBlockchain().getHeight();
     }
