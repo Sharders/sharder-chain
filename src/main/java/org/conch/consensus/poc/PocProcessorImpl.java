@@ -447,52 +447,16 @@ public class PocProcessorImpl implements PocProcessor {
     @Override
     public boolean rollbackTo(int height) {
         try {
-            int currentHeight = Conch.getHeight();
-//            // rollback the poc score map
-//            synchronized (PocHolder.inst.historyScore) {
-//                for(int i = height + 1; i <= currentHeight ; i++){
-//                    if(PocHolder.inst.historyScore.containsKey(i)){
-//                        PocHolder.inst.historyScore.remove(i);
-//                    }
-//                }
-//                //rollback the db
-//                PocDb.rollbackScore(height);
-//            }
             PocDb.rollbackScore(height);
-
             // reset the score map
             synchronized (PocHolder.inst.scoreMap) {
-                PocHolder.inst.scoreMap.values().forEach(pocScore -> {
-                    if(pocScore.getHeight() > height) {
-                        PocHolder.inst.scoreMap.remove(pocScore.getAccountId());
-                    }
-                });
-//
-//                PocHolder.inst.scoreMap.clear();
-//                PocHolder.inst.scoreMap = PocDb.listAllScore();
+                PocHolder.inst.scoreMap.values().removeIf(pocScore -> pocScore.getHeight() > height);
             }
 
-            // rollback the history certified peers
-//            synchronized (PocHolder.inst.historyCertifiedPeers) {
-//                for (int i = height + 1; i <= currentHeight; i++) {
-//                    // rollback the poc score map
-//                    if (PocHolder.inst.historyCertifiedPeers.containsKey(i)) {
-//                        PocHolder.inst.historyCertifiedPeers.remove(i);
-//                    }
-//                }
-//                PocDb.rollbackPeer(height);
-//            }
             PocDb.rollbackPeer(height);
-
             // reset the certified peers
             synchronized (PocHolder.inst.certifiedPeers) {
-                PocHolder.inst.certifiedPeers.values().forEach(certifiedPeer -> {
-                    if(certifiedPeer.getHeight() > height) {
-                        PocHolder.inst.certifiedPeers.remove(certifiedPeer.getBoundAccountId());
-                    }
-                });
-//                PocHolder.inst.certifiedPeers.clear();
-//                PocHolder.inst.certifiedPeers = PocDb.listAllPeers();
+                PocHolder.inst.certifiedPeers.values().removeIf(certifiedPeer -> certifiedPeer.getHeight() > height);
             }
 
             // set the latest certified peer
