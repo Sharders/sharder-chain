@@ -32,9 +32,11 @@ public class PocScore implements Serializable {
     BigInteger onlineRateScore = BigInteger.ZERO;
     BigInteger blockMissScore = BigInteger.ZERO;
     BigInteger bcScore = BigInteger.ZERO;
-
     BigInteger effectiveBalance;
 
+    BigInteger total = null;
+
+    // don't use the static parameter (calculate should base on the height)
     private static BigInteger SCORE_MULTIPLIER = parseAndGetScoreMagnification();
 
     /**
@@ -148,13 +150,23 @@ public class PocScore implements Serializable {
         return simpleObj.toJSONString();
     }
 
-
+    public PocScore setTotal(Long totalScore){
+        this.total = BigInteger.valueOf(totalScore != null ? totalScore : 0);
+        return this;
+    }
 
     public BigInteger total() {
 //        // 90% of block rewards for hub miner, 10% for other miners in Testnet phase1 (before end of 2019.Q2)
 //        BigInteger rate = Conch.getPocProcessor().isCertifiedPeerBind(accountId, height) ? BigInteger.valueOf(90) : BigInteger.valueOf(10);
 //        return score.multiply(SCORE_MULTIPLIER).multiply(rate).divide(BigInteger.valueOf(100));
+        if(total != null) return total;
+
         BigInteger score = ssScore.add(nodeTypeScore).add(serverScore).add(hardwareScore).add(networkScore).add(performanceScore).add(onlineRateScore).add(blockMissScore).add(bcScore);
+
+        if(Conch.getHeight() > Constants.POC_MULTIPLIER_CHANGE_HEIGHT) {
+            return score.multiply(parseAndGetScoreMagnification());
+        }
+
         return score.multiply(SCORE_MULTIPLIER);
     }
 

@@ -236,8 +236,11 @@ public final class Constants {
     // the poc calculate algorithm changed height.
     // NOTE: set the height to 0 when reset the chain or start a new chain
     public static final int POC_CAL_ALGORITHM = isTestnet() ? 0 : 0;
-    // mw-holding score algo. changed; re-calculate the hardware and mw-holding score
+    // mw-holding score algo. changed; re-calculate the hardware and holding score
     public static final int POC_SCORE_CHANGE_HEIGHT = isTestnet() ? -1 : -1;
+    public static final int POC_REPROCESS_CROWD_MINER_OPEN_HEIGHT = isDevnet() ? 1 : (isTestnet() ? 15455 : 1);
+    public static final int POC_MULTIPLIER_CHANGE_HEIGHT = isDevnet() ? 0 : (isTestnet() ? 15414 : 1);
+
 
     //not opened yet
     public static final int PHASING_BLOCK_HEIGHT = Integer.MAX_VALUE;
@@ -268,7 +271,6 @@ public final class Constants {
     public static final int SHARDER_POOL_DEADLINE = isDevnet() ? 60 * 24 : 60 * 24 * 7; 
     public static final int SHARDER_REWARD_DELAY = isDevnet() ? 1 : (isTestnet() ? 3 : 7);
     public static final int SHARDER_POOL_JOIN_TX_VALIDATION_HEIGHT = isDevnet() ? 1 : (isTestnet() ? 300 : 1);
-    public static final int POC_REPROCESS_CROWD_MINER_OPEN_HEIGHT = isDevnet() ? 1 : (isTestnet() ? 15455 : 1);
 
 
     //Coinbase

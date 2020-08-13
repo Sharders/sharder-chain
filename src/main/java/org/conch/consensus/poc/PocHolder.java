@@ -291,13 +291,15 @@ public class PocHolder implements Serializable {
         if(pocScore == null) {
             pocScore = existedScore;
         }else if (existedScore != null) {
-            if(Conch.getHeight() >= existedScore.height && existedScore.height > pocScore.height) {
-                inst.scoreMap.put(accountId, existedScore);
-                pocScore = existedScore;
-            }else if(pocScore.height > Conch.getHeight() && Conch.getHeight() >= existedScore.height){
-                inst.scoreMap.put(accountId, existedScore);
-                pocScore = existedScore;
-            }
+//            if(Conch.getHeight() >= existedScore.height && existedScore.height > pocScore.height) {
+//                inst.scoreMap.put(accountId, existedScore);
+//                pocScore = existedScore;
+//            }else if(pocScore.height > Conch.getHeight() && Conch.getHeight() >= existedScore.height){
+//                inst.scoreMap.put(accountId, existedScore);
+//                pocScore = existedScore;
+//            }
+            pocScore = existedScore;
+            inst.scoreMap.put(accountId, existedScore);
         }
 
         if(pocScore == null) {

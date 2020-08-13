@@ -3,12 +3,19 @@ package org.conch.consensus.poc.db;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
+import org.conch.chain.BlockchainImpl;
 import org.conch.consensus.poc.PocScore;
+import org.conch.consensus.poc.tx.PocTxBody;
+import org.conch.consensus.poc.tx.PocTxWrapper;
 import org.conch.db.Db;
+import org.conch.db.DbIterator;
 import org.conch.db.DbUtils;
 import org.conch.db.DerivedDbTable;
 import org.conch.peer.CertifiedPeer;
 import org.conch.peer.Peer;
+import org.conch.tx.Transaction;
+import org.conch.tx.TransactionImpl;
+import org.conch.tx.TransactionType;
 import org.conch.util.Convert;
 import org.conch.util.Logger;
 
@@ -25,7 +32,7 @@ import java.util.Map;
  * @since 2019-05-17
  */
 public class PocDb  {
-
+    public static void init() {}
     /**
      * poc score table
      */
@@ -85,7 +92,7 @@ public class PocDb  {
             return scoreMap;
         }
 
-        public String get(long accountId, int height, boolean loadHistory) {
+        public PocScore get(long accountId, int height, boolean loadHistory) {
             if(height < 0) return null;
 
             // close the start height in query
@@ -94,7 +101,7 @@ public class PocDb  {
             Connection con = null;
             try {
                 con = Db.db.getConnection();
-                PreparedStatement pstmt = con.prepareStatement("SELECT poc_detail AS detail "
+                PreparedStatement pstmt = con.prepareStatement("SELECT poc_detail AS detail, poc_score "
                         + "FROM account_poc_score WHERE account_id = ?"
                         + (loadHistory ? " AND height <= ?" : " AND height = ?")
                         + (appointStart != -1 ? " AND height > ?" : "")
@@ -109,7 +116,8 @@ public class PocDb  {
 
                 ResultSet rs = pstmt.executeQuery();
                 if(rs !=null && rs.next()){
-                    return rs.getString("detail");
+                    PocScore pocScore = new PocScore(rs.getString("detail"));
+                    return pocScore.setTotal(rs.getLong("poc_score"));
                 }
             } catch (SQLException e) {
                 throw new RuntimeException(e.toString(), e);
@@ -551,10 +559,7 @@ public class PocDb  {
      * @return
      */
     public static PocScore getPocScore(long accountId, int height, boolean loadHistory) {
-        String detail = pocScoreTable.get(accountId, height, loadHistory);
-        if(StringUtils.isEmpty(detail)) return null;
-
-        return new PocScore(detail);
+        return pocScoreTable.get(accountId, height, loadHistory);
     }
 
     public static Map<Long,PocScore> listAllScore() {
@@ -602,57 +607,32 @@ public class PocDb  {
         return certifiedPeerTable.countAndRollback(height);
     }
 
+    public static PocTxBody.PocWeightTable findLastWeightTable(){
+        Connection con = null;
+        try {
+            con = Db.db.getConnection();
+            PreparedStatement pstmt = con.prepareStatement("SELECT * FROM TRANSACTION t WHERE t.TYPE=? AND t.SUBTYPE=? ORDER BY HEIGHT DESC LIMIT 1");
+            pstmt.setByte(1, TransactionType.TYPE_POC);
+            pstmt.setByte(2,  PocTxWrapper.SUBTYPE_POC_WEIGHT_TABLE);
 
-//    public static void findLastWeightTable(){
-//        Connection con = null;
-//        try {
-//            con = Db.db.getConnection();
-//            PreparedStatement pstmt = con.prepareStatement("SELECT * FROM TRANSACTION t WHERE t.TYPE=" + TransactionType.TYPE_PAYMENT + " AND HEIGHT > " + startHeight + " ORDER BY HEIGHT ASC");
-//            DbIterator<TransactionImpl> transactions = null;
-//            List<Transaction> txList = Lists.newArrayList();
-//            JSONObject summaryObj = new JSONObject();
-//
-//            String ignoreDetail = "--Ignore List--\n";
-//            try {
-//                transactions = BlockchainImpl.getInstance().getTransactions(con, pstmt);
-//                while (transactions.hasNext()) {
-//                    Transaction tx = transactions.next();
-//                    Account senderAccount = Account.getAccount(tx.getSenderId());
-//                    Account recipientAccount = Account.getAccount(tx.getRecipientId());
-//                    long amount =  tx.getAmountNQT() / Constants.ONE_SS;
-//                    String txStr = senderAccount.getRsAddress() + " -> " + recipientAccount.getRsAddress() + " amount " + amount + " at height " + tx.getHeight();
-//
-//                    if(ignoreReciepects.contains(recipientAccount.getRsAddress())) {
-//                        ignoreDetail += txStr + "\n";
-//                        continue;
-//                    }
-//
-//                    System.out.println(txStr);
-//                    if(summaryObj.containsKey("totalAmount")){
-//                        summaryObj.put("totalAmount",summaryObj.getLongValue("totalAmount") + amount);
-//                    }else{
-//                        summaryObj.put("totalAmount",amount);
-//                    }
-//
-//                    if(summaryObj.containsKey("count")){
-//                        summaryObj.put("count",summaryObj.getLongValue("count") + 1);
-//                    }else{
-//                        summaryObj.put("count",1);
-//                    }
-//                }
-//            } finally {
-//                DbUtils.close(transactions);
-//            }
-//            System.out.println(ignoreDetail);
-//
-//            System.out.println("\n" + summaryObj.toString());
-//
-//        } catch (SQLException e) {
-//            throw new RuntimeException(e.toString(), e);
-//        } finally {
-//            DbUtils.close(con);
-//        }
-//    }
+            DbIterator<TransactionImpl> transactions = null;
 
+            try {
+                transactions = BlockchainImpl.getInstance().getTransactions(con, pstmt);
+                while (transactions.hasNext()) {
+                    Transaction tx = transactions.next();
+                    return (PocTxBody.PocWeightTable) tx.getAttachment();
+                }
+            } finally {
+                DbUtils.close(transactions);
+            }
+
+        } catch (SQLException e) {
+            Logger.logErrorMessage("can't findLastWeightTable", e);
+        } finally {
+            DbUtils.close(con);
+        }
+        return null;
+    }
 
 }

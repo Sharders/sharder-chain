@@ -23,7 +23,6 @@ import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionImpl;
 import org.conch.tx.TransactionType;
-import org.conch.util.DiskStorageUtil;
 import org.conch.util.LocalDebugTool;
 import org.conch.util.Logger;
 import org.conch.util.ThreadPool;
@@ -268,7 +267,7 @@ public class PocProcessorImpl implements PocProcessor {
             putInBalanceChangedAccount(Conch.getBlockchain().getHeight(), account, Account.Event.POC);
         }, Account.Event.POC);
 
-        instance.loadFromDisk();
+//        instance.loadFromDisk();
     }
 
     /**
@@ -468,22 +467,22 @@ public class PocProcessorImpl implements PocProcessor {
         return true;
     }
 
-    /**
-     * load the poc holder backup from local disk
-     */
-    private void loadFromDisk() {
-        Logger.logInfoMessage("load exist poc calculator instance from local disk[" + DiskStorageUtil.getLocalStoragePath(LOCAL_STORAGE_POC_CALCULATOR) + "]");
-        Object calcObj = DiskStorageUtil.getObjFromFile(LOCAL_STORAGE_POC_CALCULATOR);
-        if (calcObj != null) {
-            PocCalculator.inst = (PocCalculator) calcObj;
-        }
-
-        //load and process the poc txs from history blocks
-        if (PocHolder.inst != null
-                && PocHolder.inst.lastHeight <= Conch.getBlockchain().getHeight()) {
-            reprocessAllPocTxs = true;
-        }
-    }
+//    /**
+//     * load the poc holder backup from local disk
+//     */
+//    private void loadFromDisk() {
+//        Logger.logInfoMessage("load exist poc calculator instance from local disk[" + DiskStorageUtil.getLocalStoragePath(LOCAL_STORAGE_POC_CALCULATOR) + "]");
+//        Object calcObj = DiskStorageUtil.getObjFromFile(LOCAL_STORAGE_POC_CALCULATOR);
+//        if (calcObj != null) {
+//            PocCalculator.inst = (PocCalculator) calcObj;
+//        }
+//
+//        //load and process the poc txs from history blocks
+//        if (PocHolder.inst != null
+//        && PocHolder.inst.lastHeight <= Conch.getBlockchain().getHeight()) {
+//            reprocessAllPocTxs = true;
+//        }
+//    }
 
     /**
      * update the recipient id of the old  poc txs
@@ -563,6 +562,7 @@ public class PocProcessorImpl implements PocProcessor {
 
     public static void init() {
 //        checkAndResetPocDb();
+        PocDb.init();
         ThreadPool.scheduleThread("OldPocTxsProcessThread", oldPocTxsProcessThread, 1, TimeUnit.MINUTES);
         ThreadPool.scheduleThread("DelayedPocTxsProcessThread", delayedPocTxsProcessThread, pocTxSynThreadInterval, TimeUnit.SECONDS);
         //updateRecipientIdIntoOldPocTxs();
