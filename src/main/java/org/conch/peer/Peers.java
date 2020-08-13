@@ -1067,6 +1067,12 @@ public final class Peers {
         return result;
     }
 
+    /**
+     * find the peer by specified host
+     * @param host peer's host
+     * @param checkAnnouncedAddr true-compare the host with the announced addr of peer
+     * @return
+     */
     public static Peer getPeer(String host, boolean checkAnnouncedAddr) {
         if(!checkAnnouncedAddr) {
             return peers.get(host);

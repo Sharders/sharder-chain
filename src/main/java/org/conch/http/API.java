@@ -28,6 +28,7 @@ import org.conch.common.Constants;
 import org.conch.http.biz.BizParameterRequestWrapper;
 import org.conch.http.biz.BizServlet;
 import org.conch.peer.Peers;
+import org.conch.security.Guard;
 import org.conch.util.Convert;
 import org.conch.util.Logger;
 import org.conch.util.ThreadPool;
@@ -368,7 +369,10 @@ public final class API {
         synchronized(incorrectPasswords) {
             PasswordCount passwordCount = incorrectPasswords.get(remoteHost);
             if (passwordCount != null && passwordCount.count >= 3 && now - passwordCount.time < 60*60) {
-                Logger.logWarningMessage("Too many incorrect admin password attempts from " + remoteHost);
+                if (Logger.printNow(Logger.API_incorrectAdmPwd)) {
+                    Logger.logWarningMessage("Too many incorrect admin password attempts from " + remoteHost);
+                }
+                Guard.viciousAccess(remoteHost);
                 throw new ParameterException(LOCKED_ADMIN_PASSWORD);
             }
             if (!API.adminPassword.equals(req.getParameter("adminPassword"))) {
@@ -378,7 +382,11 @@ public final class API {
                 }
                 passwordCount.count++;
                 passwordCount.time = now;
-                Logger.logWarningMessage("Incorrect adminPassword from " + remoteHost);
+
+                Guard.viciousAccess(remoteHost);
+                if (Logger.printNow(Logger.API_incorrectAdmPwd)) {
+                    Logger.logWarningMessage("Incorrect adminPassword from " + remoteHost);
+                }
                 throw new ParameterException(INCORRECT_ADMIN_PASSWORD);
             }
             if (passwordCount != null) {

@@ -263,7 +263,7 @@ public class IpUtil {
     /** ip to GEO **/
     private static final int AGING = 1000 * 60 * 60; //60 minutes
     private static final String CACHE_TIME_KEY = "cacheTime";
-    private static Map<String, JSONObject> NATADDR_IP_AND_MAP = Maps.newConcurrentMap();
+    private static Map<String,JSONObject> NAT_ADDR_IP_AND_MAP = Maps.newConcurrentMap();
     private static JSONObject COORDINATES_CACHE = new JSONObject();
 
     private static JSONObject DEFAULT_COORDINATES = new JSONObject();
@@ -324,8 +324,8 @@ public class IpUtil {
         Set<String> wishToUpdateNatAddrSet = Sets.newHashSet();
         // read from local cache in the cache lifecycle firstly
         for(String natAddr : natAddrSet){
-            if(NATADDR_IP_AND_MAP.containsKey(natAddr)) {
-                JSONObject cacheObj = NATADDR_IP_AND_MAP.get(natAddr);
+            if(NAT_ADDR_IP_AND_MAP.containsKey(natAddr)) {
+                JSONObject cacheObj = NAT_ADDR_IP_AND_MAP.get(natAddr);
                 // judgement for cache time expired
                 if (cacheObj.getLong(CACHE_TIME_KEY) + AGING > System.currentTimeMillis()) {
                     natAddrAndIpMap.put(cacheObj.getString("natAddr"), cacheObj.getString("ip"));
@@ -363,11 +363,11 @@ public class IpUtil {
                     Set<String> currentNatAddrSet  =  currentMapping.keySet();
                     // update the current result to cache and update the cache time
                     for(String natAddr : currentNatAddrSet){
-                        JSONObject cacheObj = NATADDR_IP_AND_MAP.containsKey(natAddr) ? NATADDR_IP_AND_MAP.get(natAddr) : new JSONObject();
+                        JSONObject cacheObj = NAT_ADDR_IP_AND_MAP.containsKey(natAddr) ? NAT_ADDR_IP_AND_MAP.get(natAddr) : new JSONObject();
                         cacheObj.put(CACHE_TIME_KEY, System.currentTimeMillis());
                         cacheObj.put("natAddr",natAddr);
                         cacheObj.put("ip", currentMapping.get(natAddr));
-                        NATADDR_IP_AND_MAP.put(natAddr, cacheObj);
+                        NAT_ADDR_IP_AND_MAP.put(natAddr, cacheObj);
                     }
                 }
             } else {
@@ -414,6 +414,10 @@ public class IpUtil {
         if (!"".equals(coordinateObj.getString("X"))
                 && !"".equals(coordinateObj.getString("Y"))) {
             coordinateObj.put(CACHE_TIME_KEY, System.currentTimeMillis());
+        }else {
+            // 5 minutes to convert again when convert failed
+            long failedAdjustmentMS = AGING - 5 * 60 * 1000;
+            coordinateObj.put(CACHE_TIME_KEY, System.currentTimeMillis() - failedAdjustmentMS);
         }
 
         synchronized (COORDINATES_CACHE) {
@@ -443,7 +447,9 @@ public class IpUtil {
             json.put("X", ne.substring(ne.indexOf("(") + 1, ne.indexOf(",")));
             json.put("Y", ne.substring(ne.indexOf(",") + 2, ne.indexOf(")")));
         } catch (IOException e) {
-            Logger.logDebugMessage("requestIpLocationTools failed: " + e.getMessage());
+            if (Logger.printNow(Logger.IpUtil_geoTransformFailed)) {
+                Logger.logDebugMessage("requestGeoIpTool failed: " + e.getMessage());
+            }
         }
     }
 
@@ -462,7 +468,9 @@ public class IpUtil {
             }
 
         } catch (IOException e) {
-            Logger.logDebugMessage("requestIpIp failed: " + e.getMessage());
+            if (Logger.printNow(Logger.IpUtil_geoTransformFailed)) {
+                Logger.logDebugMessage("requestGeoIpTool failed: " + e.getMessage());
+            }
         }
     }
 
@@ -479,7 +487,9 @@ public class IpUtil {
             }
 
         } catch (IOException e) {
-            Logger.logDebugMessage("requestGeoIpTool failed: " + e.getMessage());
+            if (Logger.printNow(Logger.IpUtil_geoTransformFailed)) {
+                Logger.logDebugMessage("requestGeoIpTool failed: " + e.getMessage());
+            }
         }
     }
 
