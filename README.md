@@ -32,7 +32,8 @@ You can use the following methods to run the client：
         1. Clone this project to your local disk.
         2. Modify the conf/sharder.properties to set the network attribute to `sharder.network=$NETWORK`. The values of $NETWORK are: `Testnet` or `Mainnet`, the default value is `Testnet`.
         3. Enter the UI folder and run `npm run build` to compile UI files, the location of compiled files is at `html` folder。
-        4. Run the `Main` method of `org.conch.Conch` or execute the `run.sh/run.bat` to start the Sharder Client.
+        4. Set the `src` as the source code folder, add the `conf` into project as the resource folder, finish the project compilation.
+        5. Run the `Main` method of `org.conch.Conch` or execute the `run.sh/run.bat` to start the Sharder Client.
 
 ### Open the ports
 Client can join the network after open the follow ports：
@@ -92,7 +93,8 @@ Java工程，UI使用vue。
         1. 将本工程克隆到本地磁盘
         2. 在conf/sharder.properties设置连入的网络`sharder.network=$NETWORK`。$NETWORK可以设置为`Testnet`或`Mainnet`，默认值为`Testnet`。
         3. 进入ui目录，运行`npm run build`编译ui文件。编译出的ui文件位于`html`文件夹。
-        4. 运行org.conch.Conch中的main方法，或则运行`run.sh/run.bat`以启动客户端。
+        4. 将`src`设置为源文件目录，将`conf`加入工程作为资源目录，完成工程的编译。
+        5. 运行org.conch.Conch中的main方法，或则运行`run.sh/run.bat`以启动客户端。
         
 ### Open the ports
 需要开放如下端口，节点才能连入网络：
