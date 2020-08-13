@@ -568,6 +568,8 @@ public class PocProcessorImpl implements PocProcessor {
         //updateRecipientIdIntoOldPocTxs();
     }
 
+
+
     private static long pocTxsProcessStartMS = -1;
     private static long pocTxsProcessingMS = -1;
     /**
@@ -597,12 +599,12 @@ public class PocProcessorImpl implements PocProcessor {
                 count += instance.pocSeriesTxProcess(block);
                 if(blockProcessCount++ % 100 == 0) {
                     pocTxsProcessingMS = System.currentTimeMillis() - pocTxsProcessStartMS;
-                    Logger.logDebugMessage("[HistoryPocTxs] %d block's poc txs be processed [used time= %d S (%d MS)]", blockProcessCount, pocTxsProcessingMS / 1000, pocTxsProcessStartMS);
+                    Logger.logDebugMessage("[HistoryPocTxs] %d block's poc txs be processed [used time= %d S(≈%d MS)]", blockProcessCount, pocTxsProcessingMS / 1000, pocTxsProcessStartMS);
                 }
             }
 
             pocTxsProcessingMS = System.currentTimeMillis() - pocTxsProcessStartMS;
-            Logger.logInfoMessage("[HistoryPocTxs] finish history poc txs processing[from %d to %d] [processed size=%d] [used time= %d S (%d MS)]"
+            Logger.logInfoMessage("[HistoryPocTxs] finish history poc txs processing[from %d to %d] [processed size=%d] [used time= %d S(≈%d MS)]"
                     , fromHeight, toHeight, count
                     , pocTxsProcessingMS / 1000, pocTxsProcessStartMS);
         } finally {
@@ -610,6 +612,17 @@ public class PocProcessorImpl implements PocProcessor {
             BlockchainImpl.getInstance().writeUnlock();
         }
         return count;
+    }
+
+    private static boolean reGeneratePocScores = Conch.getBooleanProperty("sharder.reGeneratePocScores", false);
+    public static void reGeneratePocScores(){
+        if(reGeneratePocScores) {
+            Logger.logInfoMessage("re-generate all poc scores");
+            PocDb.reGenerateAllScores();
+            Logger.logInfoMessage("trim derived tables");
+            Conch.getBlockchainProcessor().trimDerivedTables();
+            Conch.shutdown();
+        }
     }
 
     private static final Runnable oldPocTxsProcessThread = () -> {

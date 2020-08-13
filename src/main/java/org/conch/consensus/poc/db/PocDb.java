@@ -54,18 +54,48 @@ public class PocDb  {
             }
         }
 
+
+        public Map<Long,PocScore> reGenerateAllScores() {
+            Map<Long,PocScore> scoreMap = Maps.newHashMap();
+            Connection con = null;
+            try {
+                con = Db.db.getConnection();
+                PreparedStatement pstmt = con.prepareStatement("SELECT poc_detail AS detail, db_id, account_id, height FROM account_poc_score ORDER BY height ASC");
+
+                ResultSet rs = pstmt.executeQuery();
+                int count = 0;
+                while(rs.next()){
+                    try{
+                        PocScore pocScore = new PocScore(rs.getLong("account_id"), rs.getInt("height"), rs.getString("detail"));
+                        saveOrUpdate(con, pocScore);
+                        if(count++ % 1000 == 0){
+                            Logger.logInfoMessage("%d poc score regenerated", count);
+                        }
+                    }catch (Exception e) {
+                        // continue to fetch next
+                        System.err.println(e);
+                    }
+                }
+            } catch (SQLException e) {
+                throw new RuntimeException(e.toString(), e);
+            }finally {
+                DbUtils.close(con);
+            }
+            return scoreMap;
+        }
+
         public Map<Long,PocScore> listAll() {
             Map<Long,PocScore> scoreMap = Maps.newHashMap();
             Connection con = null;
             try {
                 con = Db.db.getConnection();
                 PreparedStatement pstmt = con.prepareStatement("SELECT poc_detail AS detail, db_id, account_id, height FROM account_poc_score ORDER BY height DESC");
-
+//                PreparedStatement pstmt = con.prepareStatement("SELECT poc_detail AS detail, db_id, account_id, height FROM account_poc_score WHERE latest = TRUE ORDER BY height DESC");
                 ResultSet rs = pstmt.executeQuery();
                 while(rs.next()){
                     try{
                         PocScore pocScore = new PocScore(rs.getLong("account_id"), rs.getInt("height"), rs.getString("detail"));
-
+//                        scoreMap.put(pocScore.getAccountId(), pocScore);
                         // compare the height
                         if(scoreMap.containsKey(pocScore.getAccountId())){
                             PocScore oldScore = scoreMap.get(pocScore.getAccountId());
@@ -568,6 +598,9 @@ public class PocDb  {
         return pocScoreTable.listAll();
     }
 
+    public static void reGenerateAllScores(){
+        pocScoreTable.reGenerateAllScores();
+    }
 
     public static Map<Long,CertifiedPeer> listAllPeers() {
         Logger.logInfoMessage("List all certified peers from DB at height %d", Conch.getHeight());

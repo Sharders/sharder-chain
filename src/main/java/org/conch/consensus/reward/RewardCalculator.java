@@ -360,7 +360,7 @@ public class RewardCalculator {
         }
         long miningRewardProcessingMS = System.currentTimeMillis() - rewardCalStartMS;
 
-        Logger.logInfoMessage("[Rewards-%d-Stage%s] Distribution used time[crowd miners= %d MS≈%d S, mining joiners= %d MS≈%d S], reward distribution detail[crowd miner size=%d, mining joiner size=%d] at height %d",
+        Logger.logInfoMessage("[Rewards-%d-Stage%s] Distribution used time[crowd miners= %d MS(≈%d S), mining joiners= %d MS(≈%d S)], reward distribution detail[crowd miner size=%d, mining joiner size=%d] at height %d",
                 tx.getHeight(), stage
                 , crowdRewardProcessingMS, crowdRewardProcessingMS / 1000
                 , miningRewardProcessingMS, miningRewardProcessingMS /1000
