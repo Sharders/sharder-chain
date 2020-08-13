@@ -738,9 +738,7 @@ public class PocProcessorImpl implements PocProcessor {
 //        }
 //    };
 
-    /**
-
-     */
+    private static boolean openCorwdMinerTxsProcessing = false;
     /**
      * process poc txs of block
      *
@@ -767,9 +765,12 @@ public class PocProcessorImpl implements PocProcessor {
                 // coinbase tx processing
                 Attachment.CoinBase coinBase = (Attachment.CoinBase) tx.getAttachment();
                 Account senderAccount = Account.getAccount(tx.getSenderId());
-                // crowd miner account
-                if(coinBase.isType(Attachment.CoinBase.CoinBaseType.CROWD_BLOCK_REWARD)) {
-                    coinBase.getCrowdMiners().keySet().forEach(accountId -> putInBalanceChangedAccount(block.getHeight(), Account.getAccount(accountId), Account.Event.POC));
+
+                if(openCorwdMinerTxsProcessing) {
+                    // crowd miner account
+                    if(coinBase.isType(Attachment.CoinBase.CoinBaseType.CROWD_BLOCK_REWARD)) {
+                        coinBase.getCrowdMiners().keySet().forEach(accountId -> putInBalanceChangedAccount(block.getHeight(), Account.getAccount(accountId), Account.Event.POC));
+                    }
                 }
 
                 // pool mining account

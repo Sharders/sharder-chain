@@ -122,10 +122,13 @@ public class PocDb  {
             pstmtCount.setInt(2, pocScore.getHeight());
 
             ResultSet rs = pstmtCount.executeQuery();
-            boolean exist = (rs != null) && rs.next();
+            Long dbId = null;
+            if(rs != null && rs.next()){
+                dbId = rs.getLong("db_id");
+            }
 
-            if(exist){
-                update(con, pocScore);
+            if(dbId != null){
+                update(con, pocScore, dbId);
             }else{
                 insert(con, pocScore);
             }
@@ -144,18 +147,19 @@ public class PocDb  {
             return pstmtInsert.executeUpdate();
         }
 
-        public int update(Connection con, PocScore pocScore) throws SQLException {
+        public int update(Connection con, PocScore pocScore, Long dbId) throws SQLException {
             String detail = pocScore.toSimpleJson();
             if(con == null || StringUtils.isEmpty(detail) || pocScore.getAccountId() == -1 || pocScore.getHeight() < 0 ){
                 return 0;
             }
 
-            PreparedStatement pstmtUpdate = con.prepareStatement("UPDATE account_poc_score SET poc_score=?, poc_detail=? WHERE account_id = ? AND height = ?");
+//            PreparedStatement pstmtUpdate = con.prepareStatement("UPDATE account_poc_score SET poc_score=?, poc_detail=? WHERE account_id = ? AND height = ?");
+            PreparedStatement pstmtUpdate = con.prepareStatement("UPDATE account_poc_score SET poc_score=?, poc_detail=? WHERE db_id = ?");
 
             pstmtUpdate.setLong(1, pocScore.total().longValue());
             pstmtUpdate.setString(2, detail);
-            pstmtUpdate.setLong(3, pocScore.getAccountId());
-            pstmtUpdate.setInt(4, pocScore.getHeight());
+            pstmtUpdate.setLong(3, dbId);
+//            pstmtUpdate.setInt(4, pocScore.getHeight());
             return pstmtUpdate.executeUpdate();
         }
 
@@ -355,10 +359,13 @@ public class PocDb  {
             pstmtCount.setInt(2, certifiedPeer.getHeight());
 
             ResultSet rs = pstmtCount.executeQuery();
-            boolean exist = (rs != null) && rs.next();
+            Long dbId = null;
+            if(rs != null && rs.next()){
+                dbId = rs.getLong("db_id");
+            }
 
-            if(exist){
-                update(con, certifiedPeer);
+            if(dbId != null){
+                update(con, certifiedPeer, dbId);
             }else{
                 insert(con, certifiedPeer);
             }
@@ -378,18 +385,19 @@ public class PocDb  {
             return pstmtInsert.executeUpdate();
         }
 
-        public int update(Connection con, CertifiedPeer certifiedPeer) throws SQLException {
+        public int update(Connection con, CertifiedPeer certifiedPeer, Long dbId) throws SQLException {
             if(con == null || certifiedPeer.getBoundAccountId() == -1 || certifiedPeer.getHeight() < 0 ){
                 return 0;
             }
 
-            PreparedStatement pstmtUpdate = con.prepareStatement("UPDATE certified_peer SET host=?, type=?, last_updated=? WHERE account_id = ? AND height = ?");
+//            PreparedStatement pstmtUpdate = con.prepareStatement("UPDATE certified_peer SET host=?, type=?, last_updated=? WHERE account_id = ? AND height = ?");
+            PreparedStatement pstmtUpdate = con.prepareStatement("UPDATE certified_peer SET host=?, type=?, last_updated=? WHERE db_id = ?");
 
             pstmtUpdate.setString(1, certifiedPeer.getHost());
             pstmtUpdate.setInt(2, certifiedPeer.getTypeCode());
             pstmtUpdate.setInt(3, certifiedPeer.getUpdateTimeInEpochFormat());
-            pstmtUpdate.setLong(4, certifiedPeer.getBoundAccountId());
-            pstmtUpdate.setInt(5, certifiedPeer.getHeight());
+            pstmtUpdate.setLong(4, dbId);
+//            pstmtUpdate.setInt(5, certifiedPeer.getHeight());
             return pstmtUpdate.executeUpdate();
         }
 
@@ -510,6 +518,7 @@ public class PocDb  {
 
 
     public static Map<Long,CertifiedPeer> listAllPeers() {
+        Logger.logInfoMessage("List all certified peers from DB at height %d", Conch.getHeight());
         return certifiedPeerTable.listAll();
     }
 

@@ -14,7 +14,6 @@ import org.conch.mint.Generator;
 import org.conch.peer.CertifiedPeer;
 import org.conch.peer.Peer;
 import org.conch.tx.Transaction;
-import org.conch.util.IpUtil;
 import org.conch.util.Logger;
 
 import java.io.Serializable;
@@ -167,49 +166,49 @@ public class PocHolder implements Serializable {
             return;
         }
 
-        CertifiedPeer existPeer = inst.certifiedPeers.get(accountId);
-
-        if(Peer.Type.FOUNDATION == type) {
-            if(IpUtil.isFoundationDomain(newPeer.getHost())) {
-                existPeer.update(type);
-            }
-        }else {
-            if(Peer.Type.FOUNDATION == existPeer.getType()
-                    && type.getCode() > existPeer.getType().getCode()
-                    && !IpUtil.isFoundationDomain(newPeer.getHost())){
-                // foundation node -> other type
-                existPeer.update(type);
-            }else {
-                existPeer.update(type);
-            }
-        }
-
-        // move the old certified peer into history map
-        int peerCertifiedHeight = existPeer.getHeight();
-        int historyHeight = height - 1;
-        if(peerCertifiedHeight == -1 || historyHeight <= peerCertifiedHeight) {
-            Logger.logDebugMessage("#addOrUpdateBoundPeer# can't update this certified peer which certified height is %d and update height is %d. Old=> %s, New=> %s"
-                    , peerCertifiedHeight, height, existPeer.toString() ,newPeer.toString());
-            inst.certifiedPeers.put(accountId, newPeer);
-            return;
-        }
+//        CertifiedPeer existPeer = inst.certifiedPeers.get(accountId);
+//
+//        if(Peer.Type.FOUNDATION == type) {
+//            if(IpUtil.isFoundationDomain(newPeer.getHost())) {
+//                existPeer.update(type);
+//            }
+//        }else {
+//            if(Peer.Type.FOUNDATION == existPeer.getType()
+//                    && type.getCode() > existPeer.getType().getCode()
+//                    && !IpUtil.isFoundationDomain(newPeer.getHost())){
+//                // foundation node -> other type
+//                existPeer.update(type);
+//            }else {
+//                existPeer.update(type);
+//            }
+//        }
+//
+//        // move the old certified peer into history map
+//        int peerCertifiedHeight = existPeer.getHeight();
+//        int historyHeight = height - 1;
+//        if(peerCertifiedHeight == -1 || historyHeight <= peerCertifiedHeight) {
+////            Logger.logDebugMessage("#addOrUpdateBoundPeer# can't update this certified peer which certified height is %d and update height is %d. Old=> %s, New=> %s"
+////                    , peerCertifiedHeight, height, existPeer.toString() ,newPeer.toString());
+//            inst.certifiedPeers.put(accountId, newPeer);
+//            return;
+//        }
 //        if(!inst.historyCertifiedPeers.containsKey(historyHeight)) {
 //            inst.historyCertifiedPeers.put(historyHeight, Maps.newHashMap());
 //        }
 
-        try{
-            existPeer.end(historyHeight);
-        }catch(ConchException.NotValidException e){
-            Logger.logWarningMessage("failed to update a certified peer caused by [%s], Peer is %s", e.getMessage(), newPeer.toString());
-            return;
-        }
+//        try{
+//            existPeer.end(historyHeight);
+//        }catch(ConchException.NotValidException e){
+//            Logger.logWarningMessage("failed to update a certified peer caused by [%s], Peer is %s", e.getMessage(), newPeer.toString());
+//            return;
+//        }
 
 //        inst.historyCertifiedPeers.get(historyHeight).put(existPeer.getBoundAccountId(), existPeer);
 //        inst.certifiedPeers.remove(accountId);
 
         // add the new certified peer into certifiedPeers map
-        inst.certifiedPeers.put(accountId, newPeer);
-        existPeer.update(newPeer.getBoundAccountId());
+//        inst.certifiedPeers.put(accountId, newPeer);
+//        existPeer.update(newPeer.getBoundAccountId());
     }
 
     public static int countDelayPocTxs(int queryHeight) {
