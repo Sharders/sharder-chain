@@ -118,7 +118,7 @@ public class ClientUpgradeTool {
     private static volatile boolean restoring = false;
     private static final long FETCH_DB_ARCHIVE_INTERVAL_MS = 30*60*1000L;
     // default value is 5 days
-    private static final long DOWNLOAD_DB_ARCHIVE_INTERVAL_MS = 5*24*60*60*1000L;
+    private static final long DOWNLOAD_DB_ARCHIVE_INTERVAL_MS = 5*(24*60*60*1000L);
     private static volatile JSONObject lastDbArchiveObj = null;
     private static long lastDbArchiveFetchTime = -1;
     private static long lastDownloadDbArchiveTime = -1;
@@ -167,16 +167,17 @@ public class ClientUpgradeTool {
         String content = response.getContent();
 
         // parse the description file
-        while(StringUtils.isNotEmpty(content)
+        String[] settingArray = null;
+        if(StringUtils.isNotEmpty(content)
                 && content.contains("\n")){
-            String[] array = content.split("\n");
-            if(array != null
-                    && array[0].contains("=")){
-                String[] heightConfigAry =array[0].split("=");
-                archiveMemoKV.put(heightConfigAry[0], heightConfigAry[1]);
+            settingArray = content.split("\n");
+            for(String keyPair : settingArray){
+                if(keyPair == null || !keyPair.contains("=")) continue;
+                String[] keyPairArray = keyPair.split("=");
+                archiveMemoKV.put(keyPairArray[0], keyPairArray[1]);
             }
-            content = array[1];
         }
+
         return archiveMemoKV;
     }
 
@@ -300,14 +301,10 @@ public class ClientUpgradeTool {
             String urlPrefix = lastDbArchiveObj.getString(ENV_PREFIX + KEY_DB_DOWNLOAD_URL);
             String downloadingUrl = UrlManager.getDbArchiveUrl(urlPrefix + dbFileName);
             try {
-                if (!FileUtils.toFile(new URL(downloadingUrl)).exists()) {
-                    Logger.logWarningMessage("[ UPGRADE DB ] db archive %s dose not exist, break and wait for next check turn.", downloadingUrl);
+                if(!RestfulHttpClient.findResource(downloadingUrl)) {
+                    Logger.logWarningMessage("[ UPGRADE DB ] db archive %s dose not exist, break.");
                     return;
                 }
-                //            if(!RestfulHttpClient.containResource(downloadingUrl)) {
-                //                Logger.logWarningMessage("[ UPGRADE DB ] db archive %s dose not exist, break.");
-                //                return;
-                //            }
             }catch(Exception e){
                 Logger.logWarningMessage("[ UPGRADE DB ] db archive exist judgement occur error: %s, break and wait for next check turn.", e.getMessage());
                 return;
@@ -383,10 +380,12 @@ public class ClientUpgradeTool {
     private static void _restoreDbToLastArchive(boolean restartClient){
         if(lastDbArchive == null || lastDbArchiveHeight == null) fetchLastDbArchive();
         restoreDb(lastDbArchive);
+        forceDownloadFromOSS = false;
         if(restartClient) Conch.restartApplication(null);
     }
 
     public static void restoreDbToLastArchive(boolean newThreadToExecute, boolean restartClient) {
+        forceDownloadFromOSS = true;
         if(newThreadToExecute){
             new Thread(() -> {
                 _restoreDbToLastArchive(restartClient);

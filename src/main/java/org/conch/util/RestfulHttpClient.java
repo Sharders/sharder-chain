@@ -38,18 +38,29 @@ public class RestfulHttpClient {
 
     private RestfulHttpClient() {}
 
-    public static boolean containResource(String url){
-        try{
-            HttpResponse response = getClient(url)
-                    .get()
-                    .request();
-            return response.getCode() == 200;
-        }catch (Exception e){
-            e.printStackTrace();
+    /**
+     * 判断 网络资源是否存在
+     * @param urlPath
+     * @return
+     */
+    public static boolean  findResource(String urlPath){
+        InputStream in = null;
+        try {
+            URL url = new URL(urlPath);
+            in = url.openConnection().getInputStream();
+            return  true;
+        } catch (Exception e) {
             return false;
+        }finally{
+            if(in != null) {
+                try {
+                    in.close();
+                } catch (IOException e) {
+                    // ignore
+                }
+            }
         }
     }
-
     /**
      * 发起请求
      *
