@@ -92,7 +92,10 @@ public class PocScore implements Serializable {
         JSONObject simpleObj = JSONObject.parseObject(pocDetailJson);
 
         this.accountId = simpleObj.getLong("accountId");
+        if(simpleObj.containsKey("aid")) this.accountId = simpleObj.getLong("aid");
+
         int height = simpleObj.containsKey("height") ? simpleObj.getIntValue("height") : 0;
+        if(simpleObj.containsKey("h")) height = simpleObj.getIntValue("h");
         this.height = height;
 
         // compatibility codes
@@ -129,12 +132,13 @@ public class PocScore implements Serializable {
 
     public String toSimpleJson(){
         JSONObject simpleObj = new JSONObject();
-        simpleObj.put("accountId",this.accountId);
+        simpleObj.put("aid",this.accountId);
+        if(this.height > 0)  simpleObj.put("h",this.height);
+
         if(this.bcScore.intValue() > 0)  simpleObj.put("bs",this.bcScore);
         if(this.blockMissScore.intValue() > 0)  simpleObj.put("bms",this.blockMissScore);
         if(this.effectiveBalance != null && this.effectiveBalance.intValue() > 0)  simpleObj.put("eb",this.effectiveBalance);
         if(this.hardwareScore.intValue() > 0)  simpleObj.put("hs",this.hardwareScore);
-        if(this.height > 0)  simpleObj.put("height",this.height);
         if(this.networkScore.intValue() > 0)  simpleObj.put("ns",this.networkScore);
         if(this.nodeTypeScore.intValue() > 0)  simpleObj.put("nts",this.nodeTypeScore);
         if(this.onlineRateScore.intValue() > 0)  simpleObj.put("ors",this.onlineRateScore);
