@@ -178,6 +178,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                                             + blockchain.getHeight()
                             );
                             isDownloading = false;
+                            lastDownloadMS = System.currentTimeMillis();
                             Peers.checkAndUpdateBlockchainState(null);
                             bootNodeForkSwitchCheck(lastBlockchainFeeder);
                         }
@@ -189,8 +190,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 //
                 int now = Conch.getEpochTime();
                 if (!isRestoring
-                        && !prunableTransactions.isEmpty()
-                        && now - lastRestoreTime > 60 * 60) {
+                    && !prunableTransactions.isEmpty()
+                    && now - lastRestoreTime > 60 * 60) {
                     isRestoring = true;
                     lastRestoreTime = now;
                     networkService.submit(new RestorePrunableDataTask());
@@ -234,8 +235,10 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             final Peer peer = forceSwitchToBootNodesFork ? 
                     Peers.checkOrConnectBootNode() : Peers.getWeightedPeer(connectedPublicPeers);
             if (peer == null
-                    && Logger.printNow(Logger.BlockchainProcessor_downloadPeer_getWeightedPeer)) {
-                Logger.logDebugMessage("Can't find a weighted peer to sync the blocks, the reasons are follow:  a) current peer's version %s is larger than other peers. b) can't connect to boot nodes or other peers which have the public IP.  Wait for next turn.", Conch.getFullVersion());
+                && Logger.printNow(Logger.BlockchainProcessor_downloadPeer_getWeightedPeer)) {
+                Logger.logDebugMessage("Can't find a weighted peer to sync the blocks, the reasons are follow:  " +
+                        "a) current peer's version %s is larger than other peers. " +
+                        "b) can't connect to boot nodes or other peers which have the public IP.  Wait for next turn.", Conch.getFullVersion());
                 return;
             }
 
@@ -302,6 +305,12 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 //            }
 
             if (!isDownloading && lastBlockchainFeederHeight - commonBlock.getHeight() > 10) {
+                // fetch the db archive and restart
+                if (System.currentTimeMillis() - lastDownloadMS > MAX_DOWNLOAD_TIME) {
+                    Logger.logInfoMessage("Can't finish the block synchronization in the %d hours, try to fetch the last db archive and restart the COS...", (MAX_DOWNLOAD_TIME/1000/60/60));
+                    ClientUpgradeTool.restoreDbToLastArchive(true, true);
+                }
+
                 Logger.logMessage("Blockchain download in progress[height is from " + blockchain.getHeight() + " to " + lastBlockchainFeederHeight + "]");
                 isDownloading = true;
             }
