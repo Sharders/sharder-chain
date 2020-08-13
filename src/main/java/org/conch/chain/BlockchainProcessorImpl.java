@@ -1306,9 +1306,19 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
     }
 
     private void doTrimDerivedTables() {
-        lastTrimHeight = Math.max(blockchain.getHeight() - Constants.MAX_ROLLBACK, 0);
+        int trimEndHeight = blockchain.getHeight();
+        if(trimEndHeight == 0) {
+            try{
+                BlockImpl lastBlock = BlockDb.findLastBlock();
+                trimEndHeight =  lastBlock != null ? lastBlock.getHeight() : 0 ;
+            }catch(Exception e){
+                Logger.logErrorMessage("can't get the last block height in the trim processing", e);
+            }
+        }
+
+        lastTrimHeight = Math.max(trimEndHeight - Constants.MAX_ROLLBACK, 0);
         if (lastTrimHeight > 0) {
-            Logger.logInfoMessage("[Trim-%d] Start to trim the tables before the height %d",blockchain.getHeight(), lastTrimHeight);
+            Logger.logInfoMessage("[Trim-%d] Start to trim the tables before the height %d...", trimEndHeight, lastTrimHeight);
             for (DerivedDbTable table : derivedTables) {
                 try {
                     blockchain.readLock();

@@ -183,7 +183,9 @@ public class PocScore implements Serializable {
         BigInteger score = ssScore.add(nodeTypeScore).add(serverScore).add(hardwareScore).add(networkScore).add(performanceScore).add(onlineRateScore)
                 .add(blockMissScore).add(bcScore);
 
-        if(Conch.getHeight() > Constants.POC_MULTIPLIER_CHANGE_HEIGHT) {
+        // FIXME- remove after the height 'POC_MULTIPLIER_CHANGE_HEIGHT'
+        if(Conch.versionCompare("0.0.4", "2020-08-04 19:19:19") > 0
+                || Conch.getHeight() > Constants.POC_MULTIPLIER_CHANGE_HEIGHT) {
             return score.multiply(parseAndGetScoreMagnification());
         }
 
