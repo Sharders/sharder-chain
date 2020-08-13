@@ -750,6 +750,9 @@ public class PocProcessorImpl implements PocProcessor {
         //@link: org.conch.chain.BlockchainProcessorImpl.autoExtensionAppend update the ext tag
         List<? extends Transaction> txs = block.getTransactions();
 
+        if(block.getHeight() == 13797) {
+            Logger.logDebugMessage("height 13797 start to processing");
+        }
         //just process poc tx
         for (Transaction tx : txs) {
             if (TransactionType.TYPE_POC  == tx.getType().getType()) {
@@ -889,6 +892,10 @@ public class PocProcessorImpl implements PocProcessor {
             Logger.logDebugMessage("[LocalDebugMode] node statement address %s is in the poc tx processing ", Account.rsAccount(accountId));
         }
 
+//        ACCOUNT_ID = -2448817859391213308 and HEIGHT = 13793
+        if(accountId == -2448817859391213308L){
+            Logger.logDebugMessage("at account id is -2448817859391213308L");
+        }
         PocScore pocScoreToUpdate = PocHolder.getPocScore(height, accountId);
         PocHolder.saveOrUpdate(pocScoreToUpdate.setHeight(height).nodeTypeCal(nodeTypeV3 != null ? nodeTypeV3 : nodeTypeV2));
 
