@@ -59,12 +59,12 @@ public class PocDb  {
             Connection con = null;
             try {
                 con = Db.db.getConnection();
-                PreparedStatement pstmt = con.prepareStatement("SELECT poc_detail AS detail, db_id FROM account_poc_score ORDER BY height DESC");
+                PreparedStatement pstmt = con.prepareStatement("SELECT poc_detail AS detail, db_id, account_id, height FROM account_poc_score ORDER BY height DESC");
 
                 ResultSet rs = pstmt.executeQuery();
                 while(rs.next()){
                     try{
-                        PocScore pocScore = new PocScore(rs.getString("detail"));
+                        PocScore pocScore = new PocScore(rs.getLong("account_id"), rs.getInt("height"), rs.getString("detail"));
 
                         // compare the height
                         if(scoreMap.containsKey(pocScore.getAccountId())){
@@ -101,7 +101,7 @@ public class PocDb  {
             Connection con = null;
             try {
                 con = Db.db.getConnection();
-                PreparedStatement pstmt = con.prepareStatement("SELECT poc_detail AS detail, poc_score "
+                PreparedStatement pstmt = con.prepareStatement("SELECT poc_detail AS detail, poc_score, account_id, height "
                         + "FROM account_poc_score WHERE account_id = ?"
                         + (loadHistory ? " AND height <= ?" : " AND height = ?")
                         + (appointStart != -1 ? " AND height > ?" : "")
@@ -116,7 +116,7 @@ public class PocDb  {
 
                 ResultSet rs = pstmt.executeQuery();
                 if(rs !=null && rs.next()){
-                    PocScore pocScore = new PocScore(rs.getString("detail"));
+                    PocScore pocScore = new PocScore(rs.getLong("account_id"), rs.getInt("height"), rs.getString("detail"));
                     return pocScore.setTotal(rs.getLong("poc_score"));
                 }
             } catch (SQLException e) {
@@ -162,6 +162,7 @@ public class PocDb  {
                 }
             }
 
+            pocScore.clearTotal();
             if(existDbId != null){
                 update(con, pocScore, existDbId);
             }else{

@@ -90,14 +90,15 @@ public class PocScore implements Serializable {
         this.height = height;
     }
 
-    public PocScore(String pocDetailJson){
+    public PocScore(Long accountId, int height,  String pocDetailJson){
         JSONObject simpleObj = JSONObject.parseObject(pocDetailJson);
 
-        this.accountId = simpleObj.getLong("accountId");
+        this.accountId = accountId;
+        if(simpleObj.containsKey("accountId")) this.accountId = simpleObj.getLong("accountId");
         if(simpleObj.containsKey("aid")) this.accountId = simpleObj.getLong("aid");
 
-        int height = simpleObj.containsKey("height") ? simpleObj.getIntValue("height") : 0;
-        if(simpleObj.containsKey("h")) height = simpleObj.getIntValue("h");
+//        int height = simpleObj.containsKey("height") ? simpleObj.getIntValue("height") : 0;
+//        if(simpleObj.containsKey("h")) height = simpleObj.getIntValue("h");
         this.height = height;
 
         // compatibility codes
@@ -134,8 +135,8 @@ public class PocScore implements Serializable {
 
     public String toSimpleJson(){
         JSONObject simpleObj = new JSONObject();
-        simpleObj.put("aid",this.accountId);
-        if(this.height > 0)  simpleObj.put("h",this.height);
+//        simpleObj.put("aid",this.accountId);
+//        if(this.height > 0)  simpleObj.put("h",this.height);
 
         if(this.bcScore.intValue() > 0)  simpleObj.put("bs",this.bcScore);
         if(this.blockMissScore.intValue() > 0)  simpleObj.put("bms",this.blockMissScore);
@@ -148,6 +149,11 @@ public class PocScore implements Serializable {
         if(this.serverScore.intValue() > 0)  simpleObj.put("ss",this.serverScore);
         if(this.ssScore.intValue() > 0)  simpleObj.put("sss",this.ssScore);
         return simpleObj.toJSONString();
+    }
+
+    public PocScore clearTotal(){
+        this.total = null;
+        return this;
     }
 
     public PocScore setTotal(Long totalScore){
