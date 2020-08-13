@@ -306,9 +306,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
             int diffCount = lastBlockchainFeederHeight - commonBlock.getHeight();
             // fetch the db archive and restart
-            if (System.currentTimeMillis() - lastDownloadMS > MAX_DOWNLOAD_TIME
-                    || diffCount > 48) {
-                Logger.logInfoMessage("Can't finish the block synchronization in the %d hours or current diff height %d > 48 blocks(8 hours), "
+            if (System.currentTimeMillis() - lastDownloadMS > MAX_DOWNLOAD_TIME) {
+                Logger.logInfoMessage("Can't finish the block synchronization in the %d hours"
                                 + "try to fetch the last db archive and restart the COS..."
                         , (MAX_DOWNLOAD_TIME/1000/60/60), diffCount);
                 ClientUpgradeTool.restoreDbToLastArchive(true, true);
@@ -653,6 +652,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         try {
             List<BlockImpl> forkBlocks = new ArrayList<>();
             for (int index = 1; index < chainBlockIds.size() && blockchain.getHeight() - startHeight < 720; index++) {
+                if(!getMoreBlocks) break;
+
                 PeerBlock peerBlock = blockMap.get(chainBlockIds.get(index));
                 if (peerBlock == null) {
                     break;
