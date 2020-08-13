@@ -1210,17 +1210,19 @@ public class ConchDbVersion extends DbVersion {
             case 496:
                 apply("CREATE INDEX IF NOT EXISTS pool_id_idx ON account_pool (pool_id DESC)");
             case 497:
-                apply("ALTER TABLE account_pool ADD COLUMN IF NOT EXISTS height INT NOT NULL");
+                apply("ALTER TABLE account_poc_score ADD COLUMN IF NOT EXISTS latest BOOLEAN NOT NULL DEFAULT TRUE");
             case 498:
-                apply("DROP INDEX IF EXISTS pool_id_idx");
+                apply("ALTER TABLE account_pool ADD COLUMN IF NOT EXISTS height INT NOT NULL");
             case 499:
-                apply("CREATE INDEX IF NOT EXISTS pool_id_height_idx ON account_pool (pool_id, height DESC)");
+                apply("DROP INDEX IF EXISTS pool_id_idx");
             case 500:
-                apply("CREATE TABLE IF NOT EXISTS certified_peer (db_id IDENTITY, host VARCHAR NOT NULL, account_id BIGINT NOT NULL,"
-                        + "type INT NOT NULL, height INT NOT NULL, last_updated INT)");
+                apply("CREATE INDEX IF NOT EXISTS pool_id_height_idx ON account_pool (pool_id, height DESC)");
             case 501:
-                apply("CREATE INDEX IF NOT EXISTS peer_account_height_idx ON certified_peer (account_id, height DESC)");
+                apply("CREATE TABLE IF NOT EXISTS certified_peer (db_id IDENTITY, host VARCHAR NOT NULL, account_id BIGINT NOT NULL,"
+                        + "type INT NOT NULL, height INT NOT NULL, last_updated INT, latest BOOLEAN NOT NULL DEFAULT TRUE)");
             case 502:
+                apply("CREATE INDEX IF NOT EXISTS peer_account_height_idx ON certified_peer (account_id, height DESC)");
+            case 503:
                 break;
             default:
                 throw new RuntimeException("Blockchain database inconsistent with code, at update " + nextUpdate

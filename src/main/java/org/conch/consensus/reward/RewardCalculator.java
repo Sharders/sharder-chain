@@ -294,8 +294,8 @@ public class RewardCalculator {
         if(!stageTwo) {
             account.addBalanceAddUnconfirmed(AccountLedger.LedgerEvent.BLOCK_GENERATED, tx.getId(), amount);
             account.addFrozen(AccountLedger.LedgerEvent.BLOCK_GENERATED, tx.getId(), amount);
-            Logger.logDebugMessage("[Stage One] add mining/crowdMiners rewards %d to %s unconfirmed balance and freeze it of tx %d at height %d",
-                    amount, account.getRsAddress(), tx.getId() , tx.getHeight());
+            Logger.logDebugMessage("[%d-StageOne] Add mining/crowdMiners rewards %d to %s unconfirmed balance and freeze it of tx %d",
+                    tx.getHeight(), amount, account.getRsAddress(), tx.getId());
         }else{
             if(Constants.isTestnet() && account.getFrozenBalanceNQT() <= 0) {
                 account.addFrozen(AccountLedger.LedgerEvent.BLOCK_GENERATED, tx.getId(), account.getFrozenBalanceNQT());
@@ -306,8 +306,8 @@ public class RewardCalculator {
             }
             account.addMintedBalance(amount);
             account.pocChanged();
-            Logger.logDebugMessage("[Stage Two] unfreeze mining/crowdMiners rewards %d of %s and add it in mined amount of tx %d at height %d",
-                    amount, account.getRsAddress(), tx.getId() , tx.getHeight());
+            Logger.logDebugMessage("[%d-StageTwo] Unfreeze mining/crowdMiners rewards %d of %s and add it in mined amount of tx %d",
+                    tx.getHeight(), amount, account.getRsAddress(), tx.getId());
         }
     }
 
@@ -360,7 +360,7 @@ public class RewardCalculator {
         }
         long miningRewardProcessingMS = System.currentTimeMillis() - rewardCalStartMS;
 
-        Logger.logInfoMessage("[Rewards-%d-Stage%s] Used time[crowd miners= %d MS(%d S), mining joiners= %d MS(%d S)], reward distribution detail[crowd miner size=%d, mining joiner size=%d] at height %d",
+        Logger.logInfoMessage("[Rewards-%d-Stage%s] Distribution used time[crowd miners= %d MS≈%d S, mining joiners= %d MS≈%d S], reward distribution detail[crowd miner size=%d, mining joiner size=%d] at height %d",
                 tx.getHeight(), stage
                 , crowdRewardProcessingMS, crowdRewardProcessingMS / 1000
                 , miningRewardProcessingMS, miningRewardProcessingMS /1000

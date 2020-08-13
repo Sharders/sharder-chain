@@ -120,25 +120,48 @@ public class PocDb  {
         }
 
         public void saveOrUpdate(Connection con, PocScore pocScore) throws SQLException {
-            PreparedStatement pstmtCount = con.prepareStatement("SELECT db_id from account_poc_score "
-                    + "WHERE account_id = ? AND height = ?");
-            pstmtCount.setLong(1, pocScore.getAccountId());
-            pstmtCount.setInt(2, pocScore.getHeight());
+            Long existDbId = null;
+            try (PreparedStatement pstmt = con.prepareStatement("SELECT db_id, height FROM account_poc_score"
+                    + " WHERE account_id=? AND latest = TRUE ORDER BY height DESC LIMIT 1")) {
+                pstmt.setLong(1, pocScore.getAccountId());
+                ResultSet queryRS = pstmt.executeQuery();
+                boolean queryExist = true;
+                if(queryRS != null && queryRS.next()){
+                    int height = queryRS.getInt("height");
+                    if(pocScore.getHeight() > height) {
+                        Long dbId = queryRS.getLong("db_id");
+                        try (PreparedStatement updateStat = con.prepareStatement("UPDATE account_poc_score SET latest = FALSE WHERE db_id=? AND AND latest = TRUE LIMIT 1")) {
+                            updateStat.setLong(1,dbId);
+                            updateStat.executeUpdate();
+                        }
+                        queryExist = false;
+                    }else if(pocScore.getHeight() == height){
+                        existDbId = queryRS.getLong("db_id");
+                        queryExist = false;
+                    }
+                }
 
-            ResultSet rs = pstmtCount.executeQuery();
-            Long dbId = null;
-            if(rs != null && rs.next()){
-                dbId = rs.getLong("db_id");
+                if(queryExist) {
+                    PreparedStatement pstmtCount = con.prepareStatement("SELECT db_id FROM account_poc_score"
+                            + " WHERE account_id = ? AND height = ?");
+                    pstmtCount.setLong(1, pocScore.getAccountId());
+                    pstmtCount.setInt(2, pocScore.getHeight());
+
+                    ResultSet rs = pstmtCount.executeQuery();
+                    if(rs != null && rs.next()){
+                        existDbId = rs.getLong("db_id");
+                    }
+                }
             }
 
-            if(dbId != null){
-                update(con, pocScore, dbId);
+            if(existDbId != null){
+                update(con, pocScore, existDbId);
             }else{
                 insert(con, pocScore);
             }
         }
 
-        public int insert(Connection con, PocScore pocScore) throws SQLException {
+        private int insert(Connection con, PocScore pocScore) throws SQLException {
             if(con == null) return 0;
 
             PreparedStatement pstmtInsert = con.prepareStatement("INSERT INTO account_poc_score(account_id, "
@@ -151,7 +174,7 @@ public class PocDb  {
             return pstmtInsert.executeUpdate();
         }
 
-        public int update(Connection con, PocScore pocScore, Long dbId) throws SQLException {
+        private int update(Connection con, PocScore pocScore, Long dbId) throws SQLException {
             String detail = pocScore.toSimpleJson();
             if(con == null || StringUtils.isEmpty(detail) || pocScore.getAccountId() == -1 || pocScore.getHeight() < 0 ){
                 return 0;
@@ -194,7 +217,7 @@ public class PocDb  {
         @Override
         public void trim(int height) {
             try (Connection con = db.getConnection();
-                 PreparedStatement pstmt = con.prepareStatement("DELETE FROM account_poc_score WHERE height <= ?")) {
+                 PreparedStatement pstmt = con.prepareStatement("DELETE FROM account_poc_score WHERE height <= ? AND latest <> TRUE")) {
                 pstmt.setInt(1, height);
                 pstmt.executeUpdate();
             } catch (SQLException e) {
@@ -355,25 +378,48 @@ public class PocDb  {
         }
 
         public void saveOrUpdate(Connection con, CertifiedPeer certifiedPeer) throws SQLException {
-            PreparedStatement pstmtCount = con.prepareStatement("SELECT db_id FROM certified_peer"
-                    + " WHERE account_id = ? AND height = ?");
-            pstmtCount.setLong(1, certifiedPeer.getBoundAccountId());
-            pstmtCount.setInt(2, certifiedPeer.getHeight());
+            Long existDbId = null;
+            try (PreparedStatement pstmt = con.prepareStatement("SELECT db_id, height FROM certified_peer"
+                    + " WHERE account_id=? AND latest = TRUE ORDER BY height DESC LIMIT 1")) {
+                pstmt.setLong(1, certifiedPeer.getBoundAccountId());
+                ResultSet queryRS = pstmt.executeQuery();
+                boolean queryExist = true;
+                if(queryRS != null && queryRS.next()){
+                    int height = queryRS.getInt("height");
+                    if(certifiedPeer.getHeight() > height) {
+                        Long dbId = queryRS.getLong("db_id");
+                        try (PreparedStatement updateStat = con.prepareStatement("UPDATE certified_peer SET latest = FALSE WHERE db_id=? AND AND latest = TRUE LIMIT 1")) {
+                            updateStat.setLong(1,dbId);
+                            updateStat.executeUpdate();
+                        }
+                        queryExist = false;
+                    }else if(certifiedPeer.getHeight() == height){
+                        existDbId = queryRS.getLong("db_id");
+                        queryExist = false;
+                    }
+                }
 
-            ResultSet rs = pstmtCount.executeQuery();
-            Long dbId = null;
-            if(rs != null && rs.next()){
-                dbId = rs.getLong("db_id");
+                if(queryExist) {
+                    PreparedStatement pstmtCount = con.prepareStatement("SELECT db_id FROM certified_peer"
+                            + " WHERE account_id = ? AND height = ?");
+                    pstmtCount.setLong(1, certifiedPeer.getBoundAccountId());
+                    pstmtCount.setInt(2, certifiedPeer.getHeight());
+
+                    ResultSet rs = pstmtCount.executeQuery();
+                    if(rs != null && rs.next()){
+                        existDbId = rs.getLong("db_id");
+                    }
+                }
             }
 
-            if(dbId != null){
-                update(con, certifiedPeer, dbId);
+            if(existDbId != null){
+                update(con, certifiedPeer, existDbId);
             }else{
                 insert(con, certifiedPeer);
             }
         }
 
-        public int insert(Connection con, CertifiedPeer certifiedPeer) throws SQLException {
+        private int insert(Connection con, CertifiedPeer certifiedPeer) throws SQLException {
             if(con == null) return 0;
 
             PreparedStatement pstmtInsert = con.prepareStatement("INSERT INTO certified_peer(host, "
@@ -387,7 +433,7 @@ public class PocDb  {
             return pstmtInsert.executeUpdate();
         }
 
-        public int update(Connection con, CertifiedPeer certifiedPeer, Long dbId) throws SQLException {
+        private int update(Connection con, CertifiedPeer certifiedPeer, Long dbId) throws SQLException {
             if(con == null || certifiedPeer.getBoundAccountId() == -1 || certifiedPeer.getHeight() < 0 ){
                 return 0;
             }
@@ -430,7 +476,7 @@ public class PocDb  {
         @Override
         public void trim(int height) {
             try (Connection con = db.getConnection();
-                 PreparedStatement pstmt = con.prepareStatement("DELETE FROM certified_peer WHERE height <= ?")) {
+                 PreparedStatement pstmt = con.prepareStatement("DELETE FROM certified_peer WHERE height <= ? AND latest <> TRUE")) {
                 pstmt.setInt(1, height);
                 pstmt.executeUpdate();
             } catch (SQLException e) {
@@ -555,4 +601,58 @@ public class PocDb  {
     public static int rollbackPeer(int height) {
         return certifiedPeerTable.countAndRollback(height);
     }
+
+
+//    public static void findLastWeightTable(){
+//        Connection con = null;
+//        try {
+//            con = Db.db.getConnection();
+//            PreparedStatement pstmt = con.prepareStatement("SELECT * FROM TRANSACTION t WHERE t.TYPE=" + TransactionType.TYPE_PAYMENT + " AND HEIGHT > " + startHeight + " ORDER BY HEIGHT ASC");
+//            DbIterator<TransactionImpl> transactions = null;
+//            List<Transaction> txList = Lists.newArrayList();
+//            JSONObject summaryObj = new JSONObject();
+//
+//            String ignoreDetail = "--Ignore List--\n";
+//            try {
+//                transactions = BlockchainImpl.getInstance().getTransactions(con, pstmt);
+//                while (transactions.hasNext()) {
+//                    Transaction tx = transactions.next();
+//                    Account senderAccount = Account.getAccount(tx.getSenderId());
+//                    Account recipientAccount = Account.getAccount(tx.getRecipientId());
+//                    long amount =  tx.getAmountNQT() / Constants.ONE_SS;
+//                    String txStr = senderAccount.getRsAddress() + " -> " + recipientAccount.getRsAddress() + " amount " + amount + " at height " + tx.getHeight();
+//
+//                    if(ignoreReciepects.contains(recipientAccount.getRsAddress())) {
+//                        ignoreDetail += txStr + "\n";
+//                        continue;
+//                    }
+//
+//                    System.out.println(txStr);
+//                    if(summaryObj.containsKey("totalAmount")){
+//                        summaryObj.put("totalAmount",summaryObj.getLongValue("totalAmount") + amount);
+//                    }else{
+//                        summaryObj.put("totalAmount",amount);
+//                    }
+//
+//                    if(summaryObj.containsKey("count")){
+//                        summaryObj.put("count",summaryObj.getLongValue("count") + 1);
+//                    }else{
+//                        summaryObj.put("count",1);
+//                    }
+//                }
+//            } finally {
+//                DbUtils.close(transactions);
+//            }
+//            System.out.println(ignoreDetail);
+//
+//            System.out.println("\n" + summaryObj.toString());
+//
+//        } catch (SQLException e) {
+//            throw new RuntimeException(e.toString(), e);
+//        } finally {
+//            DbUtils.close(con);
+//        }
+//    }
+
+
 }
