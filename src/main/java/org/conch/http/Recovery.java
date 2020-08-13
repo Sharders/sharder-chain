@@ -104,10 +104,7 @@ public final class Recovery extends APIServlet.APIRequestHandler {
 //        HashMap<String, String> paramMap = Maps.newHashMap();
 ////        paramMap.put(ForceConverge.PROPERTY_SWITCH_TO_BOOT_FORK, "true");
 //        Conch.resetAndReboot(paramMap, reboot);
-        new Thread(() -> {
-            ClientUpgradeTool.restoreDbToLastArchive();
-            Conch.restartApplication(null);
-        }).start();
+        ClientUpgradeTool.restoreDbToLastArchive(true, true);
     }
 
     /**

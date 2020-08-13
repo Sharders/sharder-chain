@@ -71,8 +71,7 @@ public class ClientUpgradeTool {
         return upgradePackageThread;
     }
 
-    // 60 minutes
-    private static final long FETCH_INTERVAL_MS = 60*60*1000L;
+    private static final long FETCH_INTERVAL_MS = 60*60*1000L;  // 60 minutes
     private static volatile JSONObject lastCosVerObj = null;
     private static long lastFetchTime = -1;
     
@@ -358,9 +357,20 @@ public class ClientUpgradeTool {
         }
     }
 
-    public static void restoreDbToLastArchive() {
+    private static void _restoreDbToLastArchive(boolean restartClient){
         if(lastDbArchive == null || lastDbArchiveHeight == null) fetchLastDbArchive();
         restoreDb(lastDbArchive);
+        if(restartClient) Conch.restartApplication(null);
+    }
+
+    public static void restoreDbToLastArchive(boolean newThreadToExecute, boolean restartClient) {
+        if(newThreadToExecute){
+            new Thread(() -> {
+                _restoreDbToLastArchive(restartClient);
+            }).start();
+        }else{
+            _restoreDbToLastArchive(restartClient);
+        }
     }
 
     public static void restoreDbToKnownHeight() {
