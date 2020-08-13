@@ -529,7 +529,7 @@ public class PocProcessorImpl implements PocProcessor {
         }
     }
 
-    private static String PROPERTY_REPROCESS_POC_TXS = "sharder.reprocessPocTxs";
+    public static String PROPERTY_REPROCESS_POC_TXS = "sharder.reprocessPocTxs";
     private static boolean reprocessAllPocTxs = Conch.getBooleanProperty(PROPERTY_REPROCESS_POC_TXS, true);
     /**
      * - reset the poc table to avoid the poc score wrong

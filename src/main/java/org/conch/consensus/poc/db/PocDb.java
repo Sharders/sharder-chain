@@ -52,7 +52,7 @@ public class PocDb  {
             Connection con = null;
             try {
                 con = Db.db.getConnection();
-                PreparedStatement pstmt = con.prepareStatement("SELECT poc_detail AS detail FROM account_poc_score ORDER BY height DESC");
+                PreparedStatement pstmt = con.prepareStatement("SELECT poc_detail AS detail, db_id FROM account_poc_score ORDER BY height DESC");
 
                 ResultSet rs = pstmt.executeQuery();
                 while(rs.next()){
@@ -68,6 +68,10 @@ public class PocDb  {
                         }else{
                             scoreMap.put(pocScore.getAccountId(), pocScore);
                         }
+
+//                        if(Conch.containProperty(PocProcessorImpl.PROPERTY_REPROCESS_POC_TXS)){
+//                            update(con, pocScore, rs.getLong("db_id"));
+//                        }
                     }catch (Exception e) {
                         // continue to fetch next
                         System.err.println(e);
@@ -153,13 +157,11 @@ public class PocDb  {
                 return 0;
             }
 
-//            PreparedStatement pstmtUpdate = con.prepareStatement("UPDATE account_poc_score SET poc_score=?, poc_detail=? WHERE account_id = ? AND height = ?");
             PreparedStatement pstmtUpdate = con.prepareStatement("UPDATE account_poc_score SET poc_score=?, poc_detail=? WHERE db_id = ?");
 
             pstmtUpdate.setLong(1, pocScore.total().longValue());
             pstmtUpdate.setString(2, detail);
             pstmtUpdate.setLong(3, dbId);
-//            pstmtUpdate.setInt(4, pocScore.getHeight());
             return pstmtUpdate.executeUpdate();
         }
 
@@ -390,14 +392,12 @@ public class PocDb  {
                 return 0;
             }
 
-//            PreparedStatement pstmtUpdate = con.prepareStatement("UPDATE certified_peer SET host=?, type=?, last_updated=? WHERE account_id = ? AND height = ?");
             PreparedStatement pstmtUpdate = con.prepareStatement("UPDATE certified_peer SET host=?, type=?, last_updated=? WHERE db_id = ?");
 
             pstmtUpdate.setString(1, certifiedPeer.getHost());
             pstmtUpdate.setInt(2, certifiedPeer.getTypeCode());
             pstmtUpdate.setInt(3, certifiedPeer.getUpdateTimeInEpochFormat());
             pstmtUpdate.setLong(4, dbId);
-//            pstmtUpdate.setInt(5, certifiedPeer.getHeight());
             return pstmtUpdate.executeUpdate();
         }
 
