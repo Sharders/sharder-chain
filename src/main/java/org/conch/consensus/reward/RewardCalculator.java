@@ -312,10 +312,12 @@ public class RewardCalculator {
         Account senderAccount = Account.getAccount(tx.getSenderId());
         Account minerAccount = Account.getAccount(coinBase.getCreator());
 
+        String stage = stageTwo ? "Two" : "One";
         // Crowd Miner Reward
         long miningRewards =  tx.getAmountNQT();
         if(coinBase.isType(Attachment.CoinBase.CoinBaseType.CROWD_BLOCK_REWARD)) {
             Map<Long, Long> crowdMiners = coinBase.getCrowdMiners();
+            Logger.logInfoMessage("[Rewards-%s] distribute crowd miner's rewards[crowd miner size=%d] at height %d", stage, crowdMiners.size(), tx.getHeight());
             calAndSetCrowdMinerReward(minerAccount, tx, crowdMiners, stageTwo);
             if(crowdMiners.size() > 0){
                 miningRewards = tx.getAmountNQT() - crowdMinerReward(tx.getHeight());
@@ -324,6 +326,10 @@ public class RewardCalculator {
 
         // Mining Reward (include Pool mode)
         Map<Long, Long> consignors = coinBase.getConsignors();
+        Logger.logInfoMessage("[Rewards-%s] distribute block mining's rewards[ mining joiner size=%d] at height %d. " +
+                        "Joiner size = 0 means solo miner mode, all block mined rewards will distribute to miner[%s]; " +
+                        "Joiner size > 0 means pool mining mode, block mined rewards will distribute under the pool rules.",
+                stage, consignors.size(), tx.getHeight(), minerAccount.getRsAddress());
         if (consignors.size() == 0) {
             updateBalanceAndFrozeIt(senderAccount, tx, miningRewards, stageTwo);
         } else {
@@ -347,6 +353,32 @@ public class RewardCalculator {
         Attachment.CoinBase coinbaseBody = (Attachment.CoinBase) attachment;
         return coinbaseBody.isType(Attachment.CoinBase.CoinBaseType.BLOCK_REWARD)
                 || coinbaseBody.isType(Attachment.CoinBase.CoinBaseType.CROWD_BLOCK_REWARD);
+    }
+
+    public static boolean isBlockCrowdRewardTx(Attachment attachment) {
+        if(!(attachment instanceof Attachment.CoinBase)) return false;
+
+        Attachment.CoinBase coinbaseBody = (Attachment.CoinBase) attachment;
+        return coinbaseBody.isType(Attachment.CoinBase.CoinBaseType.CROWD_BLOCK_REWARD);
+    }
+
+    private static Attachment.CoinBase parseToCoinBase(Attachment attachment){
+        if(!(attachment instanceof Attachment.CoinBase)) return null;
+        return (Attachment.CoinBase) attachment;
+    }
+
+    public static int crowdMinerCount(Attachment attachment) {
+        try{
+            Attachment.CoinBase coinBaseObj = parseToCoinBase(attachment);
+            if(coinBaseObj == null) return -1;
+
+            if(coinBaseObj.isType(Attachment.CoinBase.CoinBaseType.CROWD_BLOCK_REWARD)) {
+                return coinBaseObj.getCrowdMiners() != null ? coinBaseObj.getCrowdMiners().size() : 0;
+            }
+        }catch(Exception e){
+            Logger.logErrorMessage("calculate the size of crowd miners failed", e);
+        }
+        return 0;
     }
 
     /**

@@ -150,13 +150,13 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
                     if (Conch.hasSerialNum() && !Constants.hubLinked) {
                         if (Logger.printNow(Logger.BlockchainProcessor_getMoreBlocks)) {
-                            Logger.logDebugMessage("Don't synchronize blocks before the Client initialization is completed");
+                            Logger.logDebugMessage("Don't synchronize blocks till the client initialization is completed");
                         }
                         return;
                     }
 
                     if (!Conch.getPocProcessor().pocTxsProcessed(Conch.getHeight())) {
-                        Logger.logDebugMessage("Don't synchronize blocks till delayed or old poc txs[ height <=  %d ] processed", Conch.getHeight());
+                        Logger.logDebugMessage("Don't synchronize blocks till delayed or old poc txs[ height <=  %d ] be processed", Conch.getHeight());
                         return;
                     }
                     
@@ -279,7 +279,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             final Block commonBlock = blockchain.getBlock(commonBlockId);
             if (commonBlock == null || blockchain.getHeight() - commonBlock.getHeight() >= 720) {
                 if (commonBlock != null) {
-                    Logger.logDebugMessage(peer + " advertised chain with better difficulty, but the last common block is at height " + commonBlock.getHeight());
+                    Logger.logDebugMessage(peer + " stay at fork with better difficulty, but the last common block is at height " + commonBlock.getHeight());
                 }
                 return;
             }
@@ -1263,7 +1263,8 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 false);
 
         if (!Constants.isLightClient && !Constants.isOffline) {
-            Logger.logInfoMessage("current node mode[light client=%s, offline=%s], don't connect peers to download blocks", Constants.isLightClient, Constants.isOffline);
+            Logger.logInfoMessage("Current node mode[light client=%s, offline=%s]", Constants.isLightClient, Constants.isOffline);
+            Logger.logInfoMessage("Create a thread 'GetMoreBlocks' to sync the blocks from other peers.....");
             ThreadPool.scheduleThread("GetMoreBlocks", getMoreBlocksThread, 1);
         }
     }
@@ -2268,33 +2269,16 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         int payloadLength = 0;
 
         // coin base
+        TransactionImpl coinBaseTx = null;
         try {
-
-            // Pool owner -> pool rewards map (send rewards to pool joiners)
-            // Single miner -> empty rewards map (send rewards to miner)
-            Map<Long, Long> map = new HashMap<>();
-            long poolId = SharderPoolProcessor.findOwnPoolId(creator.getId());
-            if (poolId == -1 || SharderPoolProcessor.isDead(poolId)) {
-                poolId = creator.getId();
-            } else {
-                map = SharderPoolProcessor.getPool(poolId).getConsignorsAmountMap();
-            }
-
             // transaction version=1, deadline=10,timestamp=blockTimestamp
-            TransactionImpl transaction =
-                    new TransactionImpl.BuilderImpl(
-                            publicKey,
-                            RewardCalculator.blockReward(Conch.getHeight()),
-                            0,
-                            (short) 10,
-                            new Attachment.CoinBase(
-                                    Attachment.CoinBase.CoinBaseType.BLOCK_REWARD, creator.getId(), poolId, map))
-                            .timestamp(blockTimestamp)
-                            .recipientId(0)
-                            .build(secretPhrase);
-            sortedTransactions.add(new UnconfirmedTransaction(transaction, System.currentTimeMillis()));
+            coinBaseTx = RewardCalculator.generateCoinBaseTxBuilder(publicKey, Conch.getHeight())
+                    .timestamp(blockTimestamp)
+                    .recipientId(0)
+                    .build(secretPhrase);
+            sortedTransactions.add(new UnconfirmedTransaction(coinBaseTx, System.currentTimeMillis()));
         } catch (ConchException.NotValidException e) {
-            Logger.logErrorMessage("Can't create coin base transaction[current miner=" + creator.getRsAddress() + ", id=" + creator.getId() + "]", e);
+            Logger.logErrorMessage("Can't create coin base tx[current miner=" + creator.getRsAddress() + ", id=" + creator.getId() + "]", e);
         }
 
         // generation missing
@@ -2420,7 +2404,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             blockListeners.notify(block, Event.BLOCK_GENERATED);
             PocScore generatorScore = Conch.getPocProcessor().calPocScore(creator, previousBlock.getHeight());
             Logger.logInfoMessage(
-                    "Account[id="
+                    "Miner[id="
                             + creator.getId()
                             + ", RS="
                             + creator.getRsAddress()
@@ -2433,7 +2417,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                             + block.getHeight()
                             + " timestamp "
                             + block.getTimestamp()
-                            + " fee "
+                            + " block reward[crowd miner count="
+                            + RewardCalculator.crowdMinerCount(coinBaseTx.getAttachment())
+                            + "] fee "
                             + ((float) block.getTotalFeeNQT()) / Constants.ONE_SS);
         } catch (TransactionNotAcceptedException e) {
             Logger.logDebugMessage("Generate block failed: " + e.getMessage());

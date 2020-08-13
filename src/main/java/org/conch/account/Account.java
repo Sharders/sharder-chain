@@ -2141,7 +2141,6 @@ public final class Account {
         if (!correctRs.equals(address)) {
             throw new ConchException.AccountControlException("Auto Poc Tx account address does not match! please reset sharder.autoTransactionAddress configuration");
         }
-        Logger.logInfoMessage("[ OK ] Auto Poc Tx account address (" + correctRs + ") is correct!");
     }
 
     @Override
