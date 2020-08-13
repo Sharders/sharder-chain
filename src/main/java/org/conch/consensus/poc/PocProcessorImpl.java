@@ -742,7 +742,9 @@ public class PocProcessorImpl implements PocProcessor {
                 Attachment.CoinBase coinBase = (Attachment.CoinBase) tx.getAttachment();
                 Account senderAccount = Account.getAccount(tx.getSenderId());
                 // crowd miner account
-
+                if(coinBase.isType(Attachment.CoinBase.CoinBaseType.CROWD_BLOCK_REWARD)) {
+                    coinBase.getCrowdMiners().keySet().forEach(accountId -> putInBalanceChangedAccount(block.getHeight(), Account.getAccount(accountId), Account.Event.POC));
+                }
 
                 // pool mining account
                 Map<Long, Long> consignors = coinBase.getConsignors();
@@ -750,10 +752,7 @@ public class PocProcessorImpl implements PocProcessor {
                     putInBalanceChangedAccount(block.getHeight(), senderAccount, Account.Event.POC);
                 } else {
                     Map<Long, Long> rewardList = PoolRule.calRewardMapAccordingToRules(senderAccount.getId(), coinBase.getGeneratorId(), tx.getAmountNQT(), consignors);
-                    for (long id : rewardList.keySet()) {
-                        Account account = Account.getAccount(id);
-                        putInBalanceChangedAccount(block.getHeight(), account, Account.Event.POC);
-                    }
+                    rewardList.keySet().forEach(accountId -> putInBalanceChangedAccount(block.getHeight(), Account.getAccount(accountId), Account.Event.POC));
                 }
                 count++;
             }
