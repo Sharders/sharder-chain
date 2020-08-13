@@ -113,7 +113,7 @@ public class PocScore implements Serializable {
         simpleObj.put("accountId",this.accountId);
         if(this.bcScore.intValue() > 0)  simpleObj.put("bs",this.bcScore);
         if(this.blockMissScore.intValue() > 0)  simpleObj.put("bms",this.blockMissScore);
-        if(this.effectiveBalance.intValue() > 0)  simpleObj.put("eb",this.effectiveBalance);
+        if(this.effectiveBalance != null && this.effectiveBalance.intValue() > 0)  simpleObj.put("eb",this.effectiveBalance);
         if(this.hardwareScore.intValue() > 0)  simpleObj.put("hs",this.hardwareScore);
         if(this.height > 0)  simpleObj.put("height",this.height);
         if(this.networkScore.intValue() > 0)  simpleObj.put("ns",this.networkScore);

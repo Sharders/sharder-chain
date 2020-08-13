@@ -156,7 +156,9 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                     }
 
                     if (!Conch.getPocProcessor().pocTxsProcessed(Conch.getHeight())) {
-                        Logger.logDebugMessage("Don't synchronize blocks till delayed or old poc txs[ height <=  %d ] be processed", Conch.getHeight());
+                        if (Logger.printNow(Logger.BlockchainProcessor_oldPocTxsProcessingCheck)) {
+                            Logger.logDebugMessage("Don't synchronize blocks till delayed or old poc txs[ height <=  %d ] be processed", Conch.getHeight());
+                        }
                         return;
                     }
                     

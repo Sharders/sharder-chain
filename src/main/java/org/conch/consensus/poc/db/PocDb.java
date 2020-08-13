@@ -10,6 +10,7 @@ import org.conch.db.DerivedDbTable;
 import org.conch.peer.CertifiedPeer;
 import org.conch.peer.Peer;
 import org.conch.util.Convert;
+import org.conch.util.Logger;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -503,6 +504,7 @@ public class PocDb  {
     }
 
     public static Map<Long,PocScore> listAllScore() {
+        Logger.logInfoMessage("List all poc txs from DB at height %d", Conch.getHeight());
         return pocScoreTable.listAll();
     }
 
