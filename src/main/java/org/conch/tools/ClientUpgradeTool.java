@@ -344,6 +344,12 @@ public class ClientUpgradeTool {
                 lastDownloadDbArchiveTime = System.currentTimeMillis();
             }
 
+            // compare archive height with the current height
+            if(lastDbArchiveHeight <= Conch.getHeight()){
+                Logger.logInfoMessage("[ UPGRADE DB ] Give up current db restore, because db archive height %d <= current height %d", lastDbArchiveHeight, Conch.getHeight());
+                return;
+            }
+
             Conch.pause();
 
             // backup the old db folder

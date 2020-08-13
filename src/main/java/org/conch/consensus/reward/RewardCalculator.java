@@ -342,7 +342,7 @@ public class RewardCalculator {
         Map<Long, Long> crowdMiners = Maps.newHashMap();
         if(coinBase.isType(Attachment.CoinBase.CoinBaseType.CROWD_BLOCK_REWARD)) {
             crowdMiners = coinBase.getCrowdMiners();
-            Logger.logDebugMessage("[Rewards-Stage%s] distribute crowd miner's rewards[crowd miner size=%d] of height %d", stage, crowdMiners.size(), tx.getHeight());
+            Logger.logDebugMessage("[Rewards-Stage%s] Distribute crowd miner's rewards[crowd miner size=%d] of height %d", stage, crowdMiners.size(), tx.getHeight());
             calAndSetCrowdMinerReward(minerAccount, tx, crowdMiners, stageTwo);
             if(crowdMiners.size() > 0){
                 miningRewards = tx.getAmountNQT() - crowdMinerReward(tx.getHeight());
@@ -352,7 +352,7 @@ public class RewardCalculator {
         long miningCalStartMS = System.currentTimeMillis();
         // Mining Reward (include Pool mode)
         Map<Long, Long> consignors = coinBase.getConsignors();
-        Logger.logDebugMessage("[Rewards-Stage%s] distribute block mining's rewards[ mining joiner size=%d] of height %d. " +
+        Logger.logDebugMessage("[Rewards-Stage%s] Distribute block mining's rewards[ mining joiner size=%d] of height %d. " +
                         "Joiner size = 0 means solo miner mode, all block mined rewards will distribute to miner[%s]; " +
                         "Joiner size > 0 means pool mining mode, block mined rewards will distribute under the pool rules.",
                 stage, consignors.size(), tx.getHeight(), minerAccount.getRsAddress());
@@ -380,7 +380,7 @@ public class RewardCalculator {
         long miningRewardProcessingMS = System.currentTimeMillis() - miningCalStartMS;
         long totalUsedMs = System.currentTimeMillis() - rewardCalStartMS;
         if(Logger.isLevel(Logger.Level.INFO)) {
-            Logger.logInfoMessage("[Rewards-%d-Stage%s] Reward distribution detail[crowd miner size=%d, mining joiner size=%d, processing used time≈ %d S(%d MS)] at current height %d",
+            Logger.logInfoMessage("[Rewards-%d-Stage%s] Distribution detail[crowd miner size=%d, mining joiner size=%d, processing used time≈ %d S(%d MS)] at current height %d",
                     tx.getHeight(), stage, crowdMiners.size(), consignors.size()
                     , totalUsedMs / 1000, totalUsedMs, Conch.getHeight());
         }else {

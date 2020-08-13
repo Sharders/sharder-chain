@@ -304,13 +304,17 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 //                return;
 //            }
 
-            if (!isDownloading && lastBlockchainFeederHeight - commonBlock.getHeight() > 10) {
-                // fetch the db archive and restart
-                if (System.currentTimeMillis() - lastDownloadMS > MAX_DOWNLOAD_TIME) {
-                    Logger.logInfoMessage("Can't finish the block synchronization in the %d hours, try to fetch the last db archive and restart the COS...", (MAX_DOWNLOAD_TIME/1000/60/60));
-                    ClientUpgradeTool.restoreDbToLastArchive(true, true);
-                }
+            int diffCount = lastBlockchainFeederHeight - commonBlock.getHeight();
+            // fetch the db archive and restart
+            if (System.currentTimeMillis() - lastDownloadMS > MAX_DOWNLOAD_TIME
+                    || diffCount > 48) {
+                Logger.logInfoMessage("Can't finish the block synchronization in the %d hours or current diff height %d > 48 blocks(8 hours), "
+                                + "try to fetch the last db archive and restart the COS..."
+                        , (MAX_DOWNLOAD_TIME/1000/60/60), diffCount);
+                ClientUpgradeTool.restoreDbToLastArchive(true, true);
+            }
 
+            if (!isDownloading && diffCount > 6) {
                 Logger.logMessage("Blockchain download in progress[height is from " + blockchain.getHeight() + " to " + lastBlockchainFeederHeight + "]");
                 isDownloading = true;
             }
