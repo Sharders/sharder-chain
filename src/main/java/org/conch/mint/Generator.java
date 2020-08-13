@@ -572,7 +572,7 @@ public class Generator implements Comparable<Generator> {
         // 3 right situations: a) last hit < current hit < current target, b) this block is elapsed, c) in offline mode
         boolean validHit = hit.compareTo(target) < 0 && (hit.compareTo(prevTarget) >= 0 || elapsed || Constants.isOffline);
         if(!validHit) {
-            Logger.logWarningMessage("verify hit failed, hit should smaller than target [hit=%d, target=%d, poc score=%d, previous target=%d, elapsed time=%d]",hit, target, pocScore, prevTarget, elapsedTime);
+            Logger.logDebugMessage("verify hit failed, hit should smaller than target [hit=%d, target=%d, poc score=%d, previous target=%d, elapsed time=%d]",hit, target, pocScore, prevTarget, elapsedTime);
         }
         return validHit;
     }
