@@ -89,6 +89,42 @@ public class PocScore implements Serializable {
         this.height = height;
     }
 
+    public PocScore(String pocDetailJson){
+        JSONObject simpleObj = JSONObject.parseObject(pocDetailJson);
+
+        this.accountId = simpleObj.getLong("accountId");
+        int height = simpleObj.containsKey("height") ? simpleObj.getIntValue("height") : 0;
+        this.height = height;
+
+        if(simpleObj.containsKey("bs")) this.bcScore = simpleObj.getBigInteger("bs");
+        if(simpleObj.containsKey("bms")) this.blockMissScore = simpleObj.getBigInteger("bms");
+        if(simpleObj.containsKey("eb")) this.effectiveBalance = simpleObj.getBigInteger("eb");
+        if(simpleObj.containsKey("hs")) this.hardwareScore = simpleObj.getBigInteger("hs");
+        if(simpleObj.containsKey("ns")) this.networkScore = simpleObj.getBigInteger("ns");
+        if(simpleObj.containsKey("nts")) this.nodeTypeScore = simpleObj.getBigInteger("nts");
+        if(simpleObj.containsKey("ors")) this.onlineRateScore = simpleObj.getBigInteger("ors");
+        if(simpleObj.containsKey("ps")) this.performanceScore = simpleObj.getBigInteger("ps");
+        if(simpleObj.containsKey("ss")) this.serverScore = simpleObj.getBigInteger("ss");
+        if(simpleObj.containsKey("sss")) this.ssScore = simpleObj.getBigInteger("sss");
+    }
+
+    public String toSimpleJson(){
+        JSONObject simpleObj = new JSONObject();
+        simpleObj.put("accountId",this.accountId);
+        if(this.bcScore.intValue() > 0)  simpleObj.put("bs",this.bcScore);
+        if(this.blockMissScore.intValue() > 0)  simpleObj.put("bms",this.blockMissScore);
+        if(this.effectiveBalance.intValue() > 0)  simpleObj.put("eb",this.effectiveBalance);
+        if(this.hardwareScore.intValue() > 0)  simpleObj.put("hs",this.hardwareScore);
+        if(this.height > 0)  simpleObj.put("height",this.height);
+        if(this.networkScore.intValue() > 0)  simpleObj.put("ns",this.networkScore);
+        if(this.nodeTypeScore.intValue() > 0)  simpleObj.put("nts",this.nodeTypeScore);
+        if(this.onlineRateScore.intValue() > 0)  simpleObj.put("ors",this.onlineRateScore);
+        if(this.performanceScore.intValue() > 0)  simpleObj.put("ps",this.performanceScore);
+        if(this.serverScore.intValue() > 0)  simpleObj.put("ss",this.serverScore);
+        if(this.ssScore.intValue() > 0)  simpleObj.put("sss",this.ssScore);
+        return simpleObj.toJSONString();
+    }
+
     public BigInteger total() {
         // 90% of block rewards for hub miner, 10% for other miners in Testnet phase1 (before end of 2019.Q2)
         BigInteger rate = Conch.getPocProcessor().isCertifiedPeerBind(accountId, height) ? BigInteger.valueOf(90) : BigInteger.valueOf(10);
