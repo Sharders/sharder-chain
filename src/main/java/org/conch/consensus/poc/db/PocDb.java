@@ -224,18 +224,12 @@ public class PocDb  {
             Connection con = null;
             try {
                 con = Db.db.getConnection();
-                PreparedStatement pstmt = con.prepareStatement("SELECT * AS detail FROM certified_peer ORDER BY height DESC");
+                PreparedStatement pstmt = con.prepareStatement("SELECT * FROM certified_peer ORDER BY height DESC");
 
                 ResultSet rs = pstmt.executeQuery();
                 while(rs.next()){
                     try{
-                        String host = rs.getString("host");
-                        Long linkedAccountId= rs.getLong("account_id");
-                        Peer.Type type = Peer.Type.getByCode(rs.getInt("type"));
-                        int height = rs.getInt("height");
-                        int lastUpdateEpochTime = rs.getInt("last_updated");
-                        CertifiedPeer certifiedPeer = new CertifiedPeer(type, host, linkedAccountId, Convert.fromEpochTime(lastUpdateEpochTime));
-                        certifiedPeer.setHeight(height);
+                        CertifiedPeer certifiedPeer = _parse(rs);
                         // compare the height
                         if(peerMap.containsKey(certifiedPeer.getBoundAccountId())){
                             CertifiedPeer oldPeer = peerMap.get(certifiedPeer.getBoundAccountId());
@@ -258,7 +252,24 @@ public class PocDb  {
             return peerMap;
         }
 
-        public String get(long accountId, int height, boolean loadHistory) {
+        private CertifiedPeer _parse(ResultSet rs){
+            CertifiedPeer certifiedPeer = null;
+            try{
+                String host = rs.getString("host");
+                Long linkedAccountId= rs.getLong("account_id");
+                Peer.Type type = Peer.Type.getByCode(rs.getInt("type"));
+                int height = rs.getInt("height");
+                int lastUpdateEpochTime = rs.getInt("last_updated");
+                certifiedPeer = new CertifiedPeer(type, host, linkedAccountId, Convert.fromEpochTime(lastUpdateEpochTime));
+                certifiedPeer.setHeight(height);
+            }catch (Exception e) {
+                // continue to fetch next
+                System.err.println(e);
+            }
+            return certifiedPeer;
+        }
+
+        public CertifiedPeer get(long accountId, int height, boolean loadHistory) {
             try {
                 Conch.getBlockchain().readLock();
                 if(height < 0) return null;
@@ -269,8 +280,8 @@ public class PocDb  {
                 Connection con = null;
                 try {
                     con = Db.db.getConnection();
-                    PreparedStatement pstmt = con.prepareStatement("SELECT poc_detail AS detail "
-                            + "FROM account_poc_score WHERE account_id = ?"
+                    PreparedStatement pstmt = con.prepareStatement("SELECT * FROM certified_peer"
+                            + " WHERE account_id = ?"
                             + (loadHistory ? " AND height <= ?" : " AND height = ?")
                             + (appointStart != -1 ? " AND height > ?" : "")
                             + " ORDER BY height DESC LIMIT 1");
@@ -284,7 +295,7 @@ public class PocDb  {
 
                     ResultSet rs = pstmt.executeQuery();
                     if(rs !=null && rs.next()){
-                        return rs.getString("detail");
+                        return _parse(rs);
                     }
                 } catch (SQLException e) {
                     throw new RuntimeException(e.toString(), e);
@@ -297,47 +308,48 @@ public class PocDb  {
             return null;
         }
 
-        public void saveOrUpdate(Connection con, PocScore pocScore) throws SQLException {
-            PreparedStatement pstmtCount = con.prepareStatement("SELECT db_id from account_poc_score "
-                    + "WHERE account_id = ? AND height = ?");
-            pstmtCount.setLong(1, pocScore.getAccountId());
-            pstmtCount.setInt(2, pocScore.getHeight());
+        public void saveOrUpdate(Connection con, CertifiedPeer certifiedPeer) throws SQLException {
+            PreparedStatement pstmtCount = con.prepareStatement("SELECT db_id FROM certified_peer"
+                    + " WHERE account_id = ? AND height = ?");
+            pstmtCount.setLong(1, certifiedPeer.getBoundAccountId());
+            pstmtCount.setInt(2, certifiedPeer.getHeight());
 
             ResultSet rs = pstmtCount.executeQuery();
             boolean exist = (rs != null) && rs.next();
 
             if(exist){
-                update(con, pocScore);
+                update(con, certifiedPeer);
             }else{
-                insert(con, pocScore);
+                insert(con, certifiedPeer);
             }
         }
 
-        public int insert(Connection con, PocScore pocScore) throws SQLException {
+        public int insert(Connection con, CertifiedPeer certifiedPeer) throws SQLException {
             if(con == null) return 0;
 
-            PreparedStatement pstmtInsert = con.prepareStatement("INSERT INTO account_poc_score(account_id, "
-                    + " poc_score, height, poc_detail) VALUES(?, ?, ?, ?)");
+            PreparedStatement pstmtInsert = con.prepareStatement("INSERT INTO certified_peer(host, "
+                    + " account_id, type, height, last_updated) VALUES(?, ?, ?, ?, ?)");
 
-            pstmtInsert.setLong(1, pocScore.getAccountId());
-            pstmtInsert.setLong(2, pocScore.total().longValue());
-            pstmtInsert.setInt(3, pocScore.getHeight());
-            pstmtInsert.setString(4, pocScore.toSimpleJson());
+            pstmtInsert.setString(1, certifiedPeer.getHost());
+            pstmtInsert.setLong(2, certifiedPeer.getBoundAccountId());
+            pstmtInsert.setInt(3, certifiedPeer.getTypeCode());
+            pstmtInsert.setInt(4, certifiedPeer.getHeight());
+            pstmtInsert.setInt(5, certifiedPeer.getUpdateTimeInEpochFormat());
             return pstmtInsert.executeUpdate();
         }
 
-        public int update(Connection con, PocScore pocScore) throws SQLException {
-            String detail = pocScore.toSimpleJson();
-            if(con == null || StringUtils.isEmpty(detail) || pocScore.getAccountId() == -1 || pocScore.getHeight() < 0 ){
+        public int update(Connection con, CertifiedPeer certifiedPeer) throws SQLException {
+            if(con == null || certifiedPeer.getBoundAccountId() == -1 || certifiedPeer.getHeight() < 0 ){
                 return 0;
             }
 
-            PreparedStatement pstmtUpdate = con.prepareStatement("UPDATE account_poc_score SET poc_score=?, poc_detail=? WHERE account_id = ? AND height = ?");
+            PreparedStatement pstmtUpdate = con.prepareStatement("UPDATE certified_peer SET host=?, type=?, last_updated=? WHERE account_id = ? AND height = ?");
 
-            pstmtUpdate.setLong(1, pocScore.total().longValue());
-            pstmtUpdate.setString(2, detail);
-            pstmtUpdate.setLong(3, pocScore.getAccountId());
-            pstmtUpdate.setInt(4, pocScore.getHeight());
+            pstmtUpdate.setString(1, certifiedPeer.getHost());
+            pstmtUpdate.setInt(2, certifiedPeer.getTypeCode());
+            pstmtUpdate.setInt(3, certifiedPeer.getUpdateTimeInEpochFormat());
+            pstmtUpdate.setLong(4, certifiedPeer.getBoundAccountId());
+            pstmtUpdate.setInt(5, certifiedPeer.getHeight());
             return pstmtUpdate.executeUpdate();
         }
 
@@ -345,7 +357,7 @@ public class PocDb  {
             Connection con = null;
             try {
                 con = Db.db.getConnection();
-                PreparedStatement pstmtDelete = con.prepareStatement("DELETE FROM account_poc_score WHERE account_id = ? AND height = ?");
+                PreparedStatement pstmtDelete = con.prepareStatement("DELETE FROM certified_peer WHERE account_id = ? AND height = ?");
 
                 pstmtDelete.setLong(1, accountId);
                 pstmtDelete.setInt(2, height);
@@ -370,7 +382,7 @@ public class PocDb  {
         @Override
         public void trim(int height) {
             try (Connection con = db.getConnection();
-                 PreparedStatement pstmt = con.prepareStatement("DELETE FROM account_poc_score WHERE height <= ?")) {
+                 PreparedStatement pstmt = con.prepareStatement("DELETE FROM certified_peer WHERE height <= ?")) {
                 pstmt.setInt(1, height);
                 pstmt.executeUpdate();
             } catch (SQLException e) {

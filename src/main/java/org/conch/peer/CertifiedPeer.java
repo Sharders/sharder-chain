@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.conch.account.Account;
 import org.conch.common.ConchException;
+import org.conch.util.Convert;
 import org.conch.util.IpUtil;
 
 import java.io.Serializable;
@@ -12,25 +13,25 @@ import java.sql.Timestamp;
 /**
  * Certified peer include bound account and basic peer info:
  *
- * UPDATE#1: 
+ * UPDATE#1:
  * process PocNodeConf tx and update certified peer list.
  * org.conch.consensus.poc.PocProcessorImpl#nodeTypeTxProcess(int, org.conch.consensus.poc.tx.PocTxBody.PocNodeType)
  *
- * UPDATE#2: get hub bind details form sharder.org and update certified peer list.
+ * UPDATE#2: get hub bind details form mwfs.io and update certified peer list.
  * org.conch.peer.Peers#GET_HUB_PEER_THREAD
  *
- * UPDATE#3: 
+ * UPDATE#3:
  * syn peers and update certified peer list.
  * org.conch.consensus.poc.PocProcessorImpl#peerSynThread
  *
- * @author <a href="mailto:xy@sharder.org">Ben</a>
+ * @author <a href="mailto:xy@mwfs.io">Ben</a>
  * @since 2019-03-29
  */
 public class CertifiedPeer implements Serializable {
     int height = -1;
     int endHeight = -2;
     Peer.Type type;
-    //peerHost is public ip or announcedAddress(NatIp+Port) 
+    //peerHost is public ip or announcedAddress(NatIp+Port)
     String host;
     // real public ip
     String ip;
@@ -38,6 +39,7 @@ public class CertifiedPeer implements Serializable {
     long boundAccountId;
     String boundRS;
     Timestamp updateTime;
+
 
     public CertifiedPeer(Peer.Type type, String host, long accountId, long lastUpdateMS) {
         this.type = type != null ? type : Peer.Type.NORMAL;
@@ -128,13 +130,17 @@ public class CertifiedPeer implements Serializable {
     public void setHeight(int height) {
         this.height = height;
     }
-    
+
     public boolean isType(Peer.Type type){
         return (type == null || this.type == null)  ? false : this.type.equals(type);
     }
-    
+
     public Peer.Type getType() {
         return type;
+    }
+
+    public int getTypeCode() {
+        return this.type.getCode();
     }
 
     public void setType(Peer.Type type) {
@@ -173,11 +179,15 @@ public class CertifiedPeer implements Serializable {
         return updateTime;
     }
 
+    public int getUpdateTimeInEpochFormat() {
+        return Convert.toEpochTime(this.updateTime.getTime());
+    }
+
     public int getEndHeight() {
         return endHeight;
     }
-    
-    public boolean isEnd(){ 
+
+    public boolean isEnd(){
         return this.endHeight >= 0;
     }
 
@@ -198,7 +208,7 @@ public class CertifiedPeer implements Serializable {
             throw new ConchException.NotValidException("certified peer is invalid: type is FOUNDATION, but hots is not valid foundation domain");
         }
     }
-    
+
 
     @Override
     public String toString() {
