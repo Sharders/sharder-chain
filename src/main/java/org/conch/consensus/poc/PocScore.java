@@ -170,15 +170,20 @@ public class PocScore implements Serializable {
      * temporary to compatible the
      * @return
      */
-    public BigInteger reCalTotalForCompatibility(){
+    public BigInteger reCalTotalForCompatibility(boolean lastTry){
         BigInteger score = ssScore.add(nodeTypeScore).add(serverScore).add(hardwareScore).add(networkScore).add(performanceScore).add(onlineRateScore)
                 .add(blockMissScore).add(bcScore);
-        if(this.height <= Constants.POC_MULTIPLIER_CHANGE_HEIGHT) {
+        if(lastTry){
             total = score.multiply(BigInteger.valueOf(1000));
+        }else{
+            if(this.height <= Constants.POC_MULTIPLIER_CHANGE_HEIGHT) {
+                total = score.multiply(BigInteger.valueOf(1000));
+            }
+            else{
+                total = score.multiply(parseAndGetScoreMagnification(this.height));
+            }
         }
-//        else{
-//            total = score.multiply(parseAndGetScoreMagnification(this.height));
-//        }
+
         // update with current height
         PocScore updateScore = new PocScore();
         updateScore.synFrom(this);
@@ -390,7 +395,7 @@ public class PocScore implements Serializable {
     }
 
     public Long getAccountId() {
-        return accountId;
+        return accountId != null ? accountId : -1;
     }
 
     public int getHeight() {
