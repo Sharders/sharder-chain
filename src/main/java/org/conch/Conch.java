@@ -663,9 +663,27 @@ public final class Conch {
             return false;
         }
         Logger.logMessage(name + " not defined, assuming false");
+        return getBooleanProperty(name, false);
+    }
+
+    public static Boolean getBooleanProperty(String name, boolean defaultValue) {
+        String value = properties.getProperty(name);
+
+        if(StringUtils.isEmpty(value)) {
+            Logger.logMessage(name + " not defined, use the default value " + defaultValue);
+            return  defaultValue;
+        }
+        else if (Boolean.TRUE.toString().equals(value)) {
+            Logger.logMessage(name + " = \"true\"");
+            return true;
+        }
+        else if (Boolean.FALSE.toString().equals(value)) {
+            Logger.logMessage(name + " = \"false\"");
+            return false;
+        }
         return false;
     }
-    
+
     public static int getHeight(){
         return getBlockchain().getHeight();
     }
