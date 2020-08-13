@@ -89,22 +89,22 @@ public class PocDb  {
             Connection con = null;
             try {
                 con = Db.db.getConnection();
-                PreparedStatement pstmt = con.prepareStatement("SELECT poc_detail AS detail, db_id, account_id, height FROM account_poc_score ORDER BY height DESC");
-//                PreparedStatement pstmt = con.prepareStatement("SELECT poc_detail AS detail, db_id, account_id, height FROM account_poc_score WHERE latest = TRUE ORDER BY height DESC");
+//                PreparedStatement pstmt = con.prepareStatement("SELECT poc_detail AS detail, db_id, account_id, height FROM account_poc_score ORDER BY height DESC");
+                PreparedStatement pstmt = con.prepareStatement("SELECT poc_detail AS detail, db_id, account_id, height FROM account_poc_score WHERE latest = TRUE ORDER BY height DESC");
                 ResultSet rs = pstmt.executeQuery();
                 while(rs.next()){
                     try{
                         PocScore pocScore = new PocScore(rs.getLong("account_id"), rs.getInt("height"), rs.getString("detail"));
-//                        scoreMap.put(pocScore.getAccountId(), pocScore);
-                        // compare the height
-                        if(scoreMap.containsKey(pocScore.getAccountId())){
-                            PocScore oldScore = scoreMap.get(pocScore.getAccountId());
-                            if(oldScore.getHeight() < pocScore.getHeight()){
-                                scoreMap.put(pocScore.getAccountId(), pocScore);
-                            }
-                        }else{
-                            scoreMap.put(pocScore.getAccountId(), pocScore);
-                        }
+                        scoreMap.put(pocScore.getAccountId(), pocScore);
+//                        // compare the height
+//                        if(scoreMap.containsKey(pocScore.getAccountId())){
+//                            PocScore oldScore = scoreMap.get(pocScore.getAccountId());
+//                            if(oldScore.getHeight() < pocScore.getHeight()){
+//                                scoreMap.put(pocScore.getAccountId(), pocScore);
+//                            }
+//                        }else{
+//                            scoreMap.put(pocScore.getAccountId(), pocScore);
+//                        }
 
 //                        if(Conch.containProperty(PocProcessorImpl.PROPERTY_REPROCESS_POC_TXS)){
 //                            update(con, pocScore, rs.getLong("db_id"));
