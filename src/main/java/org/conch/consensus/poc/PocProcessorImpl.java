@@ -448,16 +448,17 @@ public class PocProcessorImpl implements PocProcessor {
     public boolean rollbackTo(int height) {
         try {
             int currentHeight = Conch.getHeight();
-            // rollback the poc score map
-            synchronized (PocHolder.inst.historyScore) {
-                for(int i = height + 1; i <= currentHeight ; i++){
-                    if(PocHolder.inst.historyScore.containsKey(i)){
-                        PocHolder.inst.historyScore.remove(i);
-                    }
-                }
-                //rollback the db
-                PocDb.rollbackScore(height);
-            }
+//            // rollback the poc score map
+//            synchronized (PocHolder.inst.historyScore) {
+//                for(int i = height + 1; i <= currentHeight ; i++){
+//                    if(PocHolder.inst.historyScore.containsKey(i)){
+//                        PocHolder.inst.historyScore.remove(i);
+//                    }
+//                }
+//                //rollback the db
+//                PocDb.rollbackScore(height);
+//            }
+            PocDb.rollbackScore(height);
 
             // reset the score map
             synchronized (PocHolder.inst.scoreMap) {
@@ -632,12 +633,12 @@ public class PocProcessorImpl implements PocProcessor {
                 count += instance.pocSeriesTxProcess(block);
                 if(blockProcessCount++ % 100 == 0) {
                     pocTxsProcessingMS = System.currentTimeMillis() - pocTxsProcessStartMS;
-                    Logger.logInfoMessage("[HistoryPocTxs] %d block's poc txs be processed [used time=%d S (%d MS)]", blockProcessCount, pocTxsProcessingMS / 1000, pocTxsProcessStartMS);
+                    Logger.logInfoMessage("[HistoryPocTxs] %d block's poc txs be processed [used time= %d S (%d MS)]", blockProcessCount, pocTxsProcessingMS / 1000, pocTxsProcessStartMS);
                 }
             }
 
             pocTxsProcessingMS = System.currentTimeMillis() - pocTxsProcessStartMS;
-            Logger.logInfoMessage("[HistoryPocTxs] finish history poc txs processing[from %d to %d] [processed size=%d] [used time=%d S (%d MS)]"
+            Logger.logInfoMessage("[HistoryPocTxs] finish history poc txs processing[from %d to %d] [processed size=%d] [used time= %d S (%d MS)]"
                     , fromHeight, toHeight, count
                     , pocTxsProcessingMS / 1000, pocTxsProcessStartMS);
         } finally {

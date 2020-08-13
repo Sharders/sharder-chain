@@ -44,8 +44,8 @@ public class PocHolder implements Serializable {
     /** poc score **/
     // accountId : pocScore
     protected transient Map<Long, PocScore> scoreMap = PocDb.listAllScore();
-    // height : { accountId : pocScore }
-    protected transient Map<Integer, Map<Long, PocScore>> historyScore = Maps.newConcurrentMap();
+//    // height : { accountId : pocScore }
+//    protected transient Map<Integer, Map<Long, PocScore>> historyScore = Maps.newConcurrentMap();
     /** poc score **/
 
     /** certified peers **/
@@ -320,13 +320,12 @@ public class PocHolder implements Serializable {
             _pocScore = inst.scoreMap.get(pocScore.accountId);
             _pocScore.synFrom(pocScore);
 
-            if(!inst.historyScore.containsKey(pocScore.height)) {
-                recordHistoryScore(_pocScore);
-            }
+//            if(!inst.historyScore.containsKey(pocScore.height)) {
+//                recordHistoryScore(_pocScore);
+//            }
         }
 
         PocDb.saveOrUpdateScore(_pocScore);
-
         inst.scoreMap.put(pocScore.accountId,_pocScore);
 //        inst.lastHeight = pocScore.height > inst.lastHeight ? pocScore.height : inst.lastHeight;
 
@@ -344,45 +343,45 @@ public class PocHolder implements Serializable {
      * @return
      */
     static PocScore getExistedPocScore(int height,long accountId){
-        boolean containedInHistory = inst.historyScore.size() > 0
-                && inst.historyScore.containsKey(height)
-                && inst.historyScore.get(height).containsKey(accountId);
-
-        PocScore score = null;
-        if(!containedInHistory) {
-            PocScore historyScore = PocDb.getPocScore(accountId, height, true);
-            if(historyScore != null) {
-                // update history map
-                if(!inst.historyScore.containsKey(historyScore.height)) {
-                    inst.historyScore.put(historyScore.height, Maps.newHashMap());
-                }
-                inst.historyScore.get(historyScore.height).put(accountId, historyScore);
-                score = historyScore;
-            }
-        }else{
-            score = inst.historyScore.get(height).get(accountId);
-        }
-
+//        boolean containedInHistory = inst.historyScore.size() > 0
+//                                    && inst.historyScore.containsKey(height)
+//                                    && inst.historyScore.get(height).containsKey(accountId);
+//
+//        PocScore score = null;
+//        if(!containedInHistory) {
+//            PocScore historyScore = PocDb.getPocScore(accountId, height, true);
+//            if(historyScore != null) {
+//                // update history map
+//                if(!inst.historyScore.containsKey(historyScore.height)) {
+//                    inst.historyScore.put(historyScore.height, Maps.newHashMap());
+//                }
+//                inst.historyScore.get(historyScore.height).put(accountId, historyScore);
+//                score = historyScore;
+//            }
+//        }else{
+//            score = inst.historyScore.get(height).get(accountId);
+//        }
+        PocScore score = PocDb.getPocScore(accountId, height, true);
         PocScorePrinter.print();
         return score;
     }
 
-    /**
-     * - record current poc score into history
-     * - persistence
-     * - update old poc score records #abandoned
-     * @param pocScore
-     */
-    static void recordHistoryScore(PocScore pocScore){
-        PocScore historyPocScore = new PocScore(pocScore.height, pocScore);
-        PocDb.saveOrUpdateScore(historyPocScore);
-
-        if(!inst.historyScore.containsKey(pocScore.height)) {
-            inst.historyScore.put(pocScore.height, Maps.newHashMap());
-        }
-        inst.historyScore.get(pocScore.height).put(pocScore.accountId, historyPocScore);
-
-    }
+//    /**
+//     * - record current poc score into history
+//     * - persistence
+//     * - update old poc score records #abandoned
+//     * @param pocScore
+//     */
+//    static void recordHistoryScore(PocScore pocScore){
+//        PocScore historyPocScore = new PocScore(pocScore.height, pocScore);
+//        PocDb.saveOrUpdateScore(historyPocScore);
+//
+//        if(!inst.historyScore.containsKey(pocScore.height)) {
+//            inst.historyScore.put(pocScore.height, Maps.newHashMap());
+//        }
+//        inst.historyScore.get(pocScore.height).put(pocScore.accountId, historyPocScore);
+//
+//    }
 
     @Override
     public String toString() {
@@ -435,17 +434,17 @@ public class PocHolder implements Serializable {
             scoreMapStr(inst.scoreMap);
             summary += appendSplitter("<<<<<<<<<<",true);
 
-            if(debugHistory) {
-                summary += appendSplitter("PocScore & Height Map[ height : Map{ accountId : PocScore } ] size=" + inst.historyScore.size() + " >>>>>>>>",true);
-                Set<Integer> heights = inst.historyScore.keySet();
-
-                for(Integer height : heights){
-                    summary += "height: " + height +" -> {";
-                    scoreMapStr(inst.historyScore.get(height));
-                    summary += appendSplitter("}",true);
-                }
-                summary += appendSplitter("<<<<<<<<<<",true);
-            }
+//            if(debugHistory) {
+//                summary += appendSplitter("PocScore & Height Map[ height : Map{ accountId : PocScore } ] size=" + inst.historyScore.size() + " >>>>>>>>",true);
+//                Set<Integer> heights = inst.historyScore.keySet();
+//
+//                for(Integer height : heights){
+//                    summary += "height: " + height +" -> {";
+//                    scoreMapStr(inst.historyScore.get(height));
+//                    summary += appendSplitter("}",true);
+//                }
+//                summary += appendSplitter("<<<<<<<<<<",true);
+//            }
 
         }
 
