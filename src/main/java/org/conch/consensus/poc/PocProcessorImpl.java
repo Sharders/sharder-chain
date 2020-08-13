@@ -48,12 +48,12 @@ public class PocProcessorImpl implements PocProcessor {
      * !! Don't use this instance directly,
      * please call org.conch.Conch#getPocProcessor() to get instance
      **/
-    public static PocProcessorImpl instance = getOrCreate();
 
+    public static PocProcessorImpl instance = getOrCreate();
     // execute once when restart the cos application
     private static boolean oldPocTxsProcess = false;
 
-//    private static final int peerSynThreadInterval = 600;
+    //    private static final int peerSynThreadInterval = 600;
     private static final int pocTxSynThreadInterval = 60;
 
     private static final String LOCAL_STORAGE_POC_CALCULATOR = "StoredPocCalculator";
@@ -61,14 +61,11 @@ public class PocProcessorImpl implements PocProcessor {
     // height : { accountId : account }
     private static Map<Integer, Map<Long, Account>> balanceChangedMap = Maps.newConcurrentMap();
 
-
-    private PocProcessorImpl() {
-    }
+    private PocProcessorImpl() {}
 
     private static synchronized PocProcessorImpl getOrCreate() {
         return instance != null ? instance : new PocProcessorImpl();
     }
-
 
     /**
      * process the balance map which recorded in the payment or coinbase
@@ -107,6 +104,8 @@ public class PocProcessorImpl implements PocProcessor {
     }
 
     /**
+     * NOTE: the follow method can be removed after the snapshot function released
+     *
      * re-calculate when height exceed the poc change height 'Constants.POC_MW_POC_SCORE_CHANGE_HEIGHT'
      * mw-holding score algo. change to use the effective balance as the ; re-calculate the hardware and mw-holding score
      *
@@ -116,10 +115,6 @@ public class PocProcessorImpl implements PocProcessor {
     // and not limited hardware score at Constants.POC_MW_POC_SCORE_CHANGE_HEIGHT
     public static boolean FORCE_RE_CALCULATE = false;
     private static synchronized void reCalculateWhenExceedPocAlgoChangeHeight(int height){
-        if(Constants.POC_SCORE_CHANGE_HEIGHT == -1) {
-            return;
-        }
-
         if(height == Constants.POC_SCORE_CHANGE_HEIGHT + 1) {
             int reCalCount = 0;
             try{
@@ -235,7 +230,7 @@ public class PocProcessorImpl implements PocProcessor {
                         CertifiedPeer certifiedPeer = PocHolder.getBoundPeer(accountId, height);
                         if(certifiedPeer != null) {
                             certifiedPeer.setType(Peer.Type.NORMAL);
-                            PocHolder.addCertifiedPeer(height, Peer.Type.NORMAL, certifiedPeer.getHost(), accountId);
+                            PocHolder.addOrUpdateCertifiedPeer(height, Peer.Type.NORMAL, certifiedPeer.getHost(), accountId);
                         }
                     }
 
@@ -252,13 +247,13 @@ public class PocProcessorImpl implements PocProcessor {
         }
     }
 
-
     static {
         // new block accepted
         Conch.getBlockchainProcessor().addListener((Block block) -> {
             // balance hold score re-calculate
             balanceChangeMapProcessing(block.getHeight());
             instance.pocSeriesTxProcess(block);
+            reCalculateWhenExceedPocAlgoChangeHeight(block.getHeight());
         }, BlockchainProcessor.Event.AFTER_BLOCK_ACCEPT);
 
         // balance changed event
@@ -350,7 +345,7 @@ public class PocProcessorImpl implements PocProcessor {
                 success = blockMissingTxProcess(tx.getHeight(), (PocTxBody.PocGenerationMissing) tx.getAttachment());
             }
         }
-        
+
         if (success) {
             PocHolder.updateHeight(tx.getHeight());
         }else{
@@ -420,7 +415,7 @@ public class PocProcessorImpl implements PocProcessor {
 
         if (!Conch.reachLastKnownBlock()) return false;
 
-        // delayed poc txs 
+        // delayed poc txs
         List<Long> delayedPocTxs = PocHolder.delayPocTxs(height);
         Logger.logDebugMessage("process delayed poc txs[size=%d]", delayedPocTxs.size());
         Set<Long> processedTxs = Sets.newHashSet();
@@ -469,13 +464,13 @@ public class PocProcessorImpl implements PocProcessor {
                     }
                 }
                 //rollback the db
-                PocDb.rollback(height);
+                PocDb.rollbackScore(height);
             }
 
             // reset the score map
             synchronized (PocHolder.inst.scoreMap) {
                 PocHolder.inst.scoreMap.clear();
-                PocHolder.inst.scoreMap = PocDb.listAll();
+                PocHolder.inst.scoreMap = PocDb.listAllScore();
             }
 
             // rollback the history certified peers
@@ -486,10 +481,14 @@ public class PocProcessorImpl implements PocProcessor {
                         PocHolder.inst.historyCertifiedPeers.remove(i);
                     }
                 }
+                PocDb.rollbackPeer(height);
             }
 
             // reset the certified peers
-
+            synchronized (PocHolder.inst.certifiedPeers) {
+                PocHolder.inst.certifiedPeers.clear();
+                PocHolder.inst.certifiedPeers = PocDb.listAllPeers();
+            }
 
             // set the latest certified peer
             PocHolder.inst.updateHeight(height);
@@ -515,6 +514,7 @@ public class PocProcessorImpl implements PocProcessor {
             oldPocTxsProcess = true;
         }
     }
+
     /**
      * update the recipient id of the old  poc txs
      */
@@ -559,7 +559,6 @@ public class PocProcessorImpl implements PocProcessor {
         }
     }
 
-    private static boolean pocDbBeReset = false;
     private static String PROPERTY_REPROCESS_POC_TXS = "sharder.reprocessPocTxs";
     private static boolean reprocessAllPocTxs = Conch.getBooleanProperty(PROPERTY_REPROCESS_POC_TXS, true);
 //    Conch.storePropertieToFile(PROPERTY_REPROCESS_POC_TXS, "false");
@@ -579,11 +578,11 @@ public class PocProcessorImpl implements PocProcessor {
             if (!Db.db.isInTransaction()) {
                 Db.db.beginTransaction();
             }
-            int count = PocDb.rollback(0);
+            int count = PocDb.rollbackScore(0);
 
             Db.db.clearCache();
             Db.db.commitTransaction();
-            pocDbBeReset = true;
+            reprocessAllPocTxs = true;
             Logger.logInfoMessage("[ResetPocDb] reset the poc db finished, reset count is " + count);
         } catch (RuntimeException e) {
             Logger.logErrorMessage("Error reset the poc db, " + e.toString());
@@ -592,19 +591,49 @@ public class PocProcessorImpl implements PocProcessor {
         }
     }
 
+
     public static void init() {
-        // no needs to reset when lanuch a new network
-        // resetPocDb();
+//        checkAndResetPocDb();
         ThreadPool.scheduleThread("OldPocTxsProcessThread", oldPocTxsProcessThread, 1, TimeUnit.MINUTES);
         ThreadPool.scheduleThread("DelayedPocTxsProcessThread", delayedPocTxsProcessThread, pocTxSynThreadInterval, TimeUnit.SECONDS);
         //updateRecipientIdIntoOldPocTxs();
+    }
+
+    /**
+     * re-process the poc txs to re-calculate the poc score of miners
+     * @param fromHeight
+     * @param toHeight
+     * @return
+     */
+    private static int reProcessPocTxs(int fromHeight, int toHeight){
+        BlockchainImpl.getInstance().writeLock();
+        DbIterator<BlockImpl> blocks = null;
+        int count = 0;
+        try {
+            if(fromHeight == 0) {
+                blocks = BlockchainImpl.getInstance().getAllBlocks();
+            }else{
+                String[] orderPair = new String[]{"height","ASC"};
+                blocks = BlockchainImpl.getInstance().getBlocks(fromHeight, toHeight, orderPair);
+            }
+            Logger.logInfoMessage("[HistoryPocTxs] process history poc txs from %d to %d, it may take a few minutes ...", fromHeight, toHeight);
+
+            for (BlockImpl block : blocks) {
+                count += instance.pocSeriesTxProcess(block);
+            }
+            Logger.logInfoMessage("[HistoryPocTxs] history poc txs processed[from %d to %d] [processed size=%d]", fromHeight, toHeight, count);
+        } finally {
+            DbUtils.close(blocks);
+            BlockchainImpl.getInstance().writeUnlock();
+        }
+        return count;
     }
 
     private static final Runnable oldPocTxsProcessThread = () -> {
         try {
 
             if (!oldPocTxsProcess) {
-                Logger.logDebugMessage("[OldPocTxs] all old poc txs be processed yet, sleep for the next round check...");
+                Logger.logDebugMessage("[HistoryPocTxs] all history poc txs be processed yet, sleep for the next round check...");
                 return;
             }
 
@@ -612,35 +641,18 @@ public class PocProcessorImpl implements PocProcessor {
             if (oldPocTxsProcess) {
                 // total poc txs from last height
                 int fromHeight = 0;
-                if(PocHolder.inst.lastHeight > 0) {
+                if(reprocessAllPocTxs){
+                    fromHeight = 0;
+                }else if(PocHolder.inst.lastHeight > 0) {
                     fromHeight = PocHolder.inst.lastHeight;
                 }
-                int toHeight = Conch.getHeight();
 
-                BlockchainImpl.getInstance().writeLock();
-                DbIterator<BlockImpl> blocks = null;
-                try {
-                    if(pocDbBeReset){
-                        Logger.logInfoMessage("[OldPocTxs] process old poc txs from %d to %d when poc db be reset...", 0, toHeight);
-                        blocks = BlockchainImpl.getInstance().getAllBlocks();
-                    }else{
-                        Logger.logInfoMessage("[OldPocTxs] process old poc txs from %d to %d ...", fromHeight, toHeight);
-                        blocks = BlockchainImpl.getInstance().getBlocks(fromHeight, toHeight);
-                    }
-                    int count = 0;
-                    for (BlockImpl block : blocks) {
-                        count += instance.pocSeriesTxProcess(block);
-                    }
-                    Logger.logInfoMessage("[OldPocTxs] old poc txs processed[from %d to %d] [processed size=%d]", fromHeight, toHeight, count);
-                    oldPocTxsProcess = false;
-                } finally {
-                    DbUtils.close(blocks);
-                    BlockchainImpl.getInstance().writeUnlock();
-                }
+                reProcessPocTxs(fromHeight, Conch.getHeight());
+                oldPocTxsProcess = false;
             }
 
         } catch (Exception e) {
-            Logger.logErrorMessage("[OldPocTxs] old poc txs processing thread interrupted", e);
+            Logger.logErrorMessage("[HistoryPocTxs] history poc txs processing thread interrupted", e);
         } catch (Throwable t) {
             Logger.logErrorMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
             System.exit(1);
@@ -724,10 +736,6 @@ public class PocProcessorImpl implements PocProcessor {
         int count = 0;
         //@link: org.conch.chain.BlockchainProcessorImpl.autoExtensionAppend update the ext tag
         List<? extends Transaction> txs = block.getTransactions();
-        Boolean containPoc = block.getExtValue(BlockImpl.ExtensionEnum.CONTAIN_POC);
-        if (txs == null || txs.size() <= 0 || containPoc == null || !containPoc) {
-            return count;
-        }
 
         //just process poc tx
         for (Transaction tx : txs) {
@@ -794,7 +802,7 @@ public class PocProcessorImpl implements PocProcessor {
         }finally {
             DbUtils.close(con);
         }
-        
+
         int count = 0;
         for (Transaction tx : txList) {
             if (pocTxProcess(tx)) count++;
@@ -826,30 +834,52 @@ public class PocProcessorImpl implements PocProcessor {
         if (tx == null)  return false;
 
         PocTxBody.PocNodeTypeV2 nodeTypeV2 = null;
+        PocTxBody.PocNodeTypeV3 nodeTypeV3 = null;
         Attachment attachment = tx.getAttachment();
         String summary = "";
-        if(attachment instanceof PocTxBody.PocNodeTypeV2){
+        if(attachment instanceof PocTxBody.PocNodeTypeV3){
+            nodeTypeV3 = (PocTxBody.PocNodeTypeV3) attachment;
+            summary = "V3 host=" + nodeTypeV3.getIp() + ",type=" + nodeTypeV3.getType().getName() + ",accountId=" + nodeTypeV3.getAccountId() + ", disk capacity=" + nodeTypeV3.getDiskCapacity();
+        }
+        else if(nodeTypeV3 == null && attachment instanceof PocTxBody.PocNodeTypeV2){
             nodeTypeV2 = (PocTxBody.PocNodeTypeV2) attachment;
-            summary = "host=" + nodeTypeV2.getIp() + ",type=" + nodeTypeV2.getType().getName() + ",accountId=" + nodeTypeV2.getAccountId();
-        }else if(attachment instanceof PocTxBody.PocNodeType) {
+            summary = "V2 host=" + nodeTypeV2.getIp() + ",type=" + nodeTypeV2.getType().getName() + ",accountId=" + nodeTypeV2.getAccountId();
+        }
+        else if(nodeTypeV2 == null && attachment instanceof PocTxBody.PocNodeType) {
             PocTxBody.PocNodeType nodeType = (PocTxBody.PocNodeType) attachment;
-            summary = "host=" + nodeType.getIp() + ",type=" + nodeType.getType().getName();
+            summary = "V1 host=" + nodeType.getIp() + ",type=" + nodeType.getType().getName();
             nodeTypeV2 = CheckSumValidator.isPreAccountsInTestnet(nodeType.getIp(), height);
         }
-        
-        if(nodeTypeV2 == null) {
+
+        if(nodeTypeV3 == null && nodeTypeV2 == null) {
             Logger.logWarningMessage("NodeType tx[id=%d,height=%d] summary[%s] is v1 that missing the account id, can't process it correctly", tx.getId(), tx.getHeight(), summary);
             return false;
         }
-        long accountId = nodeTypeV2.getAccountId();
-        
+        long accountId = -1;
+        String ip = null;
+        Peer.Type type = null;
+
+        if(nodeTypeV3 != null ) {
+            accountId =  nodeTypeV3.getAccountId() ;
+            ip = nodeTypeV3.getIp();
+            type = nodeTypeV3.getType();
+        }else if(nodeTypeV2 != null){
+            accountId =  nodeTypeV2.getAccountId() ;
+            ip = nodeTypeV2.getIp();
+            type = nodeTypeV2.getType();
+        }
+
+        if(LocalDebugTool.isCheckPocAccount(accountId)){
+            Logger.logDebugMessage("[LocalDebugMode] node statement address %s is in the poc tx processing ", Account.rsAccount(accountId));
+        }
+
         PocScore pocScoreToUpdate = PocHolder.getPocScore(height, accountId);
-        PocHolder.saveOrUpdate(pocScoreToUpdate.setHeight(height).nodeTypeCal(nodeTypeV2));
-        
-        if(StringUtils.isEmpty(nodeTypeV2.getIp()) || nodeTypeV2.getType() == null) {
+        PocHolder.saveOrUpdate(pocScoreToUpdate.setHeight(height).nodeTypeCal(nodeTypeV3 != null ? nodeTypeV3 : nodeTypeV2));
+
+        if(StringUtils.isEmpty(ip) || type == null) {
             Logger.logWarningMessage("NodeType tx[id=%d,height=%d,summary=%s] is a bad tx, don't add the certified peer", tx.getId(), tx.getHeight(), summary);
         }else{
-            PocHolder.addCertifiedPeer(height, nodeTypeV2.getType(), nodeTypeV2.getIp(), accountId);  
+            PocHolder.addOrUpdateCertifiedPeer(height, type, ip, accountId);
         }
         return true;
     }
@@ -919,11 +949,13 @@ public class PocProcessorImpl implements PocProcessor {
         }
         long accountId = account.getId();
         if(LocalDebugTool.isCheckPocAccount(accountId)) {
-            Logger.logDebugMessage(Account.rsAccount(accountId) + "'s balance is changed at height " + height);
+            Logger.logDebugMessage("[LocalDebugMode] " + Account.rsAccount(accountId) + "'s balance is changed at height " + height);
         }
         PocScore pocScoreToUpdate = PocHolder.getPocScore(height, accountId);
         PocHolder.saveOrUpdate(pocScoreToUpdate.setHeight(height).ssCal());
         return true;
     }
+
+
 
 }

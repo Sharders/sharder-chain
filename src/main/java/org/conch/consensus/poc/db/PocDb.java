@@ -392,7 +392,7 @@ public class PocDb  {
     }
     private static final CertifiedPeerTable certifiedPeerTable = new CertifiedPeerTable();
 
-    public static int getLastHeight(){
+    public static int getLastScoreHeight(){
         int lastHeight = -1;
         Connection con = null;
         try {
@@ -412,7 +412,7 @@ public class PocDb  {
         return lastHeight;
     }
 
-    public static void batchUpdate(Connection con, List<PocScore> pocScoreList) {
+    public static void batchUpdateScore(Connection con, List<PocScore> pocScoreList) {
         if (pocScoreList == null || pocScoreList.size() < 0 ) {
             return;
         }
@@ -426,7 +426,7 @@ public class PocDb  {
         });
     }
 
-    public static void saveOrUpdate(PocScore pocScore) {
+    public static void saveOrUpdateScore(PocScore pocScore) {
         if (pocScore == null || pocScore.getAccountId() == -1 || pocScore.getHeight() < 0 ) {
             return;
         }
@@ -441,11 +441,11 @@ public class PocDb  {
         }
     }
 
-    public static void delete(PocScore pocScore) {
+    public static void deleteScore(PocScore pocScore) {
         pocScoreTable.delete(pocScore.getAccountId(), pocScore.getHeight());
     }
 
-    public static int rollback(int height) {
+    public static int rollbackScore(int height) {
         return pocScoreTable.countAndRollback(height);
     }
 
@@ -463,7 +463,38 @@ public class PocDb  {
         return new PocScore(detail);
     }
 
-    public static Map<Long,PocScore>  listAll() {
+    public static Map<Long,PocScore> listAllScore() {
         return pocScoreTable.listAll();
+    }
+
+
+    public static Map<Long,CertifiedPeer> listAllPeers() {
+        return certifiedPeerTable.listAll();
+    }
+
+    public static void saveOrUpdatePeer(CertifiedPeer certifiedPeer) {
+        if (certifiedPeer == null
+                || certifiedPeer.getBoundAccountId() == -1
+                || certifiedPeer.getHeight() < 0 ) {
+            return;
+        }
+
+        Connection con = null;
+        try {
+            con = Db.db.getConnection();
+            certifiedPeerTable.saveOrUpdate(con, certifiedPeer);
+        } catch (SQLException e) {
+            throw new RuntimeException(e.toString(), e);
+        }finally {
+            DbUtils.close(con);
+        }
+    }
+
+    public static void deletePeer(CertifiedPeer certifiedPeer) {
+        certifiedPeerTable.delete(certifiedPeer.getBoundAccountId(), certifiedPeer.getHeight());
+    }
+
+    public static int rollbackPeer(int height) {
+        return certifiedPeerTable.countAndRollback(height);
     }
 }

@@ -24,53 +24,50 @@ import java.util.*;
 /**
  * PocHolder is a singleton to hold the score and reference map.
  * This map stored in the memory, changed by the poc txs.
- * 
+ *
  * PocHolder is just available for poc package 
- * 
+ *
  * @author <a href="mailto:xy@sharder.org">Ben</a>
  * @since 2019-01-29
  */
 
 public class PocHolder implements Serializable {
-    
+
     // you can use the key word 'transient' exclude the attribute to persist
-    
+
     static PocHolder inst = new PocHolder();
 
     int lastHeight = -1;
-    
+
     /** poc score **/
     // accountId : pocScore
-    protected transient Map<Long, PocScore> scoreMap = PocDb.listAll();
-   
+    protected transient Map<Long, PocScore> scoreMap = PocDb.listAllScore();
     // height : { accountId : pocScore }
     protected transient Map<Integer, Map<Long, PocScore>> historyScore = Maps.newConcurrentMap();
     /** poc score **/
 
     /** certified peers **/
-    // certified peer: foundation node,sharder hub/box, community node
+    // certified peer: foundation node, hub/box, community node
     // account id : certified peer
-    protected Map<Long, CertifiedPeer> certifiedPeers = Maps.newConcurrentMap();
+    protected Map<Long, CertifiedPeer> certifiedPeers = PocDb.listAllPeers();
     // height : { accountId : certifiedPeer }
     protected Map<Integer, Map<Long,CertifiedPeer>> historyCertifiedPeers = Maps.newConcurrentMap();
     /** certified peers **/
-    
-    
+
     private volatile Map<Integer, List<Long>> delayPocTxsByHeight = Maps.newConcurrentMap();
     private static volatile int pocTxHeight = -1;
-    
-    
+
     public static void updateHeight(int height){
         if(height == -1) return;
-        
+
         inst.lastHeight = height;
     }
-    
+
     public static boolean resetCertifiedPeers(){
         synchronized (inst.certifiedPeers) {
             inst.certifiedPeers.clear();
         }
-        
+
         return true;
     }
 
@@ -81,12 +78,12 @@ public class PocHolder implements Serializable {
         if(certifiedPeer == null) {
             certifiedPeer = getHistoryBoundPeer(height, accountId);
         }
-        
+
         return certifiedPeer;
     }
     public static CertifiedPeer getBoundPeer(String host, int height) {
         if(height == -1 || StringUtils.isEmpty(host)) return null;
-        
+
         CertifiedPeer certifiedPeer = null;
         Collection<CertifiedPeer> peers = inst.certifiedPeers.values();
         for(CertifiedPeer peer : peers){
@@ -95,11 +92,11 @@ public class PocHolder implements Serializable {
                 break;
             }
         }
-        
+
         if(certifiedPeer == null) {
             certifiedPeer = getHistoryBoundPeer(height, host);
         }
-        
+
         return certifiedPeer;
     }
 
@@ -108,7 +105,7 @@ public class PocHolder implements Serializable {
         return certifiedPeer == null ? false : certifiedPeer.isType(type);
     }
 
-    
+
     private static CertifiedPeer getHistoryBoundPeer(int height, long accountId){
         NavigableSet<Integer> heightSet = Sets.newTreeSet(inst.historyCertifiedPeers.keySet()).descendingSet();
         for(Integer historyHeight : heightSet) {
@@ -121,7 +118,7 @@ public class PocHolder implements Serializable {
         }
         return null;
     }
-    
+
     private static CertifiedPeer getHistoryBoundPeer(int height, String host){
         NavigableSet<Integer> heightSet = Sets.newTreeSet(inst.historyCertifiedPeers.keySet()).descendingSet();
         for(Integer historyHeight : heightSet) {
@@ -137,16 +134,16 @@ public class PocHolder implements Serializable {
         }
         return null;
     }
-    
+
     /**
      * add or update certified peer and bind account
      * 3 callers: PocHolder, PoC tx processor, Hub syn thread in Peers
-     * 
+     *
      * @param type peer type
      * @param host peer host
      * @param accountId bound account id
      */
-    private synchronized static void addOrUpdateBoundPeer(int height, Peer.Type type, String host, long accountId) {
+    public synchronized static void addOrUpdateCertifiedPeer(int height, Peer.Type type, String host, long accountId) {
         CertifiedPeer newPeer = new CertifiedPeer(height, type, host, accountId);
         try{
             newPeer.check();
@@ -155,15 +152,16 @@ public class PocHolder implements Serializable {
             return;
         }
 
+        PocDb.saveOrUpdatePeer(newPeer);
+
+//        Logger.logDebugMessage("#addOrUpdateBoundPeer# add a new certified peer: %s", newPeer.toString());
         if (!inst.certifiedPeers.containsKey(accountId)) {
-            Logger.logDebugMessage("#addOrUpdateBoundPeer# add a new certified peer: %s", newPeer.toString());
             inst.certifiedPeers.put(accountId, newPeer);
             return;
         }
 
         CertifiedPeer existPeer = inst.certifiedPeers.get(accountId);
-        
-        
+
         if(Peer.Type.FOUNDATION == type) {
             if(IpUtil.isFoundationDomain(newPeer.getHost())) {
                 existPeer.update(type);
@@ -178,7 +176,7 @@ public class PocHolder implements Serializable {
                 existPeer.update(type);
             }
         }
-        
+
         // move the old certified peer into history map
         int peerCertifiedHeight = existPeer.getHeight();
         int historyHeight = height - 1;
@@ -191,45 +189,25 @@ public class PocHolder implements Serializable {
         if(!inst.historyCertifiedPeers.containsKey(historyHeight)) {
             inst.historyCertifiedPeers.put(historyHeight, Maps.newHashMap());
         }
-        
+
         try{
-            existPeer.end(historyHeight); 
+            existPeer.end(historyHeight);
         }catch(ConchException.NotValidException e){
             Logger.logWarningMessage("failed to update a certified peer caused by [%s], Peer is %s", e.getMessage(), newPeer.toString());
             return;
         }
-      
+
         inst.historyCertifiedPeers.get(historyHeight).put(existPeer.getBoundAccountId(), existPeer);
         inst.certifiedPeers.remove(accountId);
-        
+
         // add the new certified peer into certifiedPeers map
         inst.certifiedPeers.put(accountId, newPeer);
-                
         existPeer.update(newPeer.getBoundAccountId());
-        
-        if(type == null) {
-            Logger.logDebugMessage("#addOrUpdateBoundPeer# update a certified peer: %s", existPeer.toString());
-            return;
-        }
-
-        // Logger.logDebugMessage("#addOrUpdateBoundPeer# update a certified peer: %s", existPeer.toString());
-    }
-    
-    /**
-     *  add certifiedPeer 
-     *  
-     * @param height
-     * @param type
-     * @param host
-     * @param accountId
-     */
-    public static void addCertifiedPeer(int height, Peer.Type type, String host, long accountId) {
-        addOrUpdateBoundPeer(height, type, host, accountId);
     }
 
     public static int countDelayPocTxs(int queryHeight) {
         int count = 0;
-        //order by height number 
+        //order by height number
         for(int i = 0 ; i <= queryHeight ; i++) {
             if(inst.delayPocTxsByHeight.containsKey(i)) {
                 count += inst.delayPocTxsByHeight.get(i).size();
@@ -241,7 +219,7 @@ public class PocHolder implements Serializable {
 
     public static List<Long> delayPocTxs(int queryHeight) {
         List<Long> txs = Lists.newArrayList();
-        //order by height number 
+        //order by height number
         for(int i = 0 ; i <= queryHeight ; i++) {
             if(inst.delayPocTxsByHeight.containsKey(i)) {
                 txs.addAll(inst.delayPocTxsByHeight.get(i));
@@ -269,19 +247,19 @@ public class PocHolder implements Serializable {
             });
         }
     }
-    
+
 //    static {
 //        synchronized (inst.scoreMap){
 //            inst.scoreMap = PocDb.listAll();
 //        }
 //    }
-    
+
     private PocHolder(){}
 
 
     static PocScore saveOrUpdate(PocScore pocScore) {
-        PocDb.saveOrUpdate(pocScore);
-        
+        PocDb.saveOrUpdateScore(pocScore);
+
         PocScore pocScoreDetail = inst.scoreMap.get(pocScore.accountId);
 
         if(pocScoreDetail == null
@@ -291,7 +269,7 @@ public class PocHolder implements Serializable {
 
         return pocScore;
     }
-    
+
     /**
      * get the poc score and detail of the specified height
      * @param height
@@ -315,15 +293,15 @@ public class PocHolder implements Serializable {
                 pocScore = existedScore;
             }
         }
-        
+
         if(pocScore == null) {
             pocScore = new PocScore(accountId,height);
             scoreMapping(pocScore);
         }
-       
+
         return pocScore;
     }
-    
+
     /**
      * - mapping the poc score of account
      * - persistence
@@ -334,21 +312,21 @@ public class PocHolder implements Serializable {
         if(inst.scoreMap.containsKey(pocScore.accountId)) {
             _pocScore = inst.scoreMap.get(pocScore.accountId);
             _pocScore.synFrom(pocScore);
-            
+
             if(!inst.historyScore.containsKey(pocScore.height)) {
                 recordHistoryScore(_pocScore);
             }
         }
-        
-        PocDb.saveOrUpdate(_pocScore);
-      
+
+        PocDb.saveOrUpdateScore(_pocScore);
+
         inst.scoreMap.put(pocScore.accountId,_pocScore);
 //        inst.lastHeight = pocScore.height > inst.lastHeight ? pocScore.height : inst.lastHeight;
-        
-        //TODO use the event to notify (there will have many consumers later): define an event 'POC_SCORE_CHANGED' 
+
+        //TODO use the event to notify (there will have many consumers later): define an event 'POC_SCORE_CHANGED'
         // to notify the all listeners: Generator and so on
         Generator.updatePocScore(_pocScore);
-        
+
         PocScorePrinter.print();
     }
 
@@ -359,9 +337,9 @@ public class PocHolder implements Serializable {
      * @return
      */
     static PocScore getExistedPocScore(int height,long accountId){
-        boolean containedInHistory = inst.historyScore.size() > 0 
-                                    && inst.historyScore.containsKey(height) 
-                                    && inst.historyScore.get(height).containsKey(accountId);
+        boolean containedInHistory = inst.historyScore.size() > 0
+                && inst.historyScore.containsKey(height)
+                && inst.historyScore.get(height).containsKey(accountId);
 
         PocScore score = null;
         if(!containedInHistory) {
@@ -377,26 +355,26 @@ public class PocHolder implements Serializable {
         }else{
             score = inst.historyScore.get(height).get(accountId);
         }
-        
+
         PocScorePrinter.print();
         return score;
     }
-    
+
     /**
      * - record current poc score into history
      * - persistence
      * - update old poc score records #abandoned
      * @param pocScore
-     */               
+     */
     static void recordHistoryScore(PocScore pocScore){
         PocScore historyPocScore = new PocScore(pocScore.height, pocScore);
-        PocDb.saveOrUpdate(historyPocScore);
-        
+        PocDb.saveOrUpdateScore(historyPocScore);
+
         if(!inst.historyScore.containsKey(pocScore.height)) {
             inst.historyScore.put(pocScore.height, Maps.newHashMap());
         }
         inst.historyScore.get(pocScore.height).put(pocScore.accountId, historyPocScore);
-        
+
     }
 
     @Override
@@ -415,10 +393,10 @@ public class PocHolder implements Serializable {
     private static class PocScorePrinter {
         static int count = 0;
         static final int printCount = 1;
-        
+
         protected static boolean debug = Constants.isTestnetOrDevnet()  ? false : false;
-        protected static boolean debugHistory = Constants.isDevnet() ? false : false;
-        
+        protected static boolean debugHistory = Constants.isDevnet() ? true : false;
+
         protected static String summary = reset();
         private static final String splitter = "\n\r";
 
@@ -429,13 +407,13 @@ public class PocHolder implements Serializable {
             }
             return str;
         }
-        
+
         static String reset(){
             String summary = appendSplitter("--------------PocScorePrinter-------------",false);
             count=0;
             return summary;
         }
-        
+
         static String scoreMapStr( Map<Long, PocScore> scoreMap){
             Set<Long> accountIds = scoreMap.keySet();
             for(Long accountId : accountIds){
@@ -444,12 +422,12 @@ public class PocHolder implements Serializable {
             }
             return summary;
         }
-        
+
         static void putin(){
             summary += appendSplitter("PocScore & Height Map[ accountId : PocScore ] height=" + Conch.getBlockchain().getHeight() + ", size=" + inst.scoreMap.size() + " >>>>>>>>",true);
             scoreMapStr(inst.scoreMap);
             summary += appendSplitter("<<<<<<<<<<",true);
-            
+
             if(debugHistory) {
                 summary += appendSplitter("PocScore & Height Map[ height : Map{ accountId : PocScore } ] size=" + inst.historyScore.size() + " >>>>>>>>",true);
                 Set<Integer> heights = inst.historyScore.keySet();
@@ -459,9 +437,9 @@ public class PocHolder implements Serializable {
                     scoreMapStr(inst.historyScore.get(height));
                     summary += appendSplitter("}",true);
                 }
-                summary += appendSplitter("<<<<<<<<<<",true);  
+                summary += appendSplitter("<<<<<<<<<<",true);
             }
-          
+
         }
 
         static void print(){
