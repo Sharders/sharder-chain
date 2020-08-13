@@ -1,6 +1,5 @@
 package org.conch.consensus.poc.db;
 
-import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
@@ -8,6 +7,9 @@ import org.conch.consensus.poc.PocScore;
 import org.conch.db.Db;
 import org.conch.db.DbUtils;
 import org.conch.db.DerivedDbTable;
+import org.conch.peer.CertifiedPeer;
+import org.conch.peer.Peer;
+import org.conch.util.Convert;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -17,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 
+ *
  * @author <a href="mailto:xy@sharder.org">Ben</a>
  * @since 2019-05-17
  */
@@ -209,7 +211,7 @@ public class PocDb  {
                 throw new IllegalStateException("Not in transaction");
             }
             try (Connection con = Db.db.getConnection();
-                 PreparedStatement pstmtDelete = con.prepareStatement("DELETE FROM ACCOUNT_POC_SCORE WHERE height > ?")) {
+                 PreparedStatement pstmtDelete = con.prepareStatement("DELETE FROM certified_peer WHERE height > ?")) {
                 pstmtDelete.setInt(1, height);
                 return pstmtDelete.executeUpdate();
             } catch (SQLException e) {
@@ -217,43 +219,43 @@ public class PocDb  {
             }
         }
 
-        public Map<Long,PocScore> listAll() {
-            Map<Long,PocScore> scoreMap = Maps.newHashMap();
+        public Map<Long, CertifiedPeer> listAll() {
+            Map<Long,CertifiedPeer> peerMap = Maps.newHashMap();
+            Connection con = null;
             try {
-                Conch.getBlockchain().readLock();
-                Connection con = null;
-                try {
-                    con = Db.db.getConnection();
-                    PreparedStatement pstmt = con.prepareStatement("SELECT poc_detail AS detail FROM account_poc_score ORDER BY height DESC");
+                con = Db.db.getConnection();
+                PreparedStatement pstmt = con.prepareStatement("SELECT * AS detail FROM certified_peer ORDER BY height DESC");
 
-                    ResultSet rs = pstmt.executeQuery();
-                    while(rs.next()){
-                        try{
-                            PocScore pocScore = new PocScore(rs.getString("detail"));
-
-                            // compare the height
-                            if(scoreMap.containsKey(pocScore.getAccountId())){
-                                PocScore oldScore = scoreMap.get(pocScore.getAccountId());
-                                if(oldScore.getHeight() < pocScore.getHeight()){
-                                    scoreMap.put(pocScore.getAccountId(), pocScore);
-                                }
-                            }else{
-                                scoreMap.put(pocScore.getAccountId(), pocScore);
+                ResultSet rs = pstmt.executeQuery();
+                while(rs.next()){
+                    try{
+                        String host = rs.getString("host");
+                        Long linkedAccountId= rs.getLong("account_id");
+                        Peer.Type type = Peer.Type.getByCode(rs.getInt("type"));
+                        int height = rs.getInt("height");
+                        int lastUpdateEpochTime = rs.getInt("last_updated");
+                        CertifiedPeer certifiedPeer = new CertifiedPeer(type, host, linkedAccountId, Convert.fromEpochTime(lastUpdateEpochTime));
+                        certifiedPeer.setHeight(height);
+                        // compare the height
+                        if(peerMap.containsKey(certifiedPeer.getBoundAccountId())){
+                            CertifiedPeer oldPeer = peerMap.get(certifiedPeer.getBoundAccountId());
+                            if(oldPeer.getHeight() < certifiedPeer.getHeight()){
+                                peerMap.put(certifiedPeer.getBoundAccountId(), certifiedPeer);
                             }
-                        }catch (Exception e) {
-                            // continue to fetch next
-                            System.err.println(e);
+                        }else{
+                            peerMap.put(certifiedPeer.getBoundAccountId(), certifiedPeer);
                         }
+                    }catch (Exception e) {
+                        // continue to fetch next
+                        System.err.println(e);
                     }
-                } catch (SQLException e) {
-                    throw new RuntimeException(e.toString(), e);
-                }finally {
-                    DbUtils.close(con);
                 }
-            } finally {
-                Conch.getBlockchain().readUnlock();
+            } catch (SQLException e) {
+                throw new RuntimeException(e.toString(), e);
+            }finally {
+                DbUtils.close(con);
             }
-            return scoreMap;
+            return peerMap;
         }
 
         public String get(long accountId, int height, boolean loadHistory) {

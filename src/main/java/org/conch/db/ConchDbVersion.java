@@ -1210,6 +1210,17 @@ public class ConchDbVersion extends DbVersion {
             case 496:
                 apply("CREATE INDEX IF NOT EXISTS pool_id_idx ON account_pool (pool_id DESC)");
             case 497:
+                apply("ALTER TABLE account_pool ADD COLUMN IF NOT EXISTS height INT NOT NULL");
+            case 498:
+                apply("DROP INDEX IF EXISTS pool_id_idx");
+            case 499:
+                apply("CREATE INDEX IF NOT EXISTS pool_id_height_idx ON account_pool (pool_id, height DESC)");
+            case 500:
+                apply("CREATE TABLE IF NOT EXISTS certified_peer (db_id IDENTITY, host VARCHAR NOT NULL, account_id BIGINT NOT NULL,"
+                        + "type INT NOT NULL, height INT NOT NULL, last_updated INT)");
+            case 501:
+                apply("CREATE INDEX IF NOT EXIST certified_peer_account_height_idx ON certified_peer (account_id, height DESC)");
+            case 502:
                 break;
             default:
                 throw new RuntimeException("Blockchain database inconsistent with code, at update " + nextUpdate

@@ -39,7 +39,7 @@ public class CertifiedPeer implements Serializable {
     String boundRS;
     Timestamp updateTime;
 
-    public CertifiedPeer(Peer.Type type, String host, long accountId) {
+    public CertifiedPeer(Peer.Type type, String host, long accountId, long lastUpdateMS) {
         this.type = type != null ? type : Peer.Type.NORMAL;
         this.useNat = Peers.isUseNATService(host);
         this.host = host;
@@ -50,7 +50,11 @@ public class CertifiedPeer implements Serializable {
         } catch (Exception ignore) {
             //ignore
         }
-        updateTimeSet();
+        updateTimeSet(lastUpdateMS);
+    }
+
+    public CertifiedPeer(Peer.Type type, String host, long accountId) {
+        this(type, host, accountId, System.currentTimeMillis());
     }
 
     public CertifiedPeer(int height, Peer.Type type, String host, long accountId) {
@@ -58,9 +62,9 @@ public class CertifiedPeer implements Serializable {
         this.height = height;
     }
 
-    private void updateTimeSet() {
+    private void updateTimeSet(long timeMS) {
         try {
-            this.updateTime = new Timestamp(System.currentTimeMillis());
+            this.updateTime = new Timestamp(timeMS);
         } catch (Exception ignore) {
             //ignore
         }
@@ -73,19 +77,19 @@ public class CertifiedPeer implements Serializable {
 
     public CertifiedPeer update(int height) {
         if (this.height < height) this.height = height;
-        updateTimeSet();
+        updateTimeSet(System.currentTimeMillis());
         return this;
     }
 
     public CertifiedPeer update(long accountId) {
         boundAccountSet(accountId);
-        updateTimeSet();
+        updateTimeSet(System.currentTimeMillis());
         return this;
     }
 
     public CertifiedPeer update(Peer.Type type) {
         this.type = type;
-        updateTimeSet();
+        updateTimeSet(System.currentTimeMillis());
         return this;
     }
 
