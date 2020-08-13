@@ -130,7 +130,7 @@ public class PocDb  {
                     int height = queryRS.getInt("height");
                     if(pocScore.getHeight() > height) {
                         Long dbId = queryRS.getLong("db_id");
-                        try (PreparedStatement updateStat = con.prepareStatement("UPDATE account_poc_score SET latest = FALSE WHERE db_id=? AND AND latest = TRUE LIMIT 1")) {
+                        try (PreparedStatement updateStat = con.prepareStatement("UPDATE account_poc_score SET latest = FALSE WHERE db_id=? AND latest = TRUE LIMIT 1")) {
                             updateStat.setLong(1,dbId);
                             updateStat.executeUpdate();
                         }
@@ -388,7 +388,7 @@ public class PocDb  {
                     int height = queryRS.getInt("height");
                     if(certifiedPeer.getHeight() > height) {
                         Long dbId = queryRS.getLong("db_id");
-                        try (PreparedStatement updateStat = con.prepareStatement("UPDATE certified_peer SET latest = FALSE WHERE db_id=? AND AND latest = TRUE LIMIT 1")) {
+                        try (PreparedStatement updateStat = con.prepareStatement("UPDATE certified_peer SET latest = FALSE WHERE db_id=? AND latest = TRUE LIMIT 1")) {
                             updateStat.setLong(1,dbId);
                             updateStat.executeUpdate();
                         }
