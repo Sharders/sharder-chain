@@ -2134,8 +2134,9 @@ public final class Account {
         AssetDividend.addAssetDividend(transactionId, attachment, totalDividend, numAccounts);
     }
 
+    private static final String AUTO_POC_TX_ADDR = Conch.getStringProperty("sharder.autoTransactionAddress");
     public static void checkApiAutoTxAccount(String address) throws ConchException.AccountControlException {
-        String correctRs = Optional.ofNullable(Conch.getStringProperty("sharder.autoTransactionAddress"))
+        String correctRs = Optional.ofNullable(AUTO_POC_TX_ADDR)
                 .orElseThrow(() -> new ConchException.AccountControlException("auto transaction address not configured! please set sharder.autoTransactionAddress configuration"));
         if (!correctRs.equals(address)) {
             throw new ConchException.AccountControlException("Auto Poc Tx account address does not match! please reset sharder.autoTransactionAddress configuration");
