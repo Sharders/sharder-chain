@@ -596,6 +596,7 @@ public class PocProcessorImpl implements PocProcessor {
     }
 
     private static long pocTxsProcessStartMS = -1;
+    private static long pocTxsProcessingMS = -1;
     /**
      * re-process the poc txs to re-calculate the poc score of miners
      * @param fromHeight
@@ -618,14 +619,19 @@ public class PocProcessorImpl implements PocProcessor {
             Logger.logInfoMessage("[HistoryPocTxs] start to process history poc txs from %d to %d, it may take a few minutes ...", fromHeight, toHeight);
             pocTxsProcessStartMS = System.currentTimeMillis();
 
+            int blockProcessCount = 0;
             for (BlockImpl block : blocks) {
                 count += instance.pocSeriesTxProcess(block);
+                if(blockProcessCount++ % 100 == 0) {
+                    pocTxsProcessingMS = System.currentTimeMillis() - pocTxsProcessStartMS;
+                    Logger.logInfoMessage("[HistoryPocTxs] %d block's poc txs be processed [used time=%d S (%d MS)]", blockProcessCount, pocTxsProcessingMS / 1000, pocTxsProcessStartMS);
+                }
             }
 
-            long pocTxsProcessingMS = System.currentTimeMillis() - pocTxsProcessStartMS;
-            Logger.logInfoMessage("[HistoryPocTxs] finish history poc txs processing[from %d to %d] [processed size=%d] [used time=%d MS(%d S)]"
+            pocTxsProcessingMS = System.currentTimeMillis() - pocTxsProcessStartMS;
+            Logger.logInfoMessage("[HistoryPocTxs] finish history poc txs processing[from %d to %d] [processed size=%d] [used time=%d S (%d MS)]"
                     , fromHeight, toHeight, count
-                    , pocTxsProcessStartMS, pocTxsProcessingMS / 1000);
+                    , pocTxsProcessingMS / 1000, pocTxsProcessStartMS);
         } finally {
             DbUtils.close(blocks);
             BlockchainImpl.getInstance().writeUnlock();
