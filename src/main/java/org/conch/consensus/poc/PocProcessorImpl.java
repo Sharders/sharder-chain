@@ -258,6 +258,7 @@ public class PocProcessorImpl implements PocProcessor {
         Conch.getBlockchainProcessor().addListener((Block block) -> {
             // balance hold score re-calculate
             balanceChangeMapProcessing(block.getHeight());
+            instance.pocSeriesTxProcess(block);
         }, BlockchainProcessor.Event.AFTER_BLOCK_ACCEPT);
 
         // balance changed event
@@ -517,7 +518,7 @@ public class PocProcessorImpl implements PocProcessor {
     /**
      * update the recipient id of the old  poc txs
      */
-    public static void updateRecipientIdIntoOldPocTxs() {
+    private static void updateRecipientIdIntoOldPocTxs() {
         if(Conch.getHeight() > Constants.POC_TX_ALLOW_RECIPIENT) {
             return;
         }
@@ -563,7 +564,7 @@ public class PocProcessorImpl implements PocProcessor {
      * - reset the poc table to avoid the poc score wrong
      * - close this reset processing after Constants.POC_CAL_ALGORITHM
      */
-    public static void checkAndResetPocDb() {
+    private static void checkAndResetPocDb() {
         BlockImpl lastBlock = BlockDb.findLastBlock();
         if(lastBlock != null
                 && lastBlock.getHeight() > Constants.POC_CAL_ALGORITHM) {
@@ -645,8 +646,7 @@ public class PocProcessorImpl implements PocProcessor {
 
     private static final Runnable delayedPocTxsProcessThread = () -> {
         try {
-            int currentHeight = Conch.getBlockchain().getHeight();
-            if (instance.processDelayedPocTxs(currentHeight)) {
+            if (instance.processDelayedPocTxs(Conch.getHeight())) {
                 Logger.logDebugMessage("no needs to syn and process poc serial txs now, sleep %d seconds...", pocTxSynThreadInterval);
                 return;
             }
@@ -656,7 +656,7 @@ public class PocProcessorImpl implements PocProcessor {
             }
 
             try {
-                instance.processDelayedPocTxs(currentHeight);
+                instance.processDelayedPocTxs(Conch.getHeight());
             } catch (Exception e) {
                 Logger.logErrorMessage("Process delayed poc txs failed caused by [%s]", e.getMessage());
             }
@@ -741,15 +741,18 @@ public class PocProcessorImpl implements PocProcessor {
                 // coinbase tx processing
                 Attachment.CoinBase coinBase = (Attachment.CoinBase) tx.getAttachment();
                 Account senderAccount = Account.getAccount(tx.getSenderId());
-                Map<Long, Long> consignors = coinBase.getConsignors();
+                // crowd miner account
 
+
+                // pool mining account
+                Map<Long, Long> consignors = coinBase.getConsignors();
                 if (consignors.size() == 0) {
                     putInBalanceChangedAccount(block.getHeight(), senderAccount, Account.Event.POC);
                 } else {
                     Map<Long, Long> rewardList = PoolRule.calRewardMapAccordingToRules(senderAccount.getId(), coinBase.getGeneratorId(), tx.getAmountNQT(), consignors);
                     for (long id : rewardList.keySet()) {
                         Account account = Account.getAccount(id);
-                        putInBalanceChangedAccount(block.getHeight(), senderAccount, Account.Event.POC);
+                        putInBalanceChangedAccount(block.getHeight(), account, Account.Event.POC);
                     }
                 }
                 count++;
