@@ -50,9 +50,6 @@ public class PocProcessorImpl implements PocProcessor {
      **/
 
     public static PocProcessorImpl instance = getOrCreate();
-    // execute once when restart the cos application
-    private static boolean oldPocTxsProcess = false;
-
     //    private static final int peerSynThreadInterval = 600;
     private static final int pocTxSynThreadInterval = 60;
 
@@ -368,7 +365,7 @@ public class PocProcessorImpl implements PocProcessor {
 
     @Override
     public void notifySynTxNow() {
-        oldPocTxsProcess = true;
+        reprocessAllPocTxs = true;
     }
 
     /**
@@ -407,7 +404,7 @@ public class PocProcessorImpl implements PocProcessor {
     @Override
     public boolean pocTxsProcessed(int height) {
         // poc isn't processed: whether contains delayed poc txs or old poc txs need to process
-        return !oldPocTxsProcess && PocHolder.countDelayPocTxs(height) <= 0;
+        return !reprocessAllPocTxs && PocHolder.countDelayPocTxs(height) <= 0;
     }
 
     @Override
@@ -506,8 +503,9 @@ public class PocProcessorImpl implements PocProcessor {
         }
 
         //load and process the poc txs from history blocks
-        if (PocHolder.inst != null && PocHolder.inst.lastHeight <= Conch.getBlockchain().getHeight()) {
-            oldPocTxsProcess = true;
+        if (PocHolder.inst != null
+                && PocHolder.inst.lastHeight <= Conch.getBlockchain().getHeight()) {
+            reprocessAllPocTxs = true;
         }
     }
 
@@ -557,7 +555,6 @@ public class PocProcessorImpl implements PocProcessor {
 
     private static String PROPERTY_REPROCESS_POC_TXS = "sharder.reprocessPocTxs";
     private static boolean reprocessAllPocTxs = Conch.getBooleanProperty(PROPERTY_REPROCESS_POC_TXS, true);
-//    Conch.storePropertieToFile(PROPERTY_REPROCESS_POC_TXS, "false");
     /**
      * - reset the poc table to avoid the poc score wrong
      * - close this reset processing after Constants.POC_CAL_ALGORITHM
@@ -642,13 +639,13 @@ public class PocProcessorImpl implements PocProcessor {
     private static final Runnable oldPocTxsProcessThread = () -> {
         try {
 
-            if (!oldPocTxsProcess) {
-                Logger.logDebugMessage("[HistoryPocTxs] all history poc txs be processed yet, sleep for the next round check...");
+            if (!reprocessAllPocTxs) {
+//                Logger.logDebugMessage("[HistoryPocTxs] all history poc txs be processed yet, sleep for the next round check...");
                 return;
             }
 
             // old poc txs process: a) miss the poc tx, b) restart the cos client
-            if (oldPocTxsProcess) {
+            if (reprocessAllPocTxs) {
                 // total poc txs from last height
                 int fromHeight = 0;
                 if(reprocessAllPocTxs){
@@ -658,7 +655,8 @@ public class PocProcessorImpl implements PocProcessor {
                 }
 
                 reProcessPocTxs(fromHeight, Conch.getHeight());
-                oldPocTxsProcess = false;
+                reprocessAllPocTxs = false;
+                Conch.storePropertieToFile(PROPERTY_REPROCESS_POC_TXS, "false");
             }
 
         } catch (Exception e) {
