@@ -649,9 +649,10 @@ public class PocProcessorImpl implements PocProcessor {
     public static void checkAndFetchDbToReGenerateScores(){
         if(reGeneratePocScores) {
             Logger.logInfoMessage("Restore the latest archived db file to local and restart the cos service");
-            ClientUpgradeTool.restoreDbToLastArchive();
+            new Thread(() -> {
+                ClientUpgradeTool.restoreDbToLastArchive();
+            }).start();
             Conch.storePropertieToFile("sharder.reGeneratePocScores", "false");
-            Conch.restartApplication(null);
         }
     }
 
