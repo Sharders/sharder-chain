@@ -349,7 +349,18 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
             Logger.logErrorMessage("forceDeleteBakFolder occur unknown exception", e);
         }
     }
-    
+
+    private static boolean reGeneratePocScores = Conch.getBooleanProperty("sharder.reGeneratePocScores", false);
+    public static void checkAndFetchDbToReGenerateScores(){
+        if(reGeneratePocScores) {
+            Logger.logInfoMessage("Restore the latest archived db file to local and restart the cos service");
+            Conch.storePropertieToFile("sharder.reGeneratePocScores", "false");
+            new Thread(() -> {
+                ClientUpgradeTool.restoreDbToLastArchive();
+            }).start();
+        }
+    }
+
     public static void init() {
         // auto upgrade
         boolean closeAutoUpgrade = Conch.getBooleanProperty(PROPERTY_CLOSE_AUTO_UPGRADE);
@@ -360,6 +371,9 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
         }
 
         checkOrForceDeleteBakFolder();
+
+        // restore the DB
+        checkAndFetchDbToReGenerateScores();
 //        
 //        // manual reset
 //        String resetStr = Conch.getStringProperty(PROPERTY_MANUAL_RESET, null);

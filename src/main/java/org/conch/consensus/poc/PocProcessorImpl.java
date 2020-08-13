@@ -19,7 +19,6 @@ import org.conch.db.DbUtils;
 import org.conch.mint.pool.PoolRule;
 import org.conch.peer.CertifiedPeer;
 import org.conch.peer.Peer;
-import org.conch.tools.ClientUpgradeTool;
 import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionImpl;
@@ -564,7 +563,6 @@ public class PocProcessorImpl implements PocProcessor {
     public static void init() {
 //        checkAndResetPocDb();
         PocDb.init();
-        checkAndFetchDbToReGenerateScores();
         ThreadPool.scheduleThread("OldPocTxsProcessThread", oldPocTxsProcessThread, 1, TimeUnit.MINUTES);
         ThreadPool.scheduleThread("DelayedPocTxsProcessThread", delayedPocTxsProcessThread, pocTxSynThreadInterval, TimeUnit.SECONDS);
         //updateRecipientIdIntoOldPocTxs();
@@ -613,47 +611,6 @@ public class PocProcessorImpl implements PocProcessor {
             BlockchainImpl.getInstance().writeUnlock();
         }
         return count;
-    }
-
-    private static boolean reGeneratePocScores = Conch.getBooleanProperty("sharder.reGeneratePocScores", false);
-    public static void checkAndReGeneratePocScores(){
-        long startMS = System.currentTimeMillis();
-        if(reGeneratePocScores) {
-            Logger.logInfoMessage("Start to re-generate all poc scores...");
-//            PocDb.reGenerateAllScores();
-//            long scoreReGenerateMS = System.currentTimeMillis();
-//            Logger.logInfoMessage("Finish the poc scores re-generating, used time %d S(≈%d MS)"
-//                    , (scoreReGenerateMS-startMS) /1000, (scoreReGenerateMS-startMS));
-
-            Logger.logInfoMessage("Start to re-process all poc txs...");
-            reProcessPocTxs(0, Conch.getHeight());
-            long reprocessPocTxsMS = System.currentTimeMillis();
-            Logger.logInfoMessage("Finish the poc txs reprocessing, used time %d S(≈%d MS)"
-                    , (reprocessPocTxsMS-startMS) /1000, (reprocessPocTxsMS-startMS));
-
-
-            Logger.logInfoMessage("Start to trim derived tables");
-            Conch.getBlockchainProcessor().trimDerivedTables();
-            long trimTablesMS = System.currentTimeMillis();
-            Logger.logInfoMessage("Finish the table trimming, used time %d S(≈%d MS)"
-                    , (trimTablesMS-reprocessPocTxsMS) /1000, (trimTablesMS-reprocessPocTxsMS));
-
-//            reGeneratePocScores = false;
-//            Conch.storePropertieToFile("sharder.reGeneratePocScores", "false");
-            Logger.logInfoMessage("Re-generate all finished, used time %d S(≈%d MS)"
-                    , (trimTablesMS-startMS) /1000, (trimTablesMS-startMS));
-
-        }
-    }
-
-    public static void checkAndFetchDbToReGenerateScores(){
-        if(reGeneratePocScores) {
-            Logger.logInfoMessage("Restore the latest archived db file to local and restart the cos service");
-            new Thread(() -> {
-                ClientUpgradeTool.restoreDbToLastArchive();
-            }).start();
-            Conch.storePropertieToFile("sharder.reGeneratePocScores", "false");
-        }
     }
 
     private static final Runnable oldPocTxsProcessThread = () -> {

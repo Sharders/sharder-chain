@@ -37,21 +37,25 @@ public class PocScore implements Serializable {
     BigInteger total = null;
 
     // don't use the static parameter (calculate should base on the height)
-    private static BigInteger SCORE_MULTIPLIER = parseAndGetScoreMagnification();
+    private static BigInteger SCORE_MULTIPLIER = parseAndGetScoreMagnification(0);
 
     /**
      * mag. of poc score is use to increase the poc score of the miner to make sure the mining gap is match the preset interval
      * @return
      */
-    private static BigInteger parseAndGetScoreMagnification(){
+    private static BigInteger parseAndGetScoreMagnification(int height){
         BigInteger mag = BigInteger.TEN;
         try{
             if(LocalDebugTool.isLocalDebugAndBootNodeMode){
                 return new BigInteger("100000");
             }
 
-            if(Conch.getHeight() <= (Constants.POC_TX_ALLOW_RECIPIENT + 70)) {
+            if(height <= (Constants.POC_TX_ALLOW_RECIPIENT + 70)) {
                 mag = new BigInteger("1000");
+            }
+
+            if(height > Constants.POC_MULTIPLIER_CHANGE_HEIGHT){
+                mag = new BigInteger("500");
             }
         }catch(Exception e){
             e.printStackTrace();
@@ -185,8 +189,8 @@ public class PocScore implements Serializable {
 
         // FIXME- remove after the height 'POC_MULTIPLIER_CHANGE_HEIGHT'
         if(Conch.versionCompare("0.0.4", "2020-08-04 19:19:19") > 0
-                || Conch.getHeight() > Constants.POC_MULTIPLIER_CHANGE_HEIGHT) {
-            return score.multiply(parseAndGetScoreMagnification());
+                || this.height > Constants.POC_MULTIPLIER_CHANGE_HEIGHT) {
+            return score.multiply(parseAndGetScoreMagnification(this.height));
         }
 
         return score.multiply(SCORE_MULTIPLIER);
