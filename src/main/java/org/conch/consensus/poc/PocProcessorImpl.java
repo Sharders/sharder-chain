@@ -564,8 +564,8 @@ public class PocProcessorImpl implements PocProcessor {
     public static void init() {
 //        checkAndResetPocDb();
         PocDb.init();
-        checkAndReGeneratePocScores();
-//        ThreadPool.scheduleThread("OldPocTxsProcessThread", oldPocTxsProcessThread, 1, TimeUnit.MINUTES);
+        checkAndFetchDbToReGenerateScores();
+        ThreadPool.scheduleThread("OldPocTxsProcessThread", oldPocTxsProcessThread, 1, TimeUnit.MINUTES);
         ThreadPool.scheduleThread("DelayedPocTxsProcessThread", delayedPocTxsProcessThread, pocTxSynThreadInterval, TimeUnit.SECONDS);
         //updateRecipientIdIntoOldPocTxs();
     }
@@ -601,7 +601,6 @@ public class PocProcessorImpl implements PocProcessor {
                 count += instance.pocSeriesTxProcess(block);
                 if(blockProcessCount++ % 100 == 0) {
                     pocTxsProcessingMS = System.currentTimeMillis() - pocTxsProcessStartMS;
-                    Logger.logDebugMessage("[HistoryPocTxs] %d block's poc txs be processed [used time= %d S(≈%d MS)]", blockProcessCount, pocTxsProcessingMS / 1000, pocTxsProcessStartMS);
                 }
             }
 
@@ -644,14 +643,14 @@ public class PocProcessorImpl implements PocProcessor {
             Logger.logInfoMessage("Re-generate all finished, used time %d S(≈%d MS)"
                     , (trimTablesMS-startMS) /1000, (trimTablesMS-startMS));
 
-
         }
     }
 
     public static void checkAndFetchDbToReGenerateScores(){
         if(reGeneratePocScores) {
-            Logger.logDebugMessage("Fetch and upgrade the latest archived db file to local and restart the cos service");
-            ClientUpgradeTool.fetchLastDbArchive();
+            Logger.logInfoMessage("Restore the latest archived db file to local and restart the cos service");
+            ClientUpgradeTool.restoreDbToLastArchive();
+            Conch.storePropertieToFile("sharder.reGeneratePocScores", "false");
             Conch.restartApplication(null);
         }
     }
@@ -664,10 +663,10 @@ public class PocProcessorImpl implements PocProcessor {
                 return;
             }
 
-            boolean reprocessBefore = Conch.containProperty(PROPERTY_REPROCESS_POC_TXS);
             // old poc txs process: a) miss the poc tx, b) restart the cos client
             if (reprocessAllPocTxs) {
                 // total poc txs from last height
+                boolean reprocessBefore = Conch.containProperty(PROPERTY_REPROCESS_POC_TXS);
                 int fromHeight = reprocessBefore ? PocDb.getLastScoreHeight() : 0;
                 reProcessPocTxs(fromHeight, Conch.getHeight());
 
