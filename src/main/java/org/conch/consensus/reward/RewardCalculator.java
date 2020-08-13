@@ -299,6 +299,8 @@ public class RewardCalculator {
         }
     }
 
+
+    private static long rewardCalStartMS = -1;
     /**
      * total 2 stages:
      * stage one is in tx accepted, the rewards need be lock;
@@ -312,21 +314,25 @@ public class RewardCalculator {
         Account senderAccount = Account.getAccount(tx.getSenderId());
         Account minerAccount = Account.getAccount(coinBase.getCreator());
 
+        rewardCalStartMS = System.currentTimeMillis();
+
         String stage = stageTwo ? "Two" : "One";
         // Crowd Miner Reward
         long miningRewards =  tx.getAmountNQT();
         if(coinBase.isType(Attachment.CoinBase.CoinBaseType.CROWD_BLOCK_REWARD)) {
             Map<Long, Long> crowdMiners = coinBase.getCrowdMiners();
-            Logger.logInfoMessage("[Rewards-%s] distribute crowd miner's rewards[crowd miner size=%d] at height %d", stage, crowdMiners.size(), tx.getHeight());
+            Logger.logInfoMessage("[Rewards-Stage%s] distribute crowd miner's rewards[crowd miner size=%d] at height %d", stage, crowdMiners.size(), tx.getHeight());
             calAndSetCrowdMinerReward(minerAccount, tx, crowdMiners, stageTwo);
             if(crowdMiners.size() > 0){
                 miningRewards = tx.getAmountNQT() - crowdMinerReward(tx.getHeight());
             }
         }
+        long crowdRewardProcessingMS = System.currentTimeMillis() - rewardCalStartMS;
 
+        rewardCalStartMS = System.currentTimeMillis();
         // Mining Reward (include Pool mode)
         Map<Long, Long> consignors = coinBase.getConsignors();
-        Logger.logInfoMessage("[Rewards-%s] distribute block mining's rewards[ mining joiner size=%d] at height %d. " +
+        Logger.logInfoMessage("[Rewards-Stage%s] distribute block mining's rewards[ mining joiner size=%d] at height %d. " +
                         "Joiner size = 0 means solo miner mode, all block mined rewards will distribute to miner[%s]; " +
                         "Joiner size > 0 means pool mining mode, block mined rewards will distribute under the pool rules.",
                 stage, consignors.size(), tx.getHeight(), minerAccount.getRsAddress());
@@ -339,6 +345,13 @@ public class RewardCalculator {
                 updateBalanceAndFrozeIt(account, tx, rewardList.get(id), stageTwo);
             }
         }
+        long miningRewardProcessingMS = System.currentTimeMillis() - rewardCalStartMS;
+
+        Logger.logInfoMessage("[Rewards-Performance-%d-Stage%s] crowd miner's rewards distribution processing time is %d MS(%d S)" +
+                        ", mining rewards distribution processing time is %d MS(%d S)",
+                tx.getHeight(), stage
+                , crowdRewardProcessingMS, crowdRewardProcessingMS / 1000
+                , miningRewardProcessingMS, miningRewardProcessingMS /1000 );
         return tx.getAmountNQT();
     }
 
