@@ -161,13 +161,27 @@ public class PocScore implements Serializable {
         return this;
     }
 
+    /**
+     * temporary to compatible the
+     * @return
+     */
+    public BigInteger reCalTotalForCompatibility(){
+        if(Conch.getHeight() <= Constants.POC_MULTIPLIER_CHANGE_HEIGHT) {
+            total = ssScore.add(nodeTypeScore).add(serverScore).add(hardwareScore).add(networkScore).add(performanceScore).add(onlineRateScore)
+                    .add(blockMissScore).add(bcScore).multiply(BigInteger.valueOf(1000));
+        }
+        return total;
+    }
+
     public BigInteger total() {
 //        // 90% of block rewards for hub miner, 10% for other miners in Testnet phase1 (before end of 2019.Q2)
 //        BigInteger rate = Conch.getPocProcessor().isCertifiedPeerBind(accountId, height) ? BigInteger.valueOf(90) : BigInteger.valueOf(10);
 //        return score.multiply(SCORE_MULTIPLIER).multiply(rate).divide(BigInteger.valueOf(100));
+
         if(total != null) return total;
 
-        BigInteger score = ssScore.add(nodeTypeScore).add(serverScore).add(hardwareScore).add(networkScore).add(performanceScore).add(onlineRateScore).add(blockMissScore).add(bcScore);
+        BigInteger score = ssScore.add(nodeTypeScore).add(serverScore).add(hardwareScore).add(networkScore).add(performanceScore).add(onlineRateScore)
+                .add(blockMissScore).add(bcScore);
 
         if(Conch.getHeight() > Constants.POC_MULTIPLIER_CHANGE_HEIGHT) {
             return score.multiply(parseAndGetScoreMagnification());
