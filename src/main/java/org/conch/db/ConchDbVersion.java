@@ -1219,7 +1219,7 @@ public class ConchDbVersion extends DbVersion {
                 apply("CREATE TABLE IF NOT EXISTS certified_peer (db_id IDENTITY, host VARCHAR NOT NULL, account_id BIGINT NOT NULL,"
                         + "type INT NOT NULL, height INT NOT NULL, last_updated INT)");
             case 501:
-                apply("CREATE INDEX IF NOT EXIST certified_peer_account_height_idx ON certified_peer (account_id, height DESC)");
+                apply("CREATE INDEX IF NOT EXISTS peer_account_height_idx ON certified_peer (account_id, height DESC)");
             case 502:
                 break;
             default:

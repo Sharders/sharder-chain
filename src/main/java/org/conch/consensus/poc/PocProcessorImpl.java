@@ -633,7 +633,7 @@ public class PocProcessorImpl implements PocProcessor {
                 count += instance.pocSeriesTxProcess(block);
                 if(blockProcessCount++ % 100 == 0) {
                     pocTxsProcessingMS = System.currentTimeMillis() - pocTxsProcessStartMS;
-                    Logger.logInfoMessage("[HistoryPocTxs] %d block's poc txs be processed [used time= %d S (%d MS)]", blockProcessCount, pocTxsProcessingMS / 1000, pocTxsProcessStartMS);
+                    Logger.logDebugMessage("[HistoryPocTxs] %d block's poc txs be processed [used time= %d S (%d MS)]", blockProcessCount, pocTxsProcessingMS / 1000, pocTxsProcessStartMS);
                 }
             }
 
