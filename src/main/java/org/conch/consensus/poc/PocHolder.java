@@ -2,7 +2,6 @@ package org.conch.consensus.poc;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.conch.Conch;
@@ -19,13 +18,16 @@ import org.conch.util.IpUtil;
 import org.conch.util.Logger;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * PocHolder is a singleton to hold the score and reference map.
  * This map stored in the memory, changed by the poc txs.
  *
- * PocHolder is just available for poc package 
+ * PocHolder is just available for poc package
  *
  * @author <a href="mailto:xy@sharder.org">Ben</a>
  * @since 2019-01-29
@@ -50,8 +52,8 @@ public class PocHolder implements Serializable {
     // certified peer: foundation node, hub/box, community node
     // account id : certified peer
     protected Map<Long, CertifiedPeer> certifiedPeers = PocDb.listAllPeers();
-    // height : { accountId : certifiedPeer }
-    protected Map<Integer, Map<Long,CertifiedPeer>> historyCertifiedPeers = Maps.newConcurrentMap();
+//    // height : { accountId : certifiedPeer }
+//    protected Map<Integer, Map<Long,CertifiedPeer>> historyCertifiedPeers = Maps.newConcurrentMap();
     /** certified peers **/
 
     private volatile Map<Integer, List<Long>> delayPocTxsByHeight = Maps.newConcurrentMap();
@@ -76,7 +78,8 @@ public class PocHolder implements Serializable {
         if(height == -1 || accountId == -1) return null;
         CertifiedPeer certifiedPeer = inst.certifiedPeers.get(accountId);
         if(certifiedPeer == null) {
-            certifiedPeer = getHistoryBoundPeer(height, accountId);
+//            certifiedPeer = getHistoryBoundPeer(height, accountId);
+            PocDb.getPeer(accountId, height, true);
         }
 
         return certifiedPeer;
@@ -94,7 +97,8 @@ public class PocHolder implements Serializable {
         }
 
         if(certifiedPeer == null) {
-            certifiedPeer = getHistoryBoundPeer(height, host);
+//            certifiedPeer = getHistoryBoundPeer(height, host);
+            certifiedPeer = PocDb.getPeer(host, height, true);
         }
 
         return certifiedPeer;
@@ -106,34 +110,37 @@ public class PocHolder implements Serializable {
     }
 
 
-    private static CertifiedPeer getHistoryBoundPeer(int height, long accountId){
-        NavigableSet<Integer> heightSet = Sets.newTreeSet(inst.historyCertifiedPeers.keySet()).descendingSet();
-        for(Integer historyHeight : heightSet) {
-            if(historyHeight <= height) {
-                Map<Long,CertifiedPeer> peerMap = inst.historyCertifiedPeers.get(historyHeight);
-                if(peerMap != null && peerMap.containsKey(accountId)) {
-                    return  peerMap.get(accountId);
-                }
-            }
-        }
-        return null;
-    }
+//    private static CertifiedPeer getHistoryBoundPeer(int height, long accountId){
+//
+//        PocDb.getPeer(accountId, height, true);
+//
+//        NavigableSet<Integer> heightSet = Sets.newTreeSet(inst.historyCertifiedPeers.keySet()).descendingSet();
+//        for(Integer historyHeight : heightSet) {
+//            if(historyHeight <= height) {
+//                Map<Long,CertifiedPeer> peerMap = inst.historyCertifiedPeers.get(historyHeight);
+//                if(peerMap != null && peerMap.containsKey(accountId)) {
+//                    return  peerMap.get(accountId);
+//                }
+//            }
+//        }
+//        return null;
+//    }
 
-    private static CertifiedPeer getHistoryBoundPeer(int height, String host){
-        NavigableSet<Integer> heightSet = Sets.newTreeSet(inst.historyCertifiedPeers.keySet()).descendingSet();
-        for(Integer historyHeight : heightSet) {
-            if(historyHeight <= height) {
-                Map<Long, CertifiedPeer> peerMap = inst.historyCertifiedPeers.get(historyHeight);
-                Collection<CertifiedPeer> peers = peerMap.values();
-                for(CertifiedPeer certifiedPeer : peers){
-                    if(StringUtils.equals(host,certifiedPeer.getHost())){
-                        return certifiedPeer;
-                    }
-                }
-            }
-        }
-        return null;
-    }
+//    private static CertifiedPeer getHistoryBoundPeer(int height, String host){
+//        NavigableSet<Integer> heightSet = Sets.newTreeSet(inst.historyCertifiedPeers.keySet()).descendingSet();
+//        for(Integer historyHeight : heightSet) {
+//            if(historyHeight <= height) {
+//                Map<Long, CertifiedPeer> peerMap = inst.historyCertifiedPeers.get(historyHeight);
+//                Collection<CertifiedPeer> peers = peerMap.values();
+//                for(CertifiedPeer certifiedPeer : peers){
+//                    if(StringUtils.equals(host,certifiedPeer.getHost())){
+//                        return certifiedPeer;
+//                    }
+//                }
+//            }
+//        }
+//        return null;
+//    }
 
     /**
      * add or update certified peer and bind account
@@ -186,9 +193,9 @@ public class PocHolder implements Serializable {
             inst.certifiedPeers.put(accountId, newPeer);
             return;
         }
-        if(!inst.historyCertifiedPeers.containsKey(historyHeight)) {
-            inst.historyCertifiedPeers.put(historyHeight, Maps.newHashMap());
-        }
+//        if(!inst.historyCertifiedPeers.containsKey(historyHeight)) {
+//            inst.historyCertifiedPeers.put(historyHeight, Maps.newHashMap());
+//        }
 
         try{
             existPeer.end(historyHeight);
@@ -197,8 +204,8 @@ public class PocHolder implements Serializable {
             return;
         }
 
-        inst.historyCertifiedPeers.get(historyHeight).put(existPeer.getBoundAccountId(), existPeer);
-        inst.certifiedPeers.remove(accountId);
+//        inst.historyCertifiedPeers.get(historyHeight).put(existPeer.getBoundAccountId(), existPeer);
+//        inst.certifiedPeers.remove(accountId);
 
         // add the new certified peer into certifiedPeers map
         inst.certifiedPeers.put(accountId, newPeer);

@@ -308,6 +308,45 @@ public class PocDb  {
             return null;
         }
 
+        public CertifiedPeer get(String host, int height, boolean loadHistory) {
+            try {
+                Conch.getBlockchain().readLock();
+                if(height < 0) return null;
+
+                // close the start height in query
+                int appointStart = -1;
+
+                Connection con = null;
+                try {
+                    con = Db.db.getConnection();
+                    PreparedStatement pstmt = con.prepareStatement("SELECT * FROM certified_peer"
+                            + " WHERE host = ?"
+                            + (loadHistory ? " AND height <= ?" : " AND height = ?")
+                            + (appointStart != -1 ? " AND height > ?" : "")
+                            + " ORDER BY height DESC LIMIT 1");
+
+                    pstmt.setString(1, host);
+                    pstmt.setInt(2, height);
+
+                    if(appointStart != -1) {
+                        pstmt.setInt(3, appointStart);
+                    }
+
+                    ResultSet rs = pstmt.executeQuery();
+                    if(rs !=null && rs.next()){
+                        return _parse(rs);
+                    }
+                } catch (SQLException e) {
+                    throw new RuntimeException(e.toString(), e);
+                }finally {
+                    DbUtils.close(con);
+                }
+            } finally {
+                Conch.getBlockchain().readUnlock();
+            }
+            return null;
+        }
+
         public void saveOrUpdate(Connection con, CertifiedPeer certifiedPeer) throws SQLException {
             PreparedStatement pstmtCount = con.prepareStatement("SELECT db_id FROM certified_peer"
                     + " WHERE account_id = ? AND height = ?");
@@ -488,6 +527,14 @@ public class PocDb  {
         }finally {
             DbUtils.close(con);
         }
+    }
+
+    public static CertifiedPeer getPeer(long accountId, int height, boolean loadHistory) {
+        return certifiedPeerTable.get(accountId, height, loadHistory);
+    }
+
+    public static CertifiedPeer getPeer(String host, int height, boolean loadHistory) {
+        return certifiedPeerTable.get(host, height, loadHistory);
     }
 
     public static void deletePeer(CertifiedPeer certifiedPeer) {

@@ -448,11 +448,6 @@ public class PocProcessorImpl implements PocProcessor {
     }
 
     @Override
-    public Map<Integer, Map<Long,CertifiedPeer>> getHistoryCertifiedPeers() {
-        return PocHolder.inst.historyCertifiedPeers;
-    }
-
-    @Override
     public boolean rollbackTo(int height) {
         try {
             int currentHeight = Conch.getHeight();
@@ -474,15 +469,16 @@ public class PocProcessorImpl implements PocProcessor {
             }
 
             // rollback the history certified peers
-            synchronized (PocHolder.inst.historyCertifiedPeers) {
-                for (int i = height + 1; i <= currentHeight; i++) {
-                    // rollback the poc score map
-                    if (PocHolder.inst.historyCertifiedPeers.containsKey(i)) {
-                        PocHolder.inst.historyCertifiedPeers.remove(i);
-                    }
-                }
-                PocDb.rollbackPeer(height);
-            }
+//            synchronized (PocHolder.inst.historyCertifiedPeers) {
+//                for (int i = height + 1; i <= currentHeight; i++) {
+//                    // rollback the poc score map
+//                    if (PocHolder.inst.historyCertifiedPeers.containsKey(i)) {
+//                        PocHolder.inst.historyCertifiedPeers.remove(i);
+//                    }
+//                }
+//                PocDb.rollbackPeer(height);
+//            }
+            PocDb.rollbackPeer(height);
 
             // reset the certified peers
             synchronized (PocHolder.inst.certifiedPeers) {

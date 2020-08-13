@@ -33,7 +33,7 @@ import java.util.Set;
  * @author ben-xy
  */
 public interface PocProcessor {
-    
+
     /**
      * @param account
      * @param height
@@ -72,10 +72,10 @@ public interface PocProcessor {
      * @return
      */
     CertifiedPeer getBoundedPeer(long accountId, int height);
-    
+
     /**
      * clear current certified peers and re-syn 
-     * @return 
+     * @return
      */
     boolean resetCertifiedPeers();
 
@@ -91,14 +91,14 @@ public interface PocProcessor {
      * @return
      */
     boolean processDelayedPocTxs(int height);
-            
+
     /**
-     * 
+     *
      * @return
      */
     boolean pocTxsProcessed(int height);
 
-    
+
     boolean removeDelayedPocTxs(Set<Long> txIds);
 
     /**
@@ -112,7 +112,6 @@ public interface PocProcessor {
      */
     Map<Long, CertifiedPeer> getCertifiedPeers();
 
-    Map<Integer, Map<Long,CertifiedPeer>>  getHistoryCertifiedPeers();
 
     boolean rollbackTo(int height);
 }
