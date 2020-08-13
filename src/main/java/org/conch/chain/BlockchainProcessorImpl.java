@@ -1322,8 +1322,16 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             for (DerivedDbTable table : derivedTables) {
                 try {
                     blockchain.readLock();
+                    long startMS = System.currentTimeMillis();
+                    Logger.logDebugMessage("[Trim-%d] Start to trim table %s before the height %d...", trimEndHeight, table.toString(), lastTrimHeight);
                     table.trim(lastTrimHeight);
                     Db.db.commitTransaction();
+                    long tableTrimmingMS = System.currentTimeMillis();
+                    Logger.logDebugMessage("[Trim-%d] Finish the %s table trimming, used time %d S(≈%d MS)"
+                            , trimEndHeight, table.toString(), (tableTrimmingMS-startMS) /1000, (tableTrimmingMS-startMS));
+                }catch (Exception e) {
+                    Logger.logMessage(e.toString(), e);
+                    Db.db.rollbackTransaction();
                 } finally {
                     blockchain.readUnlock();
                 }

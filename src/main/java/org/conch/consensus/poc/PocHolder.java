@@ -286,11 +286,12 @@ public class PocHolder implements Serializable {
         if(height < 0) height = 0;
 
         PocScore pocScore = inst.scoreMap.containsKey(accountId) ? inst.scoreMap.get(accountId) : null;
-        PocScore existedScore = getExistedPocScore(height, accountId);
-        // current poc score and existed poc score compare
         if(pocScore == null) {
-            pocScore = existedScore;
-        }else if (existedScore != null) {
+            pocScore = getExistedPocScore(height, accountId);
+        }
+//        PocScore existedScore = ;
+//        // current poc score and existed poc score compare
+//        else if (existedScore != null) {
 //            if(Conch.getHeight() >= existedScore.height && existedScore.height > pocScore.height) {
 //                inst.scoreMap.put(accountId, existedScore);
 //                pocScore = existedScore;
@@ -298,13 +299,14 @@ public class PocHolder implements Serializable {
 //                inst.scoreMap.put(accountId, existedScore);
 //                pocScore = existedScore;
 //            }
-            pocScore = existedScore;
-            inst.scoreMap.put(accountId, existedScore);
-        }
+//            pocScore = existedScore;
+//        }
 
         if(pocScore == null) {
             pocScore = new PocScore(accountId,height);
             scoreMapping(pocScore);
+        }else{
+            inst.scoreMap.put(accountId, pocScore);
         }
 
         return pocScore;

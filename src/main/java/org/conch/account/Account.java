@@ -488,6 +488,10 @@ public final class Account {
             account.save(con);
         }
 
+        @Override
+        public void trim(int height) {
+            _trim("account",height);
+        }
     };
 
     private static final DbKey.LongKeyFactory<AccountInfo> accountInfoDbKeyFactory = new DbKey.LongKeyFactory<AccountInfo>("account_id") {

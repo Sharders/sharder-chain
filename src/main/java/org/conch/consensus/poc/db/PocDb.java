@@ -201,7 +201,10 @@ public class PocDb  {
         }
 
         private int insert(Connection con, PocScore pocScore) throws SQLException {
-            if(con == null) return 0;
+            if(con == null
+                    || pocScore.total().longValue() <= 0) {
+                return 0;
+            }
 
             PreparedStatement pstmtInsert = con.prepareStatement("INSERT INTO account_poc_score(account_id, "
                     + " poc_score, height, poc_detail) VALUES(?, ?, ?, ?)");
@@ -255,13 +258,7 @@ public class PocDb  {
          */
         @Override
         public void trim(int height) {
-            try (Connection con = db.getConnection();
-                 PreparedStatement pstmt = con.prepareStatement("DELETE FROM account_poc_score WHERE height <= ? AND latest <> TRUE")) {
-                pstmt.setInt(1, height);
-                pstmt.executeUpdate();
-            } catch (SQLException e) {
-                throw new RuntimeException(e.toString(), e);
-            }
+            _trim("account_poc_score", height);
         }
     }
     private static final PocScoreTable pocScoreTable = new PocScoreTable();
@@ -514,13 +511,7 @@ public class PocDb  {
          */
         @Override
         public void trim(int height) {
-            try (Connection con = db.getConnection();
-                 PreparedStatement pstmt = con.prepareStatement("DELETE FROM certified_peer WHERE height <= ? AND latest <> TRUE")) {
-                pstmt.setInt(1, height);
-                pstmt.executeUpdate();
-            } catch (SQLException e) {
-                throw new RuntimeException(e.toString(), e);
-            }
+            _trim("certified_peer", height);
         }
     }
     private static final CertifiedPeerTable certifiedPeerTable = new CertifiedPeerTable();

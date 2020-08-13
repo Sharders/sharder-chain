@@ -124,16 +124,10 @@ public class AccountLedger {
          */
         @Override
         public void trim(int height) {
-            if (trimKeep <= 0)
-                return;
-            try (Connection con = db.getConnection();
-                 PreparedStatement pstmt = con.prepareStatement("DELETE FROM account_ledger WHERE height <= ?")) {
-                int trimHeight = Math.max(blockchain.getHeight() - trimKeep, 0);
-                pstmt.setInt(1, trimHeight);
-                pstmt.executeUpdate();
-            } catch (SQLException e) {
-                throw new RuntimeException(e.toString(), e);
-            }
+            if (trimKeep <= 0) return;
+
+            int trimHeight = Math.max(height - trimKeep, 0);
+            _trim("account_ledger", trimHeight, false);
         }
     }
     private static final AccountLedgerTable accountLedgerTable = new AccountLedgerTable();
