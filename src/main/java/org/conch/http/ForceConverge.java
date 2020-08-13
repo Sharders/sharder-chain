@@ -485,7 +485,7 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
             try {
                 if(pocScoreList.size() > 0) {
                     con = Db.db.getConnection();
-                    PocDb.batchUpdate(con, pocScoreList);
+                    PocDb.batchUpdateScore(con, pocScoreList);
                     Logger.logInfoMessage(logPrefix + " accounts poc score re-calculate finished, size is " + pocScoreList.size() + ", accounts[" + scoreRecalAccounts + "]");
                 }
             } catch (SQLException e) {

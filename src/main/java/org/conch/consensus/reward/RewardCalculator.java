@@ -249,6 +249,8 @@ public class RewardCalculator {
         BigDecimal crowdMinerRewardsAmount = new BigDecimal(crowdMinerRewards);
         // calculate the single miner's rewards
         long allocatedRewards = 0;
+
+        String details = "";
         for (Long accountId : crowdMiners.keySet()) {
             if (crowdMinerRewardMap.containsKey(accountId)) continue;
 
@@ -257,7 +259,7 @@ public class RewardCalculator {
             BigDecimal pocScoreRate = pocScore.divide(totalPocScore, 10, BigDecimal.ROUND_DOWN);
             long rewards = crowdMinerRewardsAmount.multiply(pocScoreRate).longValue();
             if(updateBalance){
-                updateBalanceAndFrozeIt(Account.getAccount(accountId), tx, rewards, stageTwo);
+                details += updateBalanceAndFrozeIt(Account.getAccount(accountId), tx, rewards, stageTwo);
             }
             crowdMinerRewardMap.put(accountId, rewards);
 
@@ -272,8 +274,17 @@ public class RewardCalculator {
         // remain amount distribute to creator
         long remainRewards = (crowdMinerRewards > allocatedRewards) ? (crowdMinerRewards - allocatedRewards) : 0;
         if(updateBalance) {
-            updateBalanceAndFrozeIt(minerAccount, tx, remainRewards, stageTwo);
+            details += updateBalanceAndFrozeIt(minerAccount, tx, remainRewards, stageTwo);
         }
+
+        String isCalOnly = updateBalance ? "" : "-CalOnly";
+        String tail = "[DEBUG] ----------------------------\n[DEBUG] Total count: " + crowdMiners.size() + 1;
+        if(!stageTwo){
+            Logger.logDebugMessage("[%d-StageOne%s] Add crowdMiners rewards to account's unconfirmed balance and freeze it. \n[DEBUG] CrowdMiner Reward Detail Format:[txid] address: distribution amount\n%s%s\n", tx.getHeight(), isCalOnly,  details, tail);
+        }else {
+            Logger.logDebugMessage("[%d-StageTwo%s] Unfreeze crowdMiners rewards and add it in mined amount. \n[DEBUG] CrowdMiner Reward Detail Format:[txid] address: distribution amount\n%s%s\n", tx.getHeight(), isCalOnly,  details, tail);
+        }
+
 //        crowdMinerRewardMap.put(minerAccount.getId(), remainRewards);
         crowdMinerRewardArray.add(new JSONObject()
                 .put("accountId", minerAccount.getId())
@@ -290,12 +301,10 @@ public class RewardCalculator {
      * @param amount
      * @param stageTwo
      */
-    private static void updateBalanceAndFrozeIt(Account account, Transaction tx, long amount, boolean stageTwo){
+    private static String updateBalanceAndFrozeIt(Account account, Transaction tx, long amount, boolean stageTwo){
         if(!stageTwo) {
             account.addBalanceAddUnconfirmed(AccountLedger.LedgerEvent.BLOCK_GENERATED, tx.getId(), amount);
             account.addFrozen(AccountLedger.LedgerEvent.BLOCK_GENERATED, tx.getId(), amount);
-            Logger.logDebugMessage("[%d-StageOne] Add mining/crowdMiners rewards %d to %s unconfirmed balance and freeze it of tx %d",
-                    tx.getHeight(), amount, account.getRsAddress(), tx.getId());
         }else{
             if(Constants.isTestnet() && account.getFrozenBalanceNQT() <= 0) {
                 account.addFrozen(AccountLedger.LedgerEvent.BLOCK_GENERATED, tx.getId(), account.getFrozenBalanceNQT());
@@ -306,9 +315,8 @@ public class RewardCalculator {
             }
             account.addMintedBalance(amount);
             account.pocChanged();
-            Logger.logDebugMessage("[%d-StageTwo] Unfreeze mining/crowdMiners rewards %d of %s and add it in mined amount of tx %d",
-                    tx.getHeight(), amount, account.getRsAddress(), tx.getId());
         }
+        return  String.format("[DEBUG] txid-%d | %s: %d\n", tx.getId(), account.getRsAddress(), amount);
     }
 
 
@@ -349,15 +357,27 @@ public class RewardCalculator {
                         "Joiner size = 0 means solo miner mode, all block mined rewards will distribute to miner[%s]; " +
                         "Joiner size > 0 means pool mining mode, block mined rewards will distribute under the pool rules.",
                 stage, consignors.size(), tx.getHeight(), minerAccount.getRsAddress());
+
+        String details = "";
+        String tail = "[DEBUG] ----------------------------\n[DEBUG] Total count:  ";
         if (consignors.size() == 0) {
-            updateBalanceAndFrozeIt(senderAccount, tx, miningRewards, stageTwo);
+            details += updateBalanceAndFrozeIt(senderAccount, tx, miningRewards, stageTwo);
+            tail += "1";
         } else {
             Map<Long, Long> rewardList = PoolRule.calRewardMapAccordingToRules(senderAccount.getId(), coinBase.getGeneratorId(), miningRewards, consignors);
             for (long id : rewardList.keySet()) {
                 Account account = Account.getAccount(id);
-                updateBalanceAndFrozeIt(account, tx, rewardList.get(id), stageTwo);
+                details += updateBalanceAndFrozeIt(account, tx, rewardList.get(id), stageTwo);
             }
+            tail += rewardList.size();
         }
+
+        if(!stageTwo){
+            Logger.logDebugMessage("[%d-StageOne] Add mining rewards to account's unconfirmed balance and freeze it. \n[DEBUG] Mining Reward Detail Format: [txid] address: distribution amount\n%s%s\n", tx.getHeight(), details, tail);
+        }else {
+            Logger.logDebugMessage("[%d-StageTwo] Unfreeze mining rewards and add it in mined amount. \n[DEBUG] Mining Reward Detail Format: [txid] address: distribution amount\n%s%s\n", tx.getHeight(), details, tail);
+        }
+
         long miningRewardProcessingMS = System.currentTimeMillis() - rewardCalStartMS;
 
         if(Logger.isDebugEnabled()) {

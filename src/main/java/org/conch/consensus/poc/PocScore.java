@@ -7,6 +7,7 @@ import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.common.Constants;
 import org.conch.consensus.genesis.SharderGenesis;
+import org.conch.consensus.poc.db.PocDb;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.peer.Peer;
@@ -55,7 +56,7 @@ public class PocScore implements Serializable {
             }
 
             if(height > Constants.POC_MULTIPLIER_CHANGE_HEIGHT){
-                mag = new BigInteger("500");
+                mag = new BigInteger("1000");
             }
         }catch(Exception e){
             e.printStackTrace();
@@ -170,18 +171,25 @@ public class PocScore implements Serializable {
      * @return
      */
     public BigInteger reCalTotalForCompatibility(){
-        if(Conch.getHeight() <= Constants.POC_MULTIPLIER_CHANGE_HEIGHT) {
-            total = ssScore.add(nodeTypeScore).add(serverScore).add(hardwareScore).add(networkScore).add(performanceScore).add(onlineRateScore)
-                    .add(blockMissScore).add(bcScore).multiply(BigInteger.valueOf(1000));
+        BigInteger score = ssScore.add(nodeTypeScore).add(serverScore).add(hardwareScore).add(networkScore).add(performanceScore).add(onlineRateScore)
+                .add(blockMissScore).add(bcScore);
+        if(this.height <= Constants.POC_MULTIPLIER_CHANGE_HEIGHT) {
+            total = score.multiply(BigInteger.valueOf(1000));
         }
+//        else{
+//            total = score.multiply(parseAndGetScoreMagnification(this.height));
+//        }
+        // update with current height
+        PocScore updateScore = new PocScore();
+        updateScore.synFrom(this);
+        updateScore.total = total;
+        updateScore.height = Conch.getHeight();
+        PocDb.saveOrUpdateScore(updateScore);
+
         return total;
     }
 
     public BigInteger total() {
-//        // 90% of block rewards for hub miner, 10% for other miners in Testnet phase1 (before end of 2019.Q2)
-//        BigInteger rate = Conch.getPocProcessor().isCertifiedPeerBind(accountId, height) ? BigInteger.valueOf(90) : BigInteger.valueOf(10);
-//        return score.multiply(SCORE_MULTIPLIER).multiply(rate).divide(BigInteger.valueOf(100));
-
         if(total != null) return total;
 
         BigInteger score = ssScore.add(nodeTypeScore).add(serverScore).add(hardwareScore).add(networkScore).add(performanceScore).add(onlineRateScore)
