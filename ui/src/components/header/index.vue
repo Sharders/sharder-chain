@@ -175,7 +175,9 @@
                 <p>{{$t("account.block_fully_downloaded")}}</p>
             </div>
             <div v-show="isDownloadingState === 'isHalted'">
-                <span>{{$t("account.download_interrupt")}}</span>
+                <span>{{$t("account.download_no_response")}}</span>
+                <span v-if="blocksLeft"> ({{blocksLeft + $t("account.remaining_blocks")}})</span>
+                <p v-if="lastBlockHeight">{{$t("account.the_latest_block")}} : {{lastBlockHeight}}</p>
             </div>
         </div>
 
