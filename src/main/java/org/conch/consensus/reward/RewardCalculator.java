@@ -349,8 +349,7 @@ public class RewardCalculator {
             }
         }
         long crowdRewardProcessingMS = System.currentTimeMillis() - rewardCalStartMS;
-
-        rewardCalStartMS = System.currentTimeMillis();
+        long miningCalStartMS = System.currentTimeMillis();
         // Mining Reward (include Pool mode)
         Map<Long, Long> consignors = coinBase.getConsignors();
         Logger.logDebugMessage("[Rewards-Stage%s] distribute block mining's rewards[ mining joiner size=%d] of height %d. " +
@@ -378,17 +377,17 @@ public class RewardCalculator {
             Logger.logDebugMessage("[%d-StageTwo] Unfreeze mining rewards and add it in mined amount. \n[DEBUG] Mining Reward Detail Format: [txid] address: distribution amount\n%s%s\n", tx.getHeight(), details, tail);
         }
 
-        long miningRewardProcessingMS = System.currentTimeMillis() - rewardCalStartMS;
-
-        if(Logger.isDebugEnabled()) {
-            Logger.logDebugMessage("[Rewards-%d-Stage%s] Distribution used time[crowd miners= %d MS(≈%d S), mining joiners= %d MS(≈%d S)], reward distribution detail[crowd miner size=%d, mining joiner size=%d] at height %d",
-                    tx.getHeight(), stage
-                    , crowdRewardProcessingMS, crowdRewardProcessingMS / 1000
-                    , miningRewardProcessingMS, miningRewardProcessingMS /1000
-                    , crowdMiners.size(), consignors.size(), Conch.getHeight());
+        long miningRewardProcessingMS = System.currentTimeMillis() - miningCalStartMS;
+        long totalUsedMs = System.currentTimeMillis() - rewardCalStartMS;
+        if(Logger.isLevel(Logger.Level.INFO)) {
+            Logger.logInfoMessage("[Rewards-%d-Stage%s] Reward distribution detail[crowd miner size=%d, mining joiner size=%d, processing used time≈ %d S(%d MS)] at current height %d",
+                    tx.getHeight(), stage, crowdMiners.size(), consignors.size()
+                    , totalUsedMs / 1000, totalUsedMs, Conch.getHeight());
         }else {
-            Logger.logInfoMessage("[Rewards-%d-Stage%s] Reward distribution detail[crowd miner size=%d, mining joiner size=%d] at height %d",
+            Logger.logDebugMessage("[Rewards-%d-Stage%s] Distribution used time[crowd miners≈ %d S(%d MS), mining joiners≈ %d S(%d MS)], reward distribution detail[crowd miner size=%d, mining joiner size=%d] at height %d",
                     tx.getHeight(), stage
+                    , crowdRewardProcessingMS / 1000, crowdRewardProcessingMS
+                    , miningRewardProcessingMS / 1000, miningRewardProcessingMS
                     , crowdMiners.size(), consignors.size(), Conch.getHeight());
         }
         return tx.getAmountNQT();
