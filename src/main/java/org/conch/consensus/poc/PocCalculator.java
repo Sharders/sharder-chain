@@ -4,6 +4,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.common.Constants;
+import org.conch.consensus.poc.db.PocDb;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.peer.Peer;
 
@@ -13,14 +14,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * PoC calculator instance 
+ * PoC calculator instance
  * @author <a href="mailto:xy@sharder.org">Ben</a>
  * @since 2019-01-29
  */
 public class PocCalculator implements Serializable {
-    
+
     static PocCalculator inst = new PocCalculator();
-    
+
     // poc score converter
     private static final BigInteger SCORE_MULTIPLIER = BigInteger.valueOf(125000L);
 
@@ -31,9 +32,15 @@ public class PocCalculator implements Serializable {
     private static final long ONE_T_IN_KB_UNIT = 1024*1024*1024L;
 
     // default weight table
-    private volatile PocTxBody.PocWeightTable pocWeightTable = PocTxBody.PocWeightTable.defaultPocWeightTable();
+    private volatile PocTxBody.PocWeightTable pocWeightTable = instWeightTable();
 
     volatile int lastHeight = -1;
+
+
+    private static PocTxBody.PocWeightTable instWeightTable(){
+        PocTxBody.PocWeightTable lastPocWeightTable = PocDb.findLastWeightTable();
+        return lastPocWeightTable != null ? lastPocWeightTable : PocTxBody.PocWeightTable.defaultPocWeightTable();
+    }
 
     public static void setCurWeightTable(PocTxBody.PocWeightTable weightTable, int height) {
         inst.pocWeightTable = weightTable;
@@ -46,7 +53,7 @@ public class PocCalculator implements Serializable {
         }
         return inst.pocWeightTable;
     }
-    
+
     private static BigInteger getWeight(PocTxBody.WeightTableOptions weightTableOptions){
         return BigInteger.valueOf(inst.pocWeightTable.getWeightMap().get(weightTableOptions.getValue()).longValue());
     }
@@ -55,8 +62,8 @@ public class PocCalculator implements Serializable {
         BigInteger ssHoldWeight = getWeight(PocTxBody.WeightTableOptions.SS_HOLD);
         pocScore.ssScore = ssHoldWeight.multiply(pocScore.ssScore).divide(PERCENT_DIVISOR);
     }
-    
-    
+
+
     private static BigInteger predefineNodeTypeLevel(Peer.Type peerType){
        return BigInteger.valueOf(inst.pocWeightTable.getNodeTypeTemplate().get(peerType.getCode()).longValue());
     }
@@ -172,7 +179,7 @@ public class PocCalculator implements Serializable {
     private static BigInteger predefineOnlineRateLevel(Peer.Type peerType,PocTxBody.OnlineStatusDef statusDef){
         return BigInteger.valueOf(inst.pocWeightTable.getOnlineRateTemplate().get(peerType.getCode()).get(statusDef.getValue()));
     }
-    
+
     static void onlineRateCal(PocScore pocScore,Peer.Type nodeType, PocTxBody.PocOnlineRate onlineRate) {
         BigInteger onlineRateScore = BigInteger.ZERO;
 
@@ -211,11 +218,11 @@ public class PocCalculator implements Serializable {
     }
 
     static Map<Long,Integer> missBlockMap = new HashMap<>();
-    
+
     private static BigInteger predefineblockMissLevel(PocTxBody.DeviceLevels deviceLevels){
         return BigInteger.valueOf(inst.pocWeightTable.getGenerationMissingTemplate().get(deviceLevels.getLevel()).longValue());
     }
-    
+
     static void blockMissCal(PocScore pocScore,PocTxBody.PocGenerationMissing blockMiss) {
         Long accountId = pocScore.accountId;
         Integer missCount = 0;

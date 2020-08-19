@@ -36,9 +36,31 @@ public class RestfulHttpClient {
     public static final String METHOD_PATCH = "PATCH";
     public static final String METHOD_DELETE = "DELETE";
 
-    private RestfulHttpClient() {
-    }
+    private RestfulHttpClient() {}
 
+    /**
+     * 判断 网络资源是否存在
+     * @param urlPath
+     * @return
+     */
+    public static boolean  findResource(String urlPath){
+        InputStream in = null;
+        try {
+            URL url = new URL(urlPath);
+            in = url.openConnection().getInputStream();
+            return  true;
+        } catch (Exception e) {
+            return false;
+        }finally{
+            if(in != null) {
+                try {
+                    in.close();
+                } catch (IOException e) {
+                    // ignore
+                }
+            }
+        }
+    }
     /**
      * 发起请求
      *

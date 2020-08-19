@@ -663,9 +663,32 @@ public final class Conch {
             return false;
         }
         Logger.logMessage(name + " not defined, assuming false");
+        return getBooleanProperty(name, false);
+    }
+
+    public static Boolean getBooleanProperty(String name, boolean defaultValue) {
+        String value = properties.getProperty(name);
+
+        if(StringUtils.isEmpty(value)) {
+            Logger.logMessage(name + " not defined, use the default value " + defaultValue);
+            return  defaultValue;
+        }
+        else if (Boolean.TRUE.toString().equals(value)) {
+            Logger.logMessage(name + " = \"true\"");
+            return true;
+        }
+        else if (Boolean.FALSE.toString().equals(value)) {
+            Logger.logMessage(name + " = \"false\"");
+            return false;
+        }
         return false;
     }
-    
+
+    public static boolean containProperty(String name){
+        String value = properties.getProperty(name);
+        return StringUtils.isNotEmpty(value);
+    }
+
     public static int getHeight(){
         return getBlockchain().getHeight();
     }
@@ -743,7 +766,7 @@ public final class Conch {
         BlockchainProcessorImpl.getInstance().shutdown();
         Peers.shutdown();
         Db.shutdown();
-        Logger.logShutdownMessage("COS server " + VERSION + " stopped.");
+        Logger.logShutdownMessage("COS server " + getFullVersion() + " "  + getCosUpgradeDate() + " stopped.");
         Logger.shutdown();
         runtimeMode.shutdown();
     }
@@ -767,7 +790,7 @@ public final class Conch {
                 }catch(Exception e){
                     Logger.logInfoMessage("[DB EXCEPTION HANDLE] Fetch and restore to last db archive because the db instance init failed[ %s ]", e.getMessage());
                     ClientUpgradeTool.forceDownloadFromOSS = true;
-                    ClientUpgradeTool.restoreDbToLastArchive();
+                    ClientUpgradeTool.restoreDbToLastArchive(true, true);
                     ClientUpgradeTool.forceDownloadFromOSS = false;
                 }
                 setServerStatus(ServerStatus.AFTER_DATABASE, null);
@@ -1221,6 +1244,9 @@ public final class Conch {
      */
     public static String getFullVersion(){
         return VERSION + "-" + STAGE;
+    }
+    public static String getVersionWithBuild(){
+        return VERSION + "-" + STAGE + " " + ClientUpgradeTool.cosLastUpdateDate;
     }
     public static String getVersion(){ return VERSION; }
     public static String getCosUpgradeDate(){ return ClientUpgradeTool.cosLastUpdateDate; }

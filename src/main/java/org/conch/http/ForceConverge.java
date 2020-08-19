@@ -349,7 +349,16 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
             Logger.logErrorMessage("forceDeleteBakFolder occur unknown exception", e);
         }
     }
-    
+
+    private static boolean reGeneratePocScores = Conch.getBooleanProperty("sharder.reGeneratePocScores", false);
+    public static void checkAndFetchDbToReGenerateScores(){
+        if(reGeneratePocScores) {
+            Logger.logInfoMessage("Restore the latest archived db file to local and restart the cos service");
+            Conch.storePropertieToFile("sharder.reGeneratePocScores", "false");
+            ClientUpgradeTool.restoreDbToLastArchive(true, true);
+        }
+    }
+
     public static void init() {
         // auto upgrade
         boolean closeAutoUpgrade = Conch.getBooleanProperty(PROPERTY_CLOSE_AUTO_UPGRADE);
@@ -360,6 +369,9 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
         }
 
         checkOrForceDeleteBakFolder();
+
+        // restore the DB
+        checkAndFetchDbToReGenerateScores();
 //        
 //        // manual reset
 //        String resetStr = Conch.getStringProperty(PROPERTY_MANUAL_RESET, null);
@@ -471,7 +483,7 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
             try {
                 if(pocScoreList.size() > 0) {
                     con = Db.db.getConnection();
-                    PocDb.batchUpdate(con, pocScoreList);
+                    PocDb.batchUpdateScore(con, pocScoreList);
                     Logger.logInfoMessage(logPrefix + " accounts poc score re-calculate finished, size is " + pocScoreList.size() + ", accounts[" + scoreRecalAccounts + "]");
                 }
             } catch (SQLException e) {

@@ -27,6 +27,7 @@ import org.conch.Conch;
 import org.conch.chain.BlockchainProcessorImpl;
 import org.conch.consensus.poc.hardware.GetNodeHardware;
 import org.conch.env.RuntimeEnvironment;
+import org.conch.http.API;
 import org.conch.mint.Generator;
 
 import java.io.*;
@@ -341,10 +342,6 @@ public final class Logger {
         doLog(Level.WARN, message, exc);
     }
 
-    public static boolean isInfoEnabled() {
-        return log.isInfoEnabled();
-    }
-
     /**
      * Log an INFO message
      *
@@ -538,5 +535,9 @@ public final class Logger {
     public static final String BlockchainProcessor_downloadPeer_sizeCheck = BlockchainProcessorImpl.class.getName() + "#downloadPeer#sizeCheck";
     public static final String BlockchainProcessor_downloadPeer_getWeightedPeer = BlockchainProcessorImpl.class.getName() + "#downloadPeer#getWeightedPeer";
     public static final String BlockchainProcessor_getMoreBlocks = BlockchainProcessorImpl.class.getName() + "#getMoreBlocks";
+    public static final String BlockchainProcessor_oldPocTxsProcessingCheck = BlockchainProcessorImpl.class.getName() + "#oldPocTxsProcessingCheck";
     public static final String GetNodeHardware_P_report = GetNodeHardware.class.getName() + "#report";
+    public static final String IpUtil_geoTransformFailed = IpUtil.class.getName() + "#geoTransformFailed";
+    public static final String API_incorrectAdmPwd = API.class.getName() + "#incorrectAdmPwd";
 }
+

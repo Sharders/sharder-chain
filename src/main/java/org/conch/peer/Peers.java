@@ -1067,6 +1067,12 @@ public final class Peers {
         return result;
     }
 
+    /**
+     * find the peer by specified host
+     * @param host peer's host
+     * @param checkAnnouncedAddr true-compare the host with the announced addr of peer
+     * @return
+     */
     public static Peer getPeer(String host, boolean checkAnnouncedAddr) {
         if(!checkAnnouncedAddr) {
             return peers.get(host);
@@ -1184,7 +1190,6 @@ public final class Peers {
     }
 
     static void checkNetworkWhetherRight(String host, int port) {
-        Logger.logDebugMessage("Check the format of the peer's address [ host is " + host + ", port is " + port + ", network is" + Constants.getNetwork().getName() + " ]");
         host = StringUtils.isEmpty(host) ? "null" : host;
         String networkDetail = "";
         boolean badNetwork = false;

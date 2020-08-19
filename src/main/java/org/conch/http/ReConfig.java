@@ -165,15 +165,11 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
         Conch.storePropertiesToFile(map);
 
         if (restart) {
-            new Thread(() -> {
-                // get the default db file
-                if(isInit && Constants.initFromArchivedDbFile) {
-                    Logger.logDebugMessage("Fetch and upgrade the default archived db file to local in the Hub initialization phase");
-                    ClientUpgradeTool.restoreDbToLastArchive();
-                }
-
-                Conch.restartApplication(null);
-            }).start();
+            // get the default db file
+            if(isInit && Constants.initFromArchivedDbFile) {
+                Logger.logDebugMessage("Fetch and upgrade the default archived db file to local in the Hub initialization phase");
+                ClientUpgradeTool.restoreDbToLastArchive(true, true);
+            }
         }
         response.put("reconfiged", true);
         return response;
