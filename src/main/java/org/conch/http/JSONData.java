@@ -993,7 +993,7 @@ public final class JSONData {
                 Attachment.CoinBase coinBase = (Attachment.CoinBase) tx.getAttachment();
 
                 if(coinBase.isType(Attachment.CoinBase.CoinBaseType.CROWD_BLOCK_REWARD)
-                        && coinBase.getCrowdMiners().size() > 0){
+                    && coinBase.getCrowdMiners().size() > 0){
                     Map<Long, Long> crowdMiners = coinBase.getCrowdMiners();
                     Account minerAccount = Account.getAccount(coinBase.getCreator());
                     attachmentJSON.put("crowdMiners", RewardCalculator.calCrowdMinerReward(minerAccount, tx, crowdMiners));
