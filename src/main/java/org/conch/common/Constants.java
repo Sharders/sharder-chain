@@ -278,7 +278,7 @@ public final class Constants {
     public static final int COINBASE_CROWD_MINER_OPEN_HEIGHT = isDevnet() ? 1 : (isTestnet() ? -1 : -1);
 
     //OSS
-    public static final String OSS_PREFIX = "https://sharder.oss-cn-hangzhou.aliyuncs.com/";
+    public static final String OSS_PREFIX = "https://ss-cn.oss-cn-zhangjiakou.aliyuncs.com/";
     
     /**
      * chain begin time
