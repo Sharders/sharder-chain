@@ -30,7 +30,7 @@ logs
 sharder_db
 sharder_test_db
 
-# storage/ipfs/bin
 # storage/
 .ipfs
 bin.exe
+storage/ipfs/bin

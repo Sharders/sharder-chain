@@ -117,7 +117,7 @@ public final class Constants {
     public static final long MIN_BASE_TARGET = INITIAL_BASE_TARGET * 9 / 10;
 
     /** for the security, you can set the confirmations = 1440 */
-    public static final int GUARANTEED_BALANCE_CONFIRMATIONS = isDevnet() ? 1 :(isTestnet()? 3 : 12);
+    public static final int GUARANTEED_BALANCE_CONFIRMATIONS = isDevnet() ? 1 :(isTestnet()? 1 : 12);
     public static final int LEASING_DELAY = isTestnetOrDevnet() ? Conch.getIntProperty("sharder.testnetLeasingDelay", 10) : 205;
     public static final long MINING_HOLDING_LIMIT = isTestnet() ? 1000 * ONE_SS : 1000 * ONE_SS;
     public static final long DISK_CAPACITY_MIN_TB = isTestnet() ? 1 : 1;
@@ -278,7 +278,7 @@ public final class Constants {
     public static final int COINBASE_CROWD_MINER_OPEN_HEIGHT = isDevnet() ? 1 : (isTestnet() ? -1 : -1);
 
     //OSS
-    public static final String OSS_PREFIX = "https://sharder.oss-cn-hangzhou.aliyuncs.com/";
+    public static final String OSS_PREFIX = "https://ss-cn.oss-cn-zhangjiakou.aliyuncs.com/";
     
     /**
      * chain begin time
@@ -363,9 +363,9 @@ public final class Constants {
         return Network.valueOfIgnoreCase(Network.class,NetworkDef);
     }
     
-    //default gap of mainnet & testnet is 7 min
+    //default gap of mainnet & testnet is 10 min
     private static final int blockGapInProperties = isDevnet() ?  Conch.getIntProperty("sharder.devnetBlockGap") : 
-            ( isTestnet() ? Conch.getIntProperty("sharder.testnetBlockGap", 7) : Conch.getIntProperty("sharder.blockGap", 7));
+            ( isTestnet() ? Conch.getIntProperty("sharder.testnetBlockGap", 10) : Conch.getIntProperty("sharder.blockGap", 10));
 
     /**
      * interval between two block generation, the min is 1min

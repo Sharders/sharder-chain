@@ -55,7 +55,7 @@ public class RewardCalculator {
     }
 
     //    private static final int HALVE_COUNT = 210240;
-    public static final int MINER_JOINING_PHASE = 2600; // around '2020-05-06 21:00'
+    public static final int MINER_JOINING_PHASE = 1999;
     /**
      * how much one block reward
      * @return
@@ -79,7 +79,7 @@ public class RewardCalculator {
     }
 
     public static long crowdMinerReward(int height){
-        if(height >= Constants.COINBASE_CROWD_MINER_OPEN_HEIGHT
+        if((height >= Constants.COINBASE_CROWD_MINER_OPEN_HEIGHT && -1 != Constants.COINBASE_CROWD_MINER_OPEN_HEIGHT)
                 || LocalDebugTool.isLocalDebugAndBootNodeMode){
             return RewardDef.CROWD_MINERS.getAmount() * Constants.ONE_SS;
         }
@@ -110,8 +110,8 @@ public class RewardCalculator {
         }
 
         Attachment.CoinBase coinBase = null;
-        if(height >= Constants.COINBASE_CROWD_MINER_OPEN_HEIGHT
-                || LocalDebugTool.isLocalDebugAndBootNodeMode){
+
+        if(isOpenCrowdMiners(height) || LocalDebugTool.isLocalDebugAndBootNodeMode){
             // crowd miner mode
             Map<Long, Long> crowdMinerPocScoreMap = generateCrowdMinerPocScoreMap(Lists.newArrayList(creator.getId()), height);
             coinBase = new CoinBase(creator.getId(), poolId, map, crowdMinerPocScoreMap);
@@ -321,6 +321,10 @@ public class RewardCalculator {
     }
 
 
+    public static boolean isOpenCrowdMiners(int height){
+        return height >= Constants.COINBASE_CROWD_MINER_OPEN_HEIGHT && -1 != Constants.COINBASE_CROWD_MINER_OPEN_HEIGHT;
+    }
+
     private static long rewardCalStartMS = -1;
     /**
      * total 2 stages:
@@ -340,8 +344,10 @@ public class RewardCalculator {
         String stage = stageTwo ? "Two" : "One";
         // Crowd Miner Reward
         long miningRewards =  tx.getAmountNQT();
+
         Map<Long, Long> crowdMiners = Maps.newHashMap();
-        if(coinBase.isType(Attachment.CoinBase.CoinBaseType.CROWD_BLOCK_REWARD)) {
+        if(coinBase.isType(Attachment.CoinBase.CoinBaseType.CROWD_BLOCK_REWARD)
+        && isOpenCrowdMiners(tx.getHeight())) {
             crowdMiners = coinBase.getCrowdMiners();
             Logger.logDebugMessage("[Rewards-%d-Stage%s] Distribute crowd miner's rewards[crowd miner size=%d] at height %d", tx.getHeight(), stage, crowdMiners.size(), Conch.getHeight());
             calAndSetCrowdMinerReward(minerAccount, tx, crowdMiners, stageTwo);
@@ -388,14 +394,20 @@ public class RewardCalculator {
             Logger.logInfoMessage("[Rewards-%d-Stage%s] Distribution detail[crowd miner size=%d, mining joiner size=%d, processing used time≈ %d S(%d MS)] at current height %d -> height %d of feeder %s[%s]\n",
                     tx.getHeight(), stage, crowdMiners.size(), miningJoinerCount
                     , totalUsedMs / 1000, totalUsedMs
-                    , Conch.getHeight(), Conch.getBlockchainProcessor().getLastBlockchainFeederHeight(), feeder.getAnnouncedAddress(), feeder.getHost());
+                    , Conch.getHeight(),
+                    Conch.getBlockchainProcessor().getLastBlockchainFeederHeight(),
+                    feeder != null ? feeder.getAnnouncedAddress() : "None",
+                    feeder != null ? feeder.getHost() : "None");
         }else {
             Logger.logDebugMessage("[Rewards-%d-Stage%s] Distribution used time[crowd miners≈ %d S(%d MS), mining joiners≈ %d S(%d MS)], reward distribution detail[crowd miner size=%d, mining joiner size=%d] at height %d -> height %d of feeder %s[%s]\n",
                     tx.getHeight(), stage
                     , crowdRewardProcessingMS / 1000, crowdRewardProcessingMS
                     , miningRewardProcessingMS / 1000, miningRewardProcessingMS
                     , crowdMiners.size(), miningJoinerCount
-                    , Conch.getHeight(), Conch.getBlockchainProcessor().getLastBlockchainFeederHeight(), feeder.getAnnouncedAddress(), feeder.getHost());
+                    , Conch.getHeight(),
+                    Conch.getBlockchainProcessor().getLastBlockchainFeederHeight(),
+                    feeder != null ? feeder.getAnnouncedAddress() : "None",
+                    feeder != null ? feeder.getHost() : "None");
         }
         return tx.getAmountNQT();
     }
@@ -411,13 +423,6 @@ public class RewardCalculator {
         Attachment.CoinBase coinbaseBody = (Attachment.CoinBase) attachment;
         return coinbaseBody.isType(Attachment.CoinBase.CoinBaseType.BLOCK_REWARD)
                 || coinbaseBody.isType(Attachment.CoinBase.CoinBaseType.CROWD_BLOCK_REWARD);
-    }
-
-    public static boolean isBlockCrowdRewardTx(Attachment attachment) {
-        if(!(attachment instanceof Attachment.CoinBase)) return false;
-
-        Attachment.CoinBase coinbaseBody = (Attachment.CoinBase) attachment;
-        return coinbaseBody.isType(Attachment.CoinBase.CoinBaseType.CROWD_BLOCK_REWARD);
     }
 
     private static Attachment.CoinBase parseToCoinBase(Attachment attachment){

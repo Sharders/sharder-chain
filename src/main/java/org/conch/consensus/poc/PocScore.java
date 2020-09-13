@@ -342,7 +342,7 @@ public class PocScore implements Serializable {
         }
 
         // pool not opening and reach the poc algo changed height
-        if((Constants.POOL_OPENING_HEIGHT == -1 || Conch.getHeight() <= Constants.POOL_OPENING_HEIGHT)
+        if((Constants.POOL_OPENING_HEIGHT == -1 || height <= Constants.POOL_OPENING_HEIGHT)
                 && height > Constants.POC_CAL_ALGORITHM) {
             return effectiveSS;
         }

@@ -13,6 +13,7 @@ import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.consensus.poc.db.PocDb;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.consensus.poc.tx.PocTxWrapper;
+import org.conch.consensus.reward.RewardCalculator;
 import org.conch.db.Db;
 import org.conch.db.DbIterator;
 import org.conch.db.DbUtils;
@@ -737,7 +738,8 @@ public class PocProcessorImpl implements PocProcessor {
 
                 if(openCorwdMinerTxsProcessing) {
                     // crowd miner account
-                    if(coinBase.isType(Attachment.CoinBase.CoinBaseType.CROWD_BLOCK_REWARD)) {
+                    if(coinBase.isType(Attachment.CoinBase.CoinBaseType.CROWD_BLOCK_REWARD)
+                    && RewardCalculator.isOpenCrowdMiners(block.getHeight())) {
                         coinBase.getCrowdMiners().keySet().forEach(accountId -> putInBalanceChangedAccount(block.getHeight(), Account.getAccount(accountId), Account.Event.POC));
                     }
                 }
