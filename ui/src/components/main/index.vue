@@ -5,7 +5,7 @@
             <main>
                 <div class="main-content">
                     <el-row class="container">
-                        <router-view/>
+                        <router-view :key="componentKey"/>
                     </el-row>
                 </div>
             </main>
@@ -17,8 +17,28 @@
     import Header from "components/header";
     export default {
         name: "index",
+        data() {
+            return {
+                componentKey: 0,
+            }
+        },
         components: {
             "header-component": Header
+        },
+        computed: {
+            refresh: function () {
+                return this.$store.state.isRefresh;
+            }
+        },
+        watch: {
+            refresh: {
+                handler: function (val, oldVal) {
+                    const _this = this;
+                    if (val) {
+                        _this.componentKey ++;
+                    }
+                }
+            }
         }
     };
 </script>

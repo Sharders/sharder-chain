@@ -34,7 +34,7 @@
                 img {
                     margin-bottom: auto;
                     margin-top: auto;
-                    width: 40px;
+                    width: 60px;
                     height: 46px;
                 }
 
@@ -185,7 +185,7 @@
 
                 .navbar_status {
                     overflow: hidden;
-                    width: 260px;
+                    width: 270px;
                     height: 80px;
                     margin-right: 10px;
 
@@ -272,8 +272,431 @@
                         }
                     }
                 }
+                .navbar_refresh {
+                    line-height: 80px;
+                    margin: auto 10px;
+                    color: #493eda;
+                }
             }
         }
     }
 }
 
+.header .pc {
+    display: flex;
+}
+.pc {
+    display: block;
+}
+.pc-i {
+    display: initial;
+}
+.pc-table {
+    display: table-cell;
+}
+.mobile {
+    display: none;
+}
+
+
+@media only screen and (max-width: 780px) {
+    #app .page-layout-inner .header {
+        display: block;
+        margin-bottom: 20px;
+    }
+    .el-menu--horizontal>.el-menu-item.is-active {
+        border-bottom: 2px solid #493eda;
+        color: #493eda;
+    }
+    .header {
+        min-width: 300px;
+        height: 120px;
+    }
+    .header .pc,
+    .pc,
+    .pc-i,
+    .pc-table {
+        display: none;
+    }
+    .mobile {
+        display: block;
+    }
+    .nav-right {
+        display: flex;
+        justify-content: space-around;
+        font-size: 14px;
+    }
+    .navbar {
+        display: flex;
+        justify-content: space-around;
+
+        .navbar_exit {
+            height: 60px;
+            line-height: 60px;
+            padding: 0 5px;
+            color: #493eda;
+        }
+    }
+    #logo_mobile {
+        vertical-align: middle;
+        width: 20%;
+        //padding: 5px;
+        padding-top: 20px;
+        .logo {
+            display: block;
+            height: auto;
+            width: 20%;
+            text-decoration: none;
+            &:hover {
+                color: #493eda;
+                text-decoration: none !important;
+            }
+
+            &:focus {
+                outline: none;
+                text-decoration: none !important;
+            }
+
+            img {
+                margin-bottom: auto;
+                margin-top: auto;
+                width: 30px;
+                height: 20px;
+            }
+
+            div:last-child {
+                display: grid;
+                margin-left: 6px;
+                margin-top: auto;
+                margin-bottom: auto;
+                color: #493eda;
+                width: 80px;
+
+                span:first-child {
+                    font-size: 20px;
+                    font-weight: bold;
+                }
+
+                span:last-child {
+                    font-size: 12px;
+                    padding-top: 3px;
+                }
+            }
+
+            .update {
+                display: inline-block;
+                width: 80px;
+                height: 80px;
+                border-radius: 50%;
+                background: red;
+                position: absolute;
+                top: -12px;
+                left: 25px;
+                transform: scale(0.1);
+            }
+        }
+    }
+    .navbar_lang {
+        line-height: 60px;
+        .el-input--suffix .el-input__inner {
+            width: 70px;
+            padding: 5px;
+        }
+        .el-input__suffix {
+            display: none;
+        }
+        .el-input__inner {
+            border: 0;
+        }
+    }
+    .navbar_refresh {
+        display: flex;
+        //height: 100%;
+        line-height: 60px;
+        margin: auto 5px;
+        color: #3fb09a;
+    }
+    .navbar_search {
+        height: 100%;
+        position: relative;
+        display: flex;
+        justify-content: center;
+
+        div {
+            top: 25%;
+            position: absolute;
+
+            img {
+                position: absolute;
+                right: 15px;
+                top: 23px;
+                width: 15px;
+                height: 15px;
+            }
+
+            .navbar_search_input {
+                width: 100px;
+                height: 30px;
+                background: #edeff5;
+                border: none;
+                border-radius: 20px;
+                padding-left: 20px;
+                color: #999;
+                font-size: 13px;
+                outline: none;
+                transition: 500ms width;
+                margin-top: 15px;
+
+            }
+
+            .navbar_search_input_active {
+                transition: 500ms width;
+                width: 280px;
+            }
+
+        }
+    }
+    #app .page-layout main {
+        padding-top: 10px;
+    }
+
+
+
+    #app .page-layout main {
+        width: auto !important;
+
+        .main-content {
+            width: 100%;
+
+            .container {
+                //max-width: 375px;
+            }
+        }
+    }
+
+    #transfer_accounts_modal,
+    #send_message_modal,
+    #account_info,
+    #block_info,
+    #account_transaction {
+        position: fixed;
+        top: 50px;
+    }
+
+    .modal,
+    .modal_info {
+        width: auto;
+        margin: 0 15px;
+        padding: 15px;
+    }
+
+    .modal-content .el-form {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+    .modal-body.modal-message {
+        padding: 15px;
+    }
+
+    .modal_info .modal-header .modal-title {
+        white-space: nowrap;
+        line-height: 30px;
+    }
+
+    .modal.modal-w900 {
+        min-width: 300px !important;
+        position: fixed;
+        top: 50px;
+    }
+
+    #trading_info .modal-body {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .container #account_info .modal-body .table  {
+        th {
+            padding-left: 0;
+        }
+        td {
+            padding-left: 8px;
+            //padding-right: 10px;
+        }
+    }
+    .modal_info .modal-header .close {
+        top: 5px;
+    }
+    .modal .modal-dialog .modal-content .modal-header .close {
+        top: 20px;
+    }
+    #account_transaction .modal-body div {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    #account_info .modal-body .account_allInfo .account_list #account_info_table_body {
+        max-height: 300px;
+    }
+    .modal .modal-dialog .modal-content .modal-body {
+        margin: 0;
+    }
+   .main-content .container #block_info .modal-body {
+        max-height: 450px;
+        margin: 20px 0 !important;
+    }
+
+    #block_info .modal-header {
+        padding: 0;
+        .close {
+            top: 20px;
+        }
+    }
+
+    .main-content .container #block_info .modal-body .blockInfo {
+        max-height: 400px;
+        .table {
+            th {
+                width: 25%;
+            }
+            td {
+                width: 75%;
+            }
+        }
+    }
+
+    .block_receiptDisbursement .w {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        height: 400px;
+
+        .whf {
+            width: 90%;
+            height: 400px;
+        }
+    }
+    .block_list {
+        .fl {
+            float: none;
+        }
+        .transaction_type {
+            margin-top: 10px;
+            padding-left: 15px;
+        }
+        .list_table {
+            width: auto;
+            margin: 30px 15px 50px;
+
+            .list_pagination {
+                height: 150px;
+            }
+        }
+    }
+
+    .table.table_striped .w300 {
+        width: 100px;
+    }
+    .icon-box {
+        display: flex;
+        height: 38px;
+        align-items: center;
+    }
+    .block_title {
+        padding-left: 15px;
+    }
+
+    .list_pagination .el-pagination--small .el-pagination__total {
+        float: right;
+        margin-top: 34px;
+    }
+    .list_pagination .el-pagination--small .el-pagination__jump {
+        display: initial;
+        float: right;
+        margin-top: 32px;
+    }
+
+    .block_list .list_table .list_pagination {
+        height: 90px;
+    }
+
+    .block_network .dfl {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        .block_blue {
+            width: calc(100% - 30px);
+            margin: 15px 15px 0;
+            //margin-right: 0;
+            //margin-top: 15px;
+
+            .last_block {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    }
+
+    .block_peers.fr {
+        display: none;
+    }
+
+    .table_striped .w200 {
+        width: auto;
+    }
+
+    .icon-box {
+        display: flex;
+        height: 38px;
+        justify-content: center;
+    }
+
+    .title {
+        display: flex;
+        height: 38px;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .main-content .container #account_transaction .modal-header {
+        display: flex;
+        align-items: center;
+        padding: 0;
+        .close {
+            right: 0;
+        }
+    }
+    .main-content .container #account_transaction .modal-body {
+        .account_preInfo {
+            padding-left: 15px;
+        }
+        .account_transactionInfo {
+            margin: 20px 0;
+            p {
+                margin-left: 0;
+            }
+            .table {
+                th {
+                    width: 25%;
+                }
+                td {
+                    width: 75%;
+                }
+            }
+        }
+    }
+    .container #account_info .modal-header {
+        padding: 0;
+    }
+
+    .el-table__expanded-cell[class*=cell] {
+        padding: 20px 15px;
+    }
+
+    .container #block_info .modal-body .account_list .table td.mobile-td,
+    .mobile-th {
+        text-align: left;
+        text-indent: 15px;
+    }
+}

@@ -9,6 +9,22 @@
                             <strong>{{$t('transaction.transaction_pool_id')}}:</strong>{{ rowData.poolInfo.poolId }}
                             <strong>{{$t('network.block_list_fee')}}:</strong>{{formatAmount(rowData)}}
                         </p>-->
+
+                        <div class="mobile">
+                            <p class="node-type">
+                                <strong>{{$t('poc.creator')}}: </strong>{{ rowData.senderRS }}
+                            </p>
+                            <p class="node-type">
+                                <strong>{{$t('poc.type')}}: </strong>{{ parseSubTypePool(rowData.subType) }}
+                            </p>
+                            <p class="node-type">
+                                <strong>{{$t('poc.started_height')}}: </strong>{{ rowData.height }}
+                            </p>
+                            <p class="node-type">
+                                <strong>{{$t('poc.started_block')}}: </strong>{{ rowData.block }}
+                            </p>
+                        </div>
+
                         <p v-if="rowData.poolInfo.poolId" class="node-type">
                             <strong>{{$t('transaction.transaction_pool_id')}}: </strong>{{ rowData.poolInfo.poolId }}
                         </p>
@@ -65,7 +81,20 @@
                    return "+" + amountNQT + " SS";
                }
            },
-
+            parseSubTypePool(subtype) {
+                switch (subtype) {
+                    case 0:
+                        return this.$root.$t("transaction.transaction_type_pool_create");
+                    case 1:
+                        return this.$root.$t("transaction.transaction_type_pool_destroy");
+                    case 2:
+                        return this.$root.$t("transaction.transaction_type_pool_join");
+                    case 3:
+                        return this.$root.$t("transaction.transaction_type_pool_quit");
+                    default:
+                        return this.$root.$t("transaction.transaction_type_forge_pool");
+                }
+            },
 
         },
 
@@ -94,7 +123,7 @@
     }
 
     .poolTxDetail .template .content {
-        box-shadow: 1px 1px 10px #493eda;
+        box-shadow: 1px 1px 10px #3fb09a;
         border-radius: 4px;
     }
 </style>

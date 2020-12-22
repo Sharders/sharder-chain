@@ -7,7 +7,7 @@ export default {
     sharderFoundationHost: 'sharder.org',
     sharderFoundationTestHost: 'test.sharder.org',
     apiUrl: '',
-    cfg: {defaultInterval: 90000, soonInterval: 30000, slowInterval: 180000},
+    cfg: {defaultInterval: 300000, soonInterval: 20000, slowInterval: 600000},
     epochBeginning: -1,
     newConsole: null,
     isOpenConsole: false,
@@ -19,9 +19,11 @@ export default {
     $vue: {},
     placeholder: "--",
     unit: " SS",
-    poolPledgeAmount: 2000000000000, // pledge amount of pool crerator
-    optHeight: {join: 0,quit: 0, destroy: 0, create: 0},
-    sendVerifyCode(url,username, fun) {
+    unitValue: 100000000,
+    poolPledgeAmount: 10000000000000, // pledge amount of pool creator
+    optHeight: {join: 0, quit: 0, destroy: 0, create: 0},
+    validPeerPercentage: 0.7, // Less than this value filter display mode, greater than or equal to close
+    sendVerifyCode(url, username, fun) {
 
         $.ajax({
             url: url,
@@ -45,7 +47,7 @@ export default {
         });
     },
 
-    registerSharderSite(url,data,fun){
+    registerSharderSite(url, data, fun) {
         $.ajax({
             url: url,
             type: 'POST',
@@ -65,7 +67,7 @@ export default {
         });
     },
 
-    ajaxGetPicVCode(url,fun){
+    ajaxGetPicVCode(url, fun) {
         $.ajax({
             url: url,
             type: 'POST',
@@ -85,9 +87,11 @@ export default {
     },
 
     fetch(type, requestData, requestType) {
+        const _this = this;
         return new Promise(function (resolve, reject) {
+            let sharderUrl = _this.isOpenApiProxy() ? window.api.sharderProxyUrl : window.api.sharderUrl;
             $.ajax({
-                url: window.api.sharderUrl + "?requestType=" + requestType,
+                url: sharderUrl + "?requestType=" + requestType,
                 dataType: "json",
                 type: type,
                 data: requestData,
@@ -110,7 +114,7 @@ export default {
         const _this = this;
         return new Promise(function (resolve, reject) {
             _this.blockchainState =
-                t.$http.get('/sharder?requestType=getBlockchainStatus', {
+                t.$http.get(_this.urlPrefix() + '?requestType=getBlockchainStatus', {
                     params: {
                         random: parseInt(new Date().getTime().toString())
                     }
@@ -121,14 +125,15 @@ export default {
         });
     },
     /**
-     * 获取未出快的交易
+     * 获取未出块的交易
      * @param t
      * @param account
      * @returns {Promise<any>}
      */
     setUnconfirmedTransactions(t, account) {
+        const _this = this;
         return new Promise(function (resolve, reject) {
-            t.$http.get('/sharder?requestType=getUnconfirmedTransactions', {
+            t.$http.get(_this.urlPrefix() + '?requestType=getUnconfirmedTransactions', {
                 params: {
                     random: parseInt(new Date().getTime().toString()),
                     account: account
@@ -146,7 +151,7 @@ export default {
     setPeers(t) {
         const _this = this;
         return new Promise(function (resolve, reject) {
-            t.$http.get('/sharder?requestType=getPeers', {
+            t.$http.get(_this.urlPrefix() + '?requestType=getPeers', {
                 params: {
                     includePeerInfo: true,
                     random: parseInt(new Date().getTime().toString())
@@ -154,10 +159,6 @@ export default {
             }).then(res => {
                 _this.peers = res.data;
                 resolve(res);
-                // console.log(res.data);
-                // if (_this.isOpenConsole) {
-                //     console.log(res.data);
-                // }
             });
         });
     },
@@ -617,11 +618,11 @@ export default {
      */
     longUnsigned(num) {
 
-        if(typeof(num) == 'number' && num > 0) return num;
+        if (typeof (num) == 'number' && num > 0) return num;
 
-        if(typeof(num) == 'string') {
+        if (typeof (num) == 'string') {
             num = new BigInteger(num)
-            if(num > 0) return num.toString();
+            if (num > 0) return num.toString();
         }
 
         num = new BigInteger(num).abs();
@@ -637,6 +638,14 @@ export default {
     isDevNet() {
         return SSO.netWorkType === 'Devnet';
     },
+    isOpenApiProxy() {
+        return SSO.state && SSO.state.apiProxy;
+    },
+    urlPrefix() {
+        const _this = this;
+        return  _this.isOpenApiProxy() === true ? '/sharder-proxy' : '/sharder';
+    },
+
     useEoLinker() {
         return SSO.useEoLinker;
     },
@@ -657,18 +666,23 @@ export default {
      * 渲染节点坐标
      */
     drawPeers() {
+        var dom = document.getElementById("peers-map")
+        if (!dom) {
+            console.log('dom peers-map got failed，echarts can not draw the peer map')
+            return
+        }
         let _this = this.$vue;
-        let myChart = _this.$echarts.init(document.getElementById("peers-map"));
+        let myChart = _this.$echarts.init(dom);
 
-        function parseData (coordinatesMap) {
-            if(undefined == coordinatesMap || null == coordinatesMap) return;
+        function parseData(coordinatesMap) {
+            if (undefined == coordinatesMap || null == coordinatesMap) return;
 
             let mapData = [];
             for (let i of Object.keys(coordinatesMap)) {
                 if (coordinatesMap[i]["X"] !== "" && coordinatesMap[i]["X"] !== "0"
                     && coordinatesMap[i]["Y"] !== "" && coordinatesMap[i]["Y"] !== "0"
                     && !isNaN(coordinatesMap[i]["X"]) && !isNaN(coordinatesMap[i]["Y"])) {
-                    let locationArray = [coordinatesMap[i]["Y"],coordinatesMap[i]["X"]];
+                    let locationArray = [coordinatesMap[i]["Y"], coordinatesMap[i]["X"]];
                     mapData.push({
                         name: i,
                         value: locationArray
@@ -773,7 +787,7 @@ export default {
         if (t.type === 0) return this.$vue.$t("transaction.transaction_type_payment");
         if (t.type === 1 && t.subtype === 0) return this.$vue.$t("transaction.transaction_type_information");
         if (t.type === 1 && t.subtype === 5) return this.$vue.$t("transaction.transaction_type_account");
-        if (t.type === 6) return this.$vue.$t("transaction.transaction_type_storage_service");
+        if (t.type === 11) return this.$vue.$t("transaction.transaction_type_storage_service");
         if (t.type === 8) {
             if (t.subtype === 0) {
                 return this.$vue.$t("transaction.transaction_type_pool_create");
@@ -782,7 +796,7 @@ export default {
             } else if (t.subtype === 2) {
                 return this.$vue.$t("transaction.transaction_type_pool_join");
             } else if (t.subtype === 3) {
-                if(t.senderRS === SSO.accountRS && t.recipientRS !== SSO.accountRS){
+                if (t.senderRS === SSO.accountRS && t.recipientRS !== SSO.accountRS) {
                     return this.$vue.$t("transaction.transaction_type_pool_quit_not_myself");
                 }
                 return this.$vue.$t("transaction.transaction_type_pool_quit");
@@ -812,6 +826,11 @@ export default {
                 return this.$vue.$t("transaction.transaction_type_poc");
             }
         }
+        if (t.type === 18) {
+            if (t.subtype === 0) {
+                return this.$vue.$t("transaction.transaction_type_burn")
+            }
+        }
     },
     /**
      * 获得交易金额
@@ -828,9 +847,9 @@ export default {
         let isQuitPoolTx = (t.type === 8 && t.subtype === 3) ? true : false;
 
         let amountNQT = t.amountNQT;
-        if(isJoinPoolTx || isQuitPoolTx){
+        if (isJoinPoolTx || isQuitPoolTx) {
             amountNQT = t.attachment.amount
-        }else if(isCreatePoolTx || isDestroyPoolTx){
+        } else if (isCreatePoolTx || isDestroyPoolTx) {
             amountNQT = _this.poolPledgeAmount;
         }
 
@@ -838,10 +857,12 @@ export default {
 
         if (isJoinPoolTx || isCreatePoolTx) {
             return -amountNQT + this.unit
-        } else if (isQuitPoolTx || isDestroyPoolTx){
+        } else if (isQuitPoolTx || isDestroyPoolTx) {
             return "+" + amountNQT + this.unit
-        }else if (amountNQT <= 0) {
+        } else if (amountNQT <= 0) {
             return this.placeholder
+        } else if (t.type === 18) {
+            return amountNQT + this.unit
         } else if (t.senderRS === accountRS && t.type !== 9) {
             return -amountNQT + this.unit
         } else {
@@ -860,17 +881,6 @@ export default {
         return new BigNumber(t.feeNQT).dividedBy("100000000").toFixed() + this.unit;
     },
     /**
-     * convert the reward amount
-     * @param amountNQT
-     * @returns {string}
-     */
-    getBlockRewardNQT(amountNQT) {
-        if (amountNQT <= 0) {
-            return this.placeholder;
-        }
-        return new BigNumber(amountNQT).dividedBy("100000000").toFixed() + this.unit;
-    },
-    /**
      * 返回对象 或 占位符
      * @param o1
      * @param o2
@@ -884,7 +894,7 @@ export default {
      * @param t
      */
     getSenderOrRecipient(t) {
-        if(t.type === 12){
+        if (t.type === 12) {
             return "System"
         } else if (t.type === 9 && this.$vue.$store.state.account === t.recipientRS) {
             return t.senderRS
@@ -902,7 +912,7 @@ export default {
      * 获得发送者
      */
     getSenderRSOrWo(t) {
-        if (t.type === 9) {
+        if (t.type === 9 || t.type === 18) {
             return "System";
         } else if (this.$vue.$store.state.account !== t.senderRS) {
             return t.senderRS
@@ -951,7 +961,7 @@ export default {
         return this.placeholder
     },
     /**
-     * 格式化Token数量
+     * 格式化coin数量 + 单位
      * @param num
      * @param f
      * @returns {string}
@@ -975,5 +985,53 @@ export default {
     getRewardRate(rule, num) {
         let level = (rule.level) || (rule.level1 ? rule.level1 : rule.level0);
         return new BigNumber(level.forgepool.reward.max).multipliedBy("100").toFixed(num || 2) + "%";
-    }
+    },
+    /**
+     * 字符串反转义方法
+     * @param str
+     * @returns {*}
+     */
+    escape2Html(str) {
+        let arrEntities = {'lt': '<', 'gt': '>', 'nbsp': ' ', 'amp': '&', 'quot': '"'};
+        return str.replace(/&(lt|gt|nbsp|amp|quot);/ig, function (all, t) {
+            return arrEntities[t];
+        });
+    },
+    /**
+     * 下载文件方法
+     * @param content
+     * @param filename
+     */
+    funDownload(content, filename) {
+        var eleLink = document.createElement('a');
+        eleLink.download = filename;
+        eleLink.style.display = 'none';
+        // 字符内容转变成blob地址
+        var blob = new Blob([content]);
+        eleLink.href = URL.createObjectURL(blob);
+        // 触发点击
+        document.body.appendChild(eleLink);
+        eleLink.click();
+        // 然后移除
+        document.body.removeChild(eleLink);
+    },
+    /**
+     * 读取文件内容方法
+     * @param file
+     * @returns {Promise}
+     */
+    readFile(file) {
+        let _this = this;
+        return new Promise(function (resolve, reject) {
+            let reader = new FileReader();
+            if (typeof FileReader === 'undefined') {
+                _this.$message.error(_this.$t('notification.unsupported_file_type'));
+                return;
+            }
+            reader.readAsText(file, 'utf-8');
+            reader.onload = function () {
+                resolve(reader.result)
+            }
+        })
+    },
 };

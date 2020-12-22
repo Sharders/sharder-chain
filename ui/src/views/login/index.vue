@@ -19,7 +19,7 @@
             </el-col>
 
             <el-col :span="24">
-                <img src="../../assets/img/create_account.png"/>
+                <img src="../../assets/img/add.svg"/>
                 <a @click="register">{{$t('login.register_tip')}}</a>
             </el-col>
         </div>
@@ -59,15 +59,14 @@
         created() {
             const _this = this;
 
-            console.info("Net work type is:", SSO.netWorkType);
+            console.log("Net work type is:", SSO.netWorkType);
 
             this.$global.getUserConfig(this).then(res => {
-                console.log(res, "getUserConfiggetUserConfiggetUserConfiggetUserConfiggetUserConfiggetUserConfig");
                 _this.$store.state.isHubInit = res["sharder.HubBindAddress"] ? false : true;
                 _this.$store.state.userConfig = res;
-                _this.displayBindAddr = this.checkAndSetdisplayBindAddr();
                 _this.hubBind = res["sharder.HubBind"];
                 _this.hubBindAddress = res["sharder.HubBindAddress"];
+                _this.displayBindAddr = this.checkAndSetdisplayBindAddr();
                 _this.autoLogin(res);
             });
 
@@ -78,7 +77,7 @@
                 const _this = this;
                 if(_this.$store.state.userConfig["sharder.myAddress"]) {
                     if(_this.$store.state.userConfig["sharder.myAddress"].indexOf("sharder.io") != -1
-                        || _this.$store.state.userConfig["sharder.myAddress"].indexOf("sharder.org") != -1) {
+                    || _this.$store.state.userConfig["sharder.myAddress"].indexOf("sharder.org") != -1) {
                         return false;
                     }
                 }
@@ -87,7 +86,7 @@
             autoLogin(val) {
                 if (val["sharder.login.mode"] !== "auto" || sessionStorage.getItem("sharder.login.mode") === "manual") return;
                 let _this = this;
-                SSO.secretPhrase = val["sharder.login.sp"] || "confusion difference taste whatever pattern caress inhale hunt passion rest someone chin";
+                SSO.secretPhrase = val["sharder.login.sp"] || "faint color remember innocence drum object frighten show lace happy apologize sunset";
                 Login.login(1, SSO.secretPhrase, _this, function () {
                     _this.$global.setEpochBeginning(_this).then(res => {
                         _this.$store.state.isLogin = true;
@@ -180,12 +179,12 @@
 
 <style>
     .content_login .title .el-radio-button__orig-radio:checked + .el-radio-button__inner {
-        background-color: #513ac8;
-        border-color: #513ac8;
+        background-color: #3fb09a;
+        border-color: #3fb09a;
     }
 
     .content_login .title .el-radio-button__inner:hover {
-        color: #513ac8;
+        color: #3fb09a;
     }
 
     .content_login .title .el-radio-button__orig-radio:checked + .el-radio-button__inner:hover {
@@ -201,7 +200,7 @@
         text-align: center;
         font-size: 24px;
         font-weight: bold;
-        color: #493eda;
+        color: #3fb09a;
         margin-top: 40px;
     }
 
@@ -213,7 +212,7 @@
     .content_welcome .welcome_main .init_hub_btn {
         width: 400px;
         height: 40px;
-        background: #493eda;
+        background: #3fb09a;
         border: none;
         color: #fff;
         font-size: 18px;
@@ -223,8 +222,8 @@
 
     .content_welcome .welcome_main .init_hub_btn:hover {
         background: #fff;
-        color: #493eda;
-        border: 1px solid #493eda;
+        color: #3fb09a;
+        border: 1px solid #3fb09a;
         transition: .4s;
     }
 

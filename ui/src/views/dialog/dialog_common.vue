@@ -166,7 +166,7 @@
                 <el-radio-group v-model="tabTitle" class="title">
                     <el-radio-button label="account" class="btn">{{$t('dialog.block_info_all_transaction')}}</el-radio-button>
                     <el-radio-button label="blockInfo" class="btn">{{$t('dialog.block_info_all_block_detail')}}</el-radio-button>
-                    <el-radio-button v-if="containRewardTxs()" label="blockRewardInfo" class="btn">{{$t('dialog.block_reward_distribution_detail')}}</el-radio-button>
+                    <el-radio-button label="blockRewardInfo" class="btn">{{$t('dialog.block_reward_distribution_detail')}}</el-radio-button>
                     <el-radio-button v-if="pocInfoList.length > 0" label="pocInfo" class="btn">PoC</el-radio-button>
                     <el-radio-button v-if="poolInfoList.length > 0" label="poolInfo" class="btn">Pool</el-radio-button>
                     <el-radio-button v-if="messageInfoList.length > 0" label="messageInfo" class="btn">{{$t('sendMessage.infomation')}}</el-radio-button>
@@ -271,7 +271,7 @@
                         </tr>
                         <tr>
                             <th>{{$t('dialog.account_transaction_timestamp')}}</th>
-                            <td>{{$global.getFormattedTimestamp(blockInfo.totalFeeNQT)}}</td>
+                            <td>{{$global.getFormattedTimestamp(blockInfo.timestamp)}}</td>
                         </tr>
                         <tr>
                             <th>{{$t('dialog.block_info_previous_block')}}</th>
@@ -302,9 +302,8 @@
                         <p class="testnet-tips">{{$t('dialog.block_reward_distribution_mining')}}: {{$global.getAmountFormat(coinBaseTx.attachment.blockMiningRewardAmount)}}</p>
                     </div>
                     <div v-else-if="(rewardTabs === 'crowdMinerRewards') && containCrowdRewardTxs()">
-                        <p class="testnet-tips">{{$t('dialog.block_reward_distribution_crowd')}}: {{$global.getAmountFormat(coinBaseTx.attachment.crowdMinerRewardAmount)}}</p>
+                        <p class="testnet-tips">{{$t('dialog.block_reward_distribution_crowd')}}: {{$global.getAmountFormat(coinBaseTx.attachment.crowdMinerRewardAmount)}} / {{coinBaseTx.attachment.crowdMiners.length}} {{$t('dialog.block_reward_miners')}} - <span v-if="blockInfo.hasRewardDistribution" style="color: #00ff99">{{$t('network.crowd_miner_reward_success')}}</span><span v-if="!blockInfo.hasRewardDistribution" style="color: red">{{$t('network.crowd_miner_reward_fail')}}</span></p>
                     </div>
-
 
                     <!-- mining rewards(include pool mode) distribution table -->
                     <table v-if="(rewardTabs === 'miningRewards')" class="table">
@@ -328,6 +327,8 @@
                             </template>
                         </tr>
                         <tr v-else>
+<!--                            <td class="linker pc-table" >{{coinBaseTx.sender}}</td>-->
+<!--                            <td class="linker mobile-td compact-style" >{{coinBaseTx.senderRS}}</td>-->
                             <td class="linker pc-table" >{{blockInfo.generator}}</td>
                             <td class="linker mobile-td compact-style" >{{blockInfo.generatorRS}}</td>
                             <td class="mobile-td compact-style">--</td>
@@ -341,28 +342,29 @@
                     <!-- crowd miners rewards distribution table -->
                     <table v-if="(rewardTabs === 'crowdMinerRewards') && containCrowdRewardTxs()" class="table">
                         <tbody>
-                        <tr>
-                            <th class="pc-table">{{$t('dialog.account_info_account_id')}}</th>
-                            <th class="mobile-th compact-style">{{$t('dialog.block_info_mining')}}</th>
-                            <th class="mobile-th compact-style">{{$t('dialog.account_info_poc_score')}}</th>
-                            <th class="mobile-th compact-style">{{$t('dialog.account_transaction_amount')}}</th>
-                            <th class="pc-table">{{$t('dialog.account_transaction_sender')}}</th>
-                            <th class="mobile" style="width: 20px"></th>
-                        </tr>
-                        <tr v-for="(crowdMiner,index) in coinBaseTx.attachment.crowdMiners">
-                            <td class="linker pc-table" >{{crowdMiner.accountId}}</td>
-                            <td class="linker mobile-td compact-style" >{{crowdMiner.accountRS}}</td>
-                            <td class="mobile-td compact-style" v-if="crowdMiner.pocScore === -1">--</td>
-                            <td class="mobile-td compact-style" v-else>{{crowdMiner.pocScore}}</td>
-                            <td class="mobile-td compact-style">{{$global.getAmountFormat(crowdMiner.rewardAmount)}}</td>
-                            <td class="pc-table">CoinBase</td>
-                            <td class="mobile icon-box" style="width: 20px"><i class="el-icon-arrow-right"></i></td>
-                        </tr>
+                            <tr>
+                                <th class="pc-table">{{$t('dialog.account_info_account_id')}}</th>
+                                <th class="mobile-th compact-style">{{$t('dialog.block_info_mining')}}</th>
+                                <th class="mobile-th compact-style">{{$t('dialog.account_info_poc_score')}}</th>
+                                <th class="mobile-th compact-style">{{$t('dialog.account_transaction_amount')}}</th>
+                                <th class="pc-table">{{$t('dialog.account_transaction_sender')}}</th>
+                                <th class="mobile" style="width: 20px"></th>
+                            </tr>
+                            <tr v-for="(crowdMiner,index) in coinBaseTx.attachment.crowdMiners">
+                                <td class="linker pc-table" >{{crowdMiner.accountId}}</td>
+                                <td class="linker mobile-td compact-style" >{{crowdMiner.accountRS}}</td>
+                                <td class="mobile-td compact-style" v-if="crowdMiner.pocScore === -1">--</td>
+                                <td class="mobile-td compact-style" v-else>{{crowdMiner.pocScore}}</td>
+                                <td class="mobile-td compact-style">{{$global.getAmountFormat(crowdMiner.rewardAmount)}}</td>
+                                <td class="pc-table">CoinBase</td>
+                                <td class="mobile icon-box" style="width: 20px"><i class="el-icon-arrow-right"></i></td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
 
                 <div v-if="tabTitle === 'pocInfo'" class="blockInfo">
+                    <!-- pc -->
                     <el-table :data="pocInfoList" class="poc pc" style="width: 100%">
                         <el-table-column type="expand">
                             <template slot-scope="props">
@@ -428,7 +430,8 @@
                     </el-table>
                 </div>
                 <div v-if="tabTitle === 'poolInfo'" class="blockInfo">
-                    <el-table :data="poolInfoList" class="poc" style="width: 100%">
+                    <!-- pc -->
+                    <el-table :data="poolInfoList" class="poc pc" style="width: 100%">
                         <el-table-column type="expand">
                             <template slot-scope="props">
                                 <el-form label-position="left" inline>
@@ -466,9 +469,28 @@
                             :label="$t('poc.tx')">
                         </el-table-column>
                     </el-table>
+
+                    <!-- mobile -->
+                    <el-table :data="poolInfoList" class="poc mobile" style="width: 100%">
+                        <el-table-column type="expand">
+                            <template slot-scope="props">
+                                <el-form label-position="left" inline>
+                                    <el-row>
+                                        <PoolTxDetail :rowData="props.row"></PoolTxDetail>
+                                    </el-row>
+                                </el-form>
+                            </template>
+                        </el-table-column>
+                        <el-table-column
+                            prop="transaction"
+                            align="center"
+                            :label="$t('poc.tx')">
+                        </el-table-column>
+                    </el-table>
                 </div>
                 <div v-if="tabTitle === 'messageInfo'" class="blockInfo">
-                    <el-table :data="messageInfoList" class="poc" style="width: 100%">
+                    <!-- pc -->
+                    <el-table :data="messageInfoList" class="poc pc" style="width: 100%">
                         <el-table-column type="expand">
                             <template slot-scope="props">
                                 <el-form label-position="left" inline>
@@ -505,6 +527,59 @@
                             :label="$t('poc.tx')">
                         </el-table-column>
                     </el-table>
+
+                    <!-- mobile -->
+                    <el-table :data="messageInfoList" class="poc mobile" style="width: 100%">
+                        <el-table-column type="expand">
+                            <template slot-scope="props">
+                                <el-form label-position="left" inline>
+                                    <el-row>
+                                        <MessageTxDetail :rowData="props.row"></MessageTxDetail>
+                                    </el-row>
+                                </el-form>
+                            </template>
+                        </el-table-column>
+
+                        <el-table-column
+                            prop="transaction"
+                            align="center"
+                            :label="$t('poc.tx')">
+                        </el-table-column>
+                    </el-table>
+                </div>
+                <div v-if="tabTitle === 'storageFileInfo'" class="blockInfo">
+                    <el-table :data="storageFileInfo" class="poc" style="width: 100%">
+                        <el-table-column
+                            prop="senderRS"
+                            align="center"
+                            :label="$t('poc.creator')">
+                        </el-table-column>
+                        <el-table-column
+                            prop="subType"
+                            align="center"
+                            :label="$t('poc.type')"
+                            :formatter="parseSubTypePool">
+                        </el-table-column>
+                        <el-table-column
+                            prop="height"
+                            align="center"
+                            :label="$t('poc.started_height')">
+                        </el-table-column>
+                        <el-table-column
+                            prop="transaction"
+                            align="center"
+                            :label="$t('poc.tx')">
+                        </el-table-column>
+                        <el-table-column
+                            align="center"
+                            :label="$t('network.block_list_operating')">
+                            <template slot-scope="scope">
+                                <el-button @click="downloadFile(scope.row)">{{$t('network.download')}}</el-button>
+                            </template>
+                        </el-table-column>
+
+                    </el-table>
+
                 </div>
             </div>
         </div>
@@ -578,14 +653,16 @@
                     </tr>
                     </tbody>
                 </table>
+
             </div>
+
 
         </div>
     </div>
 </template>
 
 <script>
-    import MessageTxDetail from "./messageTxDetail";
+    import MessageTxDetail from "./MessageTxDetail";
     export default {
         name: "dialog_all",
         components:{MessageTxDetail},
@@ -598,7 +675,6 @@
             generatorRS: '',
             trading: '',
             height: '',
-
         },
         data() {
             return {
@@ -619,8 +695,10 @@
                 poolInfoList:[],
                 messageInfoList:[],
                 accountIdMap:[],
+                storageFileInfo:[],
                 tradingInfoDialog: this.tradingInfoOpen,
                 rs:'',
+                secretPhrase:SSO.secretPhrase,
             }
         },
         methods: {
@@ -628,9 +706,11 @@
                 const _this = this;
 
                 if(_this.coinBaseTx !== ''
-                    && _this.coinBaseTx.attachment.crowdMiners
-                    && _this.coinBaseTx.attachment.crowdMiners.length > 0){
-                    return true;
+                && _this.coinBaseTx.attachment.crowdMiners
+                && _this.coinBaseTx.attachment.crowdMiners !== '{}'
+                && _this.coinBaseTx.attachment.crowdMiners !== '[]'
+                && _this.coinBaseTx.attachment.crowdMiners.length > 0){
+                return true;
                 }
 
                 return false;
@@ -639,25 +719,27 @@
                 const _this = this;
 
                 if(_this.coinBaseTx !== ''
-                    && _this.coinBaseTx.attachment.consignors
-                    && _this.coinBaseTx.attachment.consignors.length > 0){
+                && _this.coinBaseTx.attachment.consignors
+                && _this.coinBaseTx.attachment.consignors !== '{}'
+                && _this.coinBaseTx.attachment.consignors !== '[]'
+                && _this.coinBaseTx.attachment.consignors.length > 0){
                     return true;
                 }
-
                 return false;
             },
+
             httpGetAccountInfo(accountID) {
                 const _this = this;
                 return new Promise((resolve, reject) => {
 
-                    _this.$http.get('/sharder?requestType=getAccount', {
+                    _this.$http.get(_this.$global.urlPrefix() + '?requestType=getAccount', {
                         params: {
                             account: accountID
                         }
                     }).then(function (res) {
                         if (!res.data.errorDescription) {
                             _this.accountInfo = res.data;
-                            _this.$http.get('/sharder?requestType=getBlockchainTransactions', {
+                            _this.$http.get(_this.$global.urlPrefix() + '?requestType=getBlockchainTransactions', {
                                 params: {
                                     account: accountID
                                 }
@@ -681,8 +763,9 @@
                 _this.pocInfoList = [];
                 _this.poolInfoList = [];
                 _this.messageInfoList = [];
+                _this.storageFileInfo =[];
                 return new Promise((resolve, reject) => {
-                    _this.$http.get('/sharder?requestType=getBlock', {
+                    _this.$http.get(_this.$global.urlPrefix() + '?requestType=getBlock', {
                         params: {
                             height: height,
                             block: BlockID,
@@ -720,8 +803,8 @@
                                     });
                                 }else if (t.type === 9) {
                                     _this.coinBaseTx=t;
-                                    console.info('coinBaseTx')
-                                    console.info(_this.coinBaseTx)
+                                    console.log('coinBaseTx')
+                                    console.log(_this.coinBaseTx)
                                 }else if(t.type === 1){
                                     _this.messageInfoList.push({
                                         messageInfo:t.attachment,
@@ -733,23 +816,27 @@
                                         recipientRS:t.recipientRS,
                                         accountRS:SSO.accountRS,
                                     });
+                                }else if(t.type === 11){
+                                    _this.storageFileInfo.push({
+                                        fileInfo:t.attachment,
+                                        senderRS:t.senderRS,
+                                        block:t.block,
+                                        height:t.height,
+                                        transaction:t.transaction,
+                                        type:t.type,
+                                        feeNQT:t.feeNQT,
+                                    });
                                 }
-
                             }
-                            _this.$http.get('/sharder?requestType=getAccountId', {
-                                params: {
-                                    accoutId: accoutIdArray.join(","),
-                                }
-                            }).then(function (res) {
+                            let formData = new FormData();
+                            formData.append("accoutId", accoutIdArray.join(","));
+                            _this.loading = true;
+                            _this.$http.post(_this.$global.urlPrefix() + '?requestType=getAccountId', formData).then(function (res) {
                                 if (!res.data.errorDescription) {
-                                    console.info(res.data);
-                                    console.info("rs:"+_this.rs);
                                     _this.accountIdMap = res.data.rsAccountInfo;
-                                    console.info("map:"+_this.accountIdMap);
-
-
+                                    console.log("map:"+_this.accountIdMap);
                                 } else {
-                                    console.info(res.data.errorDescription);
+                                    console.log(res.data.errorDescription);
                                 }
                             }).catch(function (err) {
                                 console.info(err);
@@ -767,7 +854,7 @@
             httpGetTradingInfo(tradingID) {
                 const _this = this;
                 return new Promise((resolve, reject) => {
-                    this.$http.get('/sharder?requestType=getTransaction', {
+                    this.$http.get(_this.$global.urlPrefix() + '?requestType=getTransaction', {
                         params: {
                             transaction: tradingID
                         }
@@ -934,7 +1021,7 @@
             },
             parseSubTypePool(row, column) {
                 let subtype = row.subType;
-                console.log("pool")
+                if(row.type === 11) return  this.$root.$t("transaction.transaction_type_storage_service");
                 switch (subtype) {
                     case 0:
                         return this.$root.$t("transaction.transaction_type_pool_create");
@@ -970,6 +1057,9 @@
                 let subtype = row.subType;
                 if (subtype === 0) return _this.$root.$t("transaction.transaction_type_information");
                 if (subtype === 5) return _this.$root.$t("transaction.transaction_type_account");
+            },
+            downloadFile(row,column){
+                window.open(_this.$global.urlPrefix() + "?requestType=downloadStoredData&ssid="+row.fileInfo.ssid+"&filename="+row.fileInfo.name,"_blank");
             },
 
         },
@@ -1103,7 +1193,7 @@
         margin-top: 5px !important;
         border-radius: 0 !important;;
         border: 0;
-        box-shadow: 0 0 0 0 #409EFF;
+        box-shadow: 0 0 0 0 #3fb09a;
     }
 
     #block_info {
@@ -1115,7 +1205,7 @@
             .title {
                 .el-radio-button__orig-radio:checked + .el-radio-button__inner,
                 .el-select-dropdown__item.selected.hover, .el-select-dropdown__item.selected {
-                    background-color: #493eda;
+                    background-color: #3fb09a;
                 }
 
                 .el-radio-button__orig-radio:checked + .el-radio-button__inner:hover {
@@ -1123,7 +1213,7 @@
                 }
 
                 .el-radio-button__inner:hover {
-                    color: #493eda;
+                    color: #3fb09a;
                 }
             }
 
@@ -1155,7 +1245,7 @@
                     }
 
                     .linker {
-                        color: #493eda;
+                        color: #3fb09a;
                         cursor: pointer;
 
                         a {
@@ -1205,7 +1295,7 @@
                 span {
                     line-height: 60px;
                     font-size: 16px;
-                    color: #333;
+                    color: #555;
                 }
             }
 
@@ -1214,7 +1304,7 @@
 
                 .el-radio-button__orig-radio:checked + .el-radio-button__inner,
                 .el-select-dropdown__item.selected.hover, .el-select-dropdown__item.selected {
-                    background-color: #493eda;
+                    background-color: #3fb09a;
                 }
 
                 .el-radio-button__orig-radio:checked + .el-radio-button__inner:hover {
@@ -1222,7 +1312,7 @@
                 }
 
                 .el-radio-button__inner:hover {
-                    color: #493eda;
+                    color: #3fb09a;
                 }
 
                 .account_list {
@@ -1277,7 +1367,7 @@
                         }
 
                         .linker {
-                            color: #493eda;
+                            color: #3fb09a;
                             cursor: pointer;
 
                             a {
@@ -1325,7 +1415,7 @@
                 span {
                     line-height: 60px;
                     font-size: 16px;
-                    color: #333;
+                    color: #555;
                 }
             }
 
@@ -1387,6 +1477,7 @@
     .compact-small-font {
         font-size: 9px;
     }
+
 
     @media only screen and (max-width: 780px) {
         #account_info .modal-body .account_allInfo .account_list .table td {

@@ -3,10 +3,10 @@
         <!--切换按钮-->
         <el-radio-group v-model="tabTitle" class="title">
             <el-radio-button label="mining" class="btn">{{$t('mining.index.sharder_mining')}}</el-radio-button>
-            <el-radio-button label="welfare" class="btn">{{$t('mining.index.free_collar')}}</el-radio-button>
+           <!-- <el-radio-button label="welfare" class="btn">{{$t('mining.index.free_collar')}}</el-radio-button>-->
             <el-radio-button label="exchange" class="btn">{{$t('mining.index.ss_exchange')}}</el-radio-button>
         </el-radio-group>
-        <!--豆匣矿场-->
+        <!--矿场-->
         <div v-if="tabTitle === 'mining' && tabMenu === 'mining'" class="mining-page">
             <div class="pool-top">
                 <div class="mining-content">
@@ -59,7 +59,7 @@
                         <p>{{$t('mining.index.my_pool')}}</p>
                     </div>-->
                     <div class="my-mining create" @click="isVisible('isCreatePool')" v-if="$global.optHeight.create < newestBlock.height && typeof(secretPhrase) !== 'undefined' && createPoolBtn">
-                        <img src="../../assets/img/chuanjiankuangchi.png">
+                        <img src="../../assets/img/create-pool.svg">
                         <p>{{$t('mining.index.create_pool')}}</p>
                     </div>
                 </div>
@@ -101,13 +101,13 @@
             <div class="mining-list">
                 <div :class="selectCss" v-loading="loading" id = "miningListInfoId">
                     <el-row :gutter="10">
-                        <el-col :span="8" v-for="(mining,index) in miningList" v-if="index >= ((currentPage - 1) * pageSize) && index <= (currentPage * pageSize -1)">
+                        <el-col :span="8" v-for="(mining,index) in miningList" :key="index" v-if="index >= ((currentPage - 1) * pageSize) && index <= (currentPage * pageSize -1)">
                             <div class="grid-content">
                                 <div class="info" @click="poolAttribute(mining)">
                                     <h2 :class="(mining.creatorRS === accountInfo.accountRS) ? 'my-pool-title' : '' ">
                                         {{mining.creatorRS === accountInfo.accountRS ? $t('mining.index.my_pool') : $t('mining.index.pool')}}
                                         <span v-if="mining.isJoin">
-                                            <img class="pool-badge" src="../../assets/img/chatu.png" height="25px">
+                                            <img class="pool-badge" src="../../assets/img/my-join.svg" height="22px">
                                         </span>
                                     </h2>
                                     <p class="pool-no">No.{{mining.poolId}}</p>
@@ -160,8 +160,8 @@
 
 
         </div>
-        <!--免费领SS-->
-        <div v-if="tabTitle === 'welfare'">
+        <!--免费领-->
+        <!--<div v-if="tabTitle === 'welfare'">
             <div class="receive">
                 <img src="../../assets/img/camp_apk.png" class="receive-qr-img">
                 <p class="receive-text">
@@ -169,8 +169,8 @@
                     {{$t('mining.index.welfare_title2')}}
                 </p>
             </div>
-        </div>
-        <!--SS兑换-->
+        </div>-->
+        <!--兑换-->
         <div v-if="tabTitle === 'exchange'">
             <ExchangeReward></ExchangeReward>
         </div>
@@ -178,7 +178,7 @@
         <div v-if="tabMenu === 'personal'">
             <div class="personal-content">
                 <div class="user">
-                    <img src="../../assets/img/wodezichan.png" class="header-img">
+                    <img src="../../assets/img/money.svg" class="header-img">
                     <p>
                         <span>{{$t('mining.index.miner_name')}}</span>:
                         <span v-if="accountInfo.name !== undefined">{{accountInfo.name}}</span>
@@ -192,23 +192,15 @@
                     </p>
                 </div>
                 <div class="list" @click="$router.push({name: 'my-assets'})">
-                    <img src="../../assets/img/wodezichan.png">
+                    <img src="../../assets/img/money.svg">
                     <span>{{$t('mining.index.my_assets')}}</span>
                 </div>
-                <div class="list" @click="$router.push({name: 'free-collar-drill'})">
-                    <img src="../../assets/img/zhuanshi.png">
-                    <span>{{$t('mining.index.free_collar_drill')}}</span>
-                </div>
-              <!--  <div class="list" @click="$router.push({name: 'invite-friends'})">
-                    <img src="../../assets/img/haoyou.png">
-                    <span>{{$t('mining.index.join_friend')}}</span>
-                </div>-->
                 <div class="list" @click="$router.push({name: 'diamond-exchange'})">
-                    <img src="../../assets/img/zhuanshiduihuan.png">
+                    <img src="../../assets/img/exchange.svg">
                     <span>{{$t('mining.index.diamond_exchange')}}</span>
                 </div>
                 <div class="list">
-                    <img src="../../assets/img/guanyuwomen.png">
+                    <img src="../../assets/img/about.svg">
                     <span>{{$t('mining.index.about_us')}}</span>
                 </div>
                 <div class="about">
@@ -228,7 +220,7 @@
                 <div class="determine" @click="setAccountInfo()">{{$t('mining.attribute.confirm')}}</div>
             </div>
         </div>
-        <!--TSS说明-->
+        <!--说明-->
         <div v-if="isTSS">
             <div class="tss">
                 <h1>{{$t('mining.index.tss_address_tile')}}</h1>
@@ -417,9 +409,9 @@
                 }
                 // if (_this.$router.currentRoute.name !== "mining") return;
 
-            }, SSO.downloadingBlockchain ? this.$global.cfg.soonInterval : this.$global.cfg.defaultInterval);
+            }, SSO.downloadingBlockchain ? this.$global.cfg.soonInterval : (this.$global.isOpenApiProxy() ? this.$global.cfg.slowInterval : this.$global.cfg.defaultInterval));
 
-            document.getElementsByClassName('header')[0].style.display = 'none'
+            // document.getElementsByClassName('header')[0].style.display = 'none'
         },
         created(){
             let _this = this;
@@ -432,7 +424,7 @@
             _this.miningList = [];
             if (!_this.$store.state.isLogin) {
                 window.token = window.location.search.substring(1 + "token".length);
-                console.info("token", token);
+                console.log("token", token);
                 _this.account();
             } else {
                 _this.loginAfter();
@@ -585,7 +577,7 @@
                     shell: "account",
                     token: window.token,
                 }, "authorizationLogin").then(value => {
-                    console.info("authorizationLogin ", value);
+                    console.log("authorizationLogin ", value);
                     if (!value.success) {
                         console.log("验证签名：", value.success);
                         history.back(-1);
@@ -831,7 +823,7 @@
 
     .mining .title .el-radio-button__orig-radio:checked + .el-radio-button__inner,
     .el-select-dropdown__item.selected.hover, .el-select-dropdown__item.selected {
-        background-color: #513ac8;
+        background-color: #3fb09a;
     }
 
     .mining .title .el-radio-button__orig-radio:checked + .el-radio-button__inner:hover {
@@ -839,7 +831,7 @@
     }
 
     .mining .title .el-radio-button__inner:hover {
-        color: #513ac8;
+        color: #3fb09a;
     }
 
     .mining .el-input {
@@ -873,19 +865,19 @@
     }
 
     .mining .mining-paging1 .el-pager li.active {
-        background-color: #513acB;
+        background-color: #3fb09a;
         border: none;
     }
     .mining .mining-paging2 .el-pager li.active {
-        background-color: #513acB;
+        background-color: #3fb09a;
         border: none;
     }
 
     .mining .mining-paging1 .el-pager li:hover {
-        color: #513acB;
+        color: #3fb09a;
     }
     .mining .mining-paging2 .el-pager li:hover {
-        color: #513acB;
+        color: #3fb09a;
     }
 
     .mining .mining-paging1 .el-pager li.active:hover {
@@ -897,7 +889,7 @@
 
     .mining .create-pool .el-slider__button,
     .mining .create-pool .el-slider__bar {
-        background-color: #513acB;
+        background-color: #3fb09a;
     }
 
     .img-close {
@@ -920,12 +912,12 @@
         position: absolute;
         left: 9px;
         top: 9px;
-        color: #513ac8;
+        color: #3fb09a;
         cursor: pointer;
     }
 
     .mining-back:hover {
-        color: #513ac8aa;
+        color: #3fb09aaa;
     }
 
     .mining-list .el-select .el-input .el-select__caret {
@@ -943,7 +935,7 @@
     }
 
     .my-pool-title {
-        color: #14c6fc;
+        color: rgb(29, 144, 230);
     }
 
     .pool-badge {
@@ -953,7 +945,7 @@
     }
 
 </style>
-<!--豆匣矿场-->
+<!--矿场-->
 <style>
 
     .mining-content {
@@ -964,7 +956,7 @@
         height: 300px;
         padding: 30px;
         background: url("../../assets/img/kuangchi_bg.png") no-repeat center 140px;
-        background-color: #513acB;
+        background-color: #3fb09a;
     }
 
     .mining-content .assets ul {
@@ -1018,7 +1010,7 @@
         float: right;
         right: -30px;
         /*top: -20px;*/
-        background-color: #0000ff;
+        background-color: #00D6A3;
         display: inline-block;
         font-size: 14px;
         color: #fff;
@@ -1027,7 +1019,7 @@
         border-top-left-radius: 20px;
     }
 
-    .invite-friends, .rule-description {
+    .invite-friends {
         cursor: pointer;
         display: none;
     }
@@ -1102,7 +1094,7 @@
 
     .mining-notice .notice-info {
         font-size: 16px;
-        color: #513ac8;
+        color: #3fb09a;
     }
 
     .mining-list .list-title {
@@ -1130,7 +1122,8 @@
 
     .grid-content {
         height: 120px;
-        margin-bottom: 10px;
+        margin-bottom: 5px;
+        margin-top: 5px;
         background: #fff;
         border-radius: 6px;
         color: #fff;
@@ -1142,11 +1135,11 @@
     }
 
     .grid-content .info {
-        width: 170px;
+        width: 185px;
         height: 120px;
         text-align: center;
-        background-color: #513ac8;
-        border-radius: 6px;
+        background-color: #3fb09a;
+        border-radius: 8px;
         cursor: pointer;
     }
 
@@ -1167,16 +1160,17 @@
     }
 
     .grid-content .info .pool-owner {
-        font-size: 11px;
+        font-size: 10px;
     }
 
     .grid-content .tag {
-        width: 200px;
+        width: 49%;
         height: 120px;
-        color: #000;
+        color: #555;
         padding: 0;
         font-size: 14px;
         position: relative;
+
     }
 
     .grid-content .tag p {
@@ -1185,7 +1179,8 @@
     }
 
     .grid-content .tag img {
-        padding: 0 10px 0px 10px;;
+        padding: 0 5px 0px 5px;
+        height: 15px;
     }
 
     .mining-paging1 {
@@ -1212,22 +1207,26 @@
         padding: 0;
         margin: 0;
     }
-
+    .mining .mining-content .rule-description{
+        display: none;
+    }
 
     @keyframes chatu {
         0% {
-            top: 110px;
+            top: 125px;
         }
         100% {
-            top: 90px;
+            top: 100px;
         }
     }
 
     #chatu {
         position: absolute;
         top: 110px;
-        left: calc(50% - 34px);
+        left: calc(50% - 22px);
         animation: chatu 1s infinite;
+        animation-direction: alternate;
+        height: 100px;
         /*播放动画myfirst 时间为 1秒 循环播放10次(infinite:循环播放)*/
         animation-direction: alternate;
         /*播放方式开始到结束,结束回到开始;*/
@@ -1250,7 +1249,7 @@
         margin-top: 5px;
     }
 </style>
-<!--免费领SS-->
+<!--免费领-->
 <style scoped>
     .receive .receive-qr-img {
         width: 160px;
@@ -1261,16 +1260,16 @@
     }
 
     .receive .receive-text {
-        color: #513ac8;
+        color: #3fb09a;
         font-size: 14px;
     }
 </style>
-<!--SS兑换-->
+<!--兑换-->
 <style scoped>
     .reward .reward-title {
         margin-top: 10px;
         font-size: 14px;
-        color: #333;
+        color: #555;
         padding: 22px 0;
         max-height: 60px;
         background-color: #fff;
@@ -1336,16 +1335,16 @@
         height: 50px;
         font-size: 16px;
         border-radius: 4px;
-        background-color: #513ac8;
+        background-color: #3fb09a;
         border: none;
     }
 
     .content-right button:hover {
-        background-color: #513ac8dd;
+        background-color: #3fb09add;
     }
 
     .content-right button:active {
-        background-color: #513ac8aa;
+        background-color: #3fb09aaa;
     }
 
     .en_mining .content-left span.strong {
@@ -1379,7 +1378,7 @@
         padding: 20px 0;
         font-size: 16px;
         font-weight: bold;
-        background-color: #462cae;
+        background-color: #3fb09a;
         color: #fff;
         border-top-left-radius: 6px;
         border-top-right-radius: 6px;
@@ -1461,7 +1460,7 @@
 
     .create-pool-content .pool-attribute {
         padding: 30px 40px;
-        background-color: #513ac8;
+        background-color: #3fb09a;
         color: #fff;
     }
 
@@ -1520,23 +1519,23 @@
 
     .pool-bth .immediately-create {
         float: right;
-        background-color: #513ac8;
+        background-color: #3fb09a;
         color: #fff;
         border: none;
     }
 
     .pool-bth .immediately-create:hover {
-        background-color: #513ac8aa;
+        background-color: #3fb09aaa;
     }
 
     .pool-bth .cancel {
         background-color: #fff;
-        color: #513ac8;
-        border: 1px solid #513ac8;
+        color: #3fb09a;
+        border: 1px solid #3fb09a;
     }
 
     .pool-bth .cancel:hover {
-        background-color: #513ac810;
+        background-color: #3fb09a10;
     }
 
     .en_mining .pool-data .strong {
@@ -1590,8 +1589,6 @@
             height: 290px;
             background-position: center 135px;
         }
-
-
         .mining-content .assets .myAddressLi{
             display: block;
         }
@@ -1641,7 +1638,7 @@
         }
 
         .mining .mining-list-info .grid-content .info {
-            width: 45%;
+            width: 50%;
         }
 
         .mining .mining-list-info .grid-content .tag {
@@ -1649,7 +1646,7 @@
         }
 
         .mining .mining-list-info .grid-content .tag img {
-            padding: 0 10px;
+            padding: 0 2px;
         }
 
         .mining .mining-list-info1 .el-row {
@@ -1662,7 +1659,7 @@
         }
 
         .mining .mining-list-info1 .grid-content .info {
-            width: 45%;
+            width: 48%;
         }
 
         .mining .mining-list-info1 .grid-content .tag {
@@ -1670,7 +1667,7 @@
         }
 
         .mining .mining-list-info1 .grid-content .tag img {
-            padding: 0 10px;
+            padding: 0 2px;
         }
 
         .mining .mining-content .instructions {
@@ -1683,7 +1680,7 @@
             cursor: pointer;
             color: #fff;
             padding: 10px 20px;
-            background: #0000ff;
+            background: #00D6A3;
             border-top-left-radius: 20px;
             border-bottom-left-radius: 20px;
             position: absolute;
@@ -1784,7 +1781,7 @@
         }
 
         .mining .pool-set .pool-title {
-            color: #333;
+            color: #555;
             margin: 0 0 20px 0;
         }
 
@@ -1859,23 +1856,23 @@
         }
 
         .menu .title .btn.miner {
-            background: url("../../assets/img/index.png") no-repeat center 5px;
+            background: url("../../assets/img/pool-default.svg") no-repeat center 5px;
         }
 
         .menu .title .btn.personal {
-            background: url("../../assets/img/personal.png") no-repeat center 5px;
+            background: url("../../assets/img/account-circle-line.svg") no-repeat center 5px;
         }
 
         .menu .title .is-active.btn.miner {
-            background: url("../../assets/img/index-1.png") no-repeat center 5px;
+            background: url("../../assets/img/pool-click.svg") no-repeat center 5px;
         }
 
         .menu .title .is-active.btn.personal {
-            background: url("../../assets/img/personal-1.png") no-repeat center 5px;
+            background: url("../../assets/img/account-circle-fill.svg") no-repeat center 5px;
         }
 
         .menu .el-radio-button__orig-radio:checked + .el-radio-button__inner {
-            color: #513ac8 !important;
+            color: #3fb09a !important;
         }
 
         .mining .mining-list .mining-list-info {
@@ -1907,7 +1904,7 @@
         .mining .personal-content .user {
             height: 170px;
             width: 100%;
-            background: #513ac8;
+            background: #3fb09a;
             border-radius: 4px;
             text-align: center;
             color: #fff;
@@ -1921,7 +1918,7 @@
             border-radius: 50%;
             background: #fff;
             margin: 15px 0;
-            border: 10px solid #0000ff55;
+            border: 10px solid #00D6A355;
             top: 0;
         }
 
@@ -1943,7 +1940,7 @@
             border-bottom: 1px solid #dbe2e8;
             padding: 10px 15px;
             font-size: 13px;
-            color: #333;
+            color: #555;
             cursor: pointer;
         }
 
@@ -1963,7 +1960,7 @@
         }
     }
 </style>
-<!--TSS兑换-->
+<!--兑换-->
 <style>
     @media (max-width: 640px) {
         .mining .tss {
@@ -1979,7 +1976,7 @@
         .mining .tss h1 {
             font-size: 14px;
             font-weight: bold;
-            color: #333;
+            color: #555;
             padding: 15px 0;
             text-align: center;
         }
@@ -1987,11 +1984,11 @@
         .mining .tss .text {
             padding: 0 20px 20px;
             font-size: 13px;
-            color: #333;
+            color: #555;
         }
 
         .mining .tss .close {
-            background: #513ac8;
+            background: #3fb09a;
             cursor: pointer;
             color: #fff;
             width: 100%;
@@ -2035,7 +2032,7 @@
 
         .mining .set-name .determine {
             width: 100%;
-            background: #513ac8;
+            background: #3fb09a;
             padding: 15px 0;
             border-bottom-left-radius: 6px;
             border-bottom-right-radius: 6px;

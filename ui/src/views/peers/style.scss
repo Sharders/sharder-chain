@@ -3,6 +3,7 @@
     height: 400px;
     background: #fff;
     margin-bottom: 20px;
+    border-radius: 4px;
 }
 
 .modal-peer{
@@ -28,5 +29,22 @@
                 }
             }
         }
+    }
+}
+
+@media only screen and (max-width: 780px) {
+    .block_map {
+        display: block;
+        width: auto;
+        margin: 0 15px;
+        height: 200px;
+        margin-bottom: 20px;
+        border-radius: 4px;
+    }
+    .peer_link {
+        display: none;
+    }
+    #peers_table .linker.service {
+        display: none;
     }
 }

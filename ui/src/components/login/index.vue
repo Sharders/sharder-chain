@@ -2,19 +2,17 @@
     <div class="container_login">
         <div class="content">
             <div class="content_message">
-                <div>
-                    <div><a>{{$t('login.login_tip0')}}</a><br/></div>
-                    <div><a>{{$t('login.login_tip1')}}</a><br/></div>
-                    <div><a>{{$t('login.login_tip2')}}</a><br/></div>
-                    <div><a>{{$t('login.login_tip3')}}</a><br/></div>
-                    <div><a>{{$t('login.login_tip4')}}</a></div>
-                </div>
+                <div><a>{{$t('login.login_tip0')}}</a><br/></div>
+                <div><a>{{$t('login.login_tip1')}}</a><br/></div>
+                <div><a>{{$t('login.login_tip2')}}</a><br/></div>
+                <div><a>{{$t('login.login_tip3')}}</a><br/></div>
+                <div><a>{{$t('login.login_tip4')}}</a></div>
             </div>
 
             <el-col :span="24">
                 <el-dropdown trigger="click"  @command="languageChange">
                         <span  class="el-dropdown-link" >
-                            <a>{{$t('login.language')}}</a><img src="../../assets/img/select-language.png"/>
+                            <a>{{$t('login.language')}}</a><img src="../../assets/img/arrow.svg"/>
                         </span>
                     <el-dropdown-menu slot="dropdown">
                         <el-dropdown-item command="cn">中文</el-dropdown-item>
@@ -52,7 +50,6 @@
         }
     };
 </script>
-
 
 <style lang="scss">
     @import './style.scss';

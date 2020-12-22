@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" viewBox="0 0 20 20">
+  <defs>
+    <clipPath id="clip-path">
+      <rect id="矩形_7763" data-name="矩形 7763" width="20" height="20" transform="translate(439 738)" fill="#359836" stroke="#707070" stroke-width="1"/>
+    </clipPath>
+  </defs>
+  <g id="exchange" transform="translate(-439 -738)" clip-path="url(#clip-path)">
+    <g id="exchange-line" transform="translate(439 738)">
+      <path id="路径_2480" data-name="路径 2480" d="M0,0H20V20H0Z" fill="none"/>
+      <path id="路径_2481" data-name="路径 2481" d="M10,18.333A8.333,8.333,0,1,1,18.333,10,8.333,8.333,0,0,1,10,18.333Zm0-1.667A6.667,6.667,0,1,0,3.333,10,6.667,6.667,0,0,0,10,16.667ZM5.833,10.833h7.5V12.5H10V15ZM10,7.5V5l4.167,4.167h-7.5V7.5Z" fill="#493eda"/>
+    </g>
+  </g>
+</svg>

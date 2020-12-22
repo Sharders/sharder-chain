@@ -7,6 +7,7 @@ out
 contrib
 # *.bat
 jre
+.vscode
 
 package-lock.json
 
@@ -20,6 +21,9 @@ conf/.lock
 conf/localstorage
 conf/sharder.properties
 conf/local-debug.properties
+conf/genesis.json
+conf/crowd_miner.json
+src/test/java/org/conch/offline
 
 DestroyForgePool
 ForgePools
@@ -29,6 +33,10 @@ DestroyedPools
 logs
 sharder_db
 sharder_test_db
+bak/
+ARCHIVE/
+archive/
+temp/
 
 # storage/
 .ipfs
