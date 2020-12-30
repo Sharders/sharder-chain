@@ -380,7 +380,7 @@ public class Generator implements Comparable<Generator> {
         Account minerAccount = Account.getAccount(minerId, height);
         if(minerAccount == null) {
             if(Logger.printNow(Logger.Generator_startMining)) {
-                Logger.logWarningMessage("Current miner account[id=%d] can't start auto mining or mint block. Because it is a new account at this height %d, please create some txs or receive some MW from other accounts", minerId, height);
+                Logger.logWarningMessage("Current miner account[id=%d] can't start auto mining or mint block. Because it is a new account at this height %d, please create some txs or receive some coins from other accounts", minerId, height);
             }
             return false;
         }
@@ -409,7 +409,7 @@ public class Generator implements Comparable<Generator> {
         long accountBalanceNQT = (minerAccount != null) ? minerAccount.getEffectiveBalanceNQT(Conch.getHeight()) : 0L;
         if(accountBalanceNQT < Constants.MINING_HOLDING_LIMIT) {
             if(Logger.printNow(Logger.Generator_startMining)) {
-                Logger.logWarningMessage("Invalid miner account %s can't start auto mining or mint block. Because the MW holding limit of the mining is %d and current balance is %d",
+                Logger.logWarningMessage("Invalid miner account %s can't start auto mining or mint block. Because the coin holding limit of the mining is %d and current balance is %d",
                         minerAccount.getRsAddress(),
                         (Constants.MINING_HOLDING_LIMIT / Constants.ONE_SS),
                         (accountBalanceNQT / Constants.ONE_SS));
