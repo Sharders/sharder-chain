@@ -313,7 +313,7 @@ public class IpUtil {
     }
 
     /**
-     * send request to MW certification to convert
+     * send request to certification to convert
      * and cache to the local
      * @param natAddrSet
      * @return

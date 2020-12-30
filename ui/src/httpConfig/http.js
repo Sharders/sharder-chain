@@ -4,11 +4,12 @@
 import axios from "axios";
 import apiURL from "./api.js";
 import Qs from 'qs';
+import { Message } from 'element-ui';
 
 import cookie from "../../static/sso/js/cookie.js";
 
 // axios默认配置
-axios.defaults.timeout = 30000;   // 超时时间
+axios.defaults.timeout = 50000;   // 超时时间
 axios.defaults.baseURL = apiURL;  // 默认地址
 axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
 /**
@@ -67,6 +68,7 @@ axios.interceptors.response.use(
     error => {
         // 返回接口返回的错误信息
         console.log(`axios error: ${JSON.stringify(error)}`)
+        // Message.error(error.message)
         return Promise.reject(error);
     });
 export default axios;

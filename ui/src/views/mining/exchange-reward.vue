@@ -37,7 +37,7 @@
             </span>
         </div>
 
-        <!--申请兑换SS列表-->
+        <!--申请兑换列表-->
         <div v-if="exchangeOpen && sharderAccount" class="block_list"  style="clear:both">
             <p class="block_title" style="padding-bottom: 10px;">
                 <img src="../../assets/img/block.svg" width="20px" height="20px"/>
@@ -99,13 +99,13 @@
             return {
                 exchangeList: [
                     {
-                        img: "/76894d35b252344138a2de2a1927d9ca.svg",
+                        img: "/93e1fae457ce368606234a76216f5e06.svg",
                         title: "500 SS(ERC-20)",
                         num: 100000000000,
                         info: "1000 TSS 兑换 500 SS(ERC-20)",
                     },
                     {
-                        img: "/76894d35b252344138a2de2a1927d9ca.svg",
+                        img: "/93e1fae457ce368606234a76216f5e06.svg",
                         title: "5000 SS(ERC-20)",
                         num: 1000000000000,
                         info: "10000 TSS 兑换 5000 SS(ERC-20)",
@@ -115,7 +115,7 @@
                 linkedSSAddr: "",
                 sharderAccount: "",
                 recipient: "",
-                exchangeOpen: false,
+                exchangeOpen: true,
                 exchangeSS: 0,
                 convertible:0,
                 redeemed:0,
@@ -178,7 +178,9 @@
                 data.append("accountRS", SSO.accountRS);
                 _this.$http.post(window.api.ssContactAmount, data).then(res => {
                     _this.exchangeSSList = res.data.exchangeSSList;
-                    _this.lastExchangeTime = res.data.exchangeSSList[0].createDate;
+                    if (res.data.exchangeSSList.length !== 0){
+                        _this.lastExchangeTime = res.data.exchangeSSList[0].createDate;
+                    }
                     return res.data.totalExchangeAmount ?  res.data.totalExchangeAmount : 0;
                 }).then(res=>{
                     exchangeSS = Number(res);
@@ -186,10 +188,10 @@
                     _this.convertible = Math.floor(forgedBalanceNQT - exchangeSS * 2);
                     let ConvertibleSS = Math.floor((forgedBalanceNQT - exchangeSS * 2)/1000)*1000;
                     let data1 = {
-                        img: "/76894d35b252344138a2de2a1927d9ca.svg",
+                        img: "/93e1fae457ce368606234a76216f5e06.svg",
                         title: ConvertibleSS / 2 + " SS(ERC-20)",
                         num: ConvertibleSS * 100000000,
-                        info: ConvertibleSS  + " TSS 兑换 "+ConvertibleSS / 2+" SS(ERC-20)",
+                        info: ConvertibleSS  + " TSS 兑换 " + ConvertibleSS / 2 + " SS(ERC-20)",
                     };
 
 
@@ -212,7 +214,7 @@
             },
             exchangeFun(e) {
                 let _this = this;
-                console.info(SSO.accountInfo);
+                console.log(SSO.accountInfo);
                 if (_this.exchangeSS + e.num > _this.forgedBalanceNQT) {
                     return _this.$message.warning(_this.$t("reward.miner_acconut"));
                 }
@@ -265,7 +267,7 @@
             getAccount(account) {
                 const _this = this;
                 return new Promise((resolve, reject) => {
-                    _this.$http.get('/sharder?requestType=getAccount', {
+                    _this.$http.get(_this.$global.urlPrefix() + '?requestType=getAccount', {
                         params: {
                             account: account,
                             includeLessors: true,
@@ -302,7 +304,7 @@
         height: 70px;
         border-radius: 4px;
         background: #fff;
-        color: #333;
+        color: #555;
         padding: 13px 10px;
         position: relative;
         margin: 0 60px 20px 0;
@@ -322,7 +324,7 @@
 
     .exchange .exchange-list p {
         font-size: 11px;
-        color: #333;
+        color: #555;
     }
 
     .exchange .exchange-list button {
@@ -332,7 +334,7 @@
         outline: none;
         border: none;
         border-radius: 4px;
-        background: #493eda;
+        background: #3fb09a;
         height: 40px;
         width: 80px;
         color: #fff;

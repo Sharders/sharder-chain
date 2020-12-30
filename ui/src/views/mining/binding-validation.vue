@@ -143,7 +143,7 @@
         font-size: 32px;
         font-weight: bold;
         padding: 20px 0 10px;
-        color: #333;
+        color: #555;
     }
 
     .binding .info {
@@ -151,7 +151,7 @@
     }
 
     .binding .input-div h3 {
-        color: #333;
+        color: #555;
         font-weight: bold;
         padding: 0 0 15px;
     }
@@ -167,7 +167,7 @@
     }
 
     .input-div .resend {
-        color: #513acB;
+        color: #3fb09a;
         cursor: pointer;
         display: inline-block;
     }
@@ -185,8 +185,8 @@
         outline: none;
         font-size: 22px;
         font-weight: bold;
-        color: #513acB;
-        border-bottom: 1px solid #513acB;
+        color: #3fb09a;
+        border-bottom: 1px solid #3fb09a;
     }
 
     .binding .btn button {
@@ -194,7 +194,7 @@
         border-radius: 4px;
         border: none;
         outline: none;
-        background: #513acB;
+        background: #3fb09a;
         color: #fff;
         height: 45px;
         width: 100%;
@@ -203,7 +203,7 @@
     }
 
     .binding .btn button:active {
-        background: #513acBaa;
+        background: #3fb09aaa;
     }
 
     .validation {

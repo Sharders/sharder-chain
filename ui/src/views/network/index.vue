@@ -5,6 +5,11 @@
                 <p class="block_title">
                     <img src="../../assets/img/network.svg"/>
                     <span>{{$t('network.network_title')}}</span>
+                    <span class="hrefbtn fr csp only_mobile">
+                        <a @click="turn2peers" style="color: #3fb09a;">
+                            <span>{{$t('network.peers_detail')}}</span>
+                        </a>
+                    </span>
                 </p>
                 <div class="w dfl">
                     <div class="block_blue radius_blue">
@@ -123,12 +128,15 @@
                             <tr>
                                 <th>{{$t('network.block_list_height')}}</th>
                                 <th class="w200">{{$t('network.block_list_time')}}</th>
-                                <th>{{$t('network.block_list_amount')}}</th>
+                                <th class="w200">{{$t('network.block_list_amount')}}</th>
                                 <th class="pc-table">{{$t('network.block_list_fee')}}</th>
                                 <th class="pc-table">{{$t('network.block_list_transaction')}}</th>
-                                <th class="w200 ">{{$t('network.block_list_generator')}}</th>
+                                <th class="pc-table">{{$t('network.block_has_distribution_reward')}}</th>
+                                <th class="w200 block_generator">{{$t('network.block_list_generator')}}</th>
                                 <th class="pc-table">{{$t('network.block_list_operating')}}</th>
-                                <th class="mobile"></th>
+                                <th class="mobile title block_reward">
+                                    <span>{{$t('network.block_has_distribution_reward')}}</span>
+                                </th>
                             </tr>
                             </thead>
                             <tbody v-loading="loading">
@@ -141,10 +149,17 @@
                                 <td><span>{{$global.getBlocKTotalAmountNQT(block.totalAmountNQT)}}</span></td>
                                 <td class="pc-table"><span>{{$global.getBlockTotalFeeNQT(block.totalFeeNQT)}}</span></td>
                                 <td class="pc-table"><span>{{block.numberOfTransactions}}</span></td>
-                                <td class="linker" @click="openAccountInfo(block.generatorRS)">{{block.generatorRS | generatorRSFilter}}</td>
+                                <td class="pc-table">
+                                    <span v-if="block.hasRewardDistribution">{{$t('network.crowd_miner_reward_success')}}</span>
+                                    <span v-if="!block.hasRewardDistribution">{{$t('network.crowd_miner_reward_fail')}}</span>
+                                </td>
+<!--                                <td class="linker" @click="openAccountInfo(block.generatorRS)">{{block.generatorRS | generatorRSFilter}}</td>-->
+                                <td class="linker" @click="openAccountInfo(block.generatorRS)">{{block.generatorRS }}</td>
                                 <td class="linker pc-table" @click="openBlockInfo(block.height)">{{$t('network.view_details')}}</td>
                                 <td class="mobile icon-box">
-                                    <i class="el-icon-arrow-right"></i>
+                                    <span v-if="block.hasRewardDistribution"><i class="el-icon-check" style="font-size: 15px;color: green"></i></span>
+                                    <span v-if="!block.hasRewardDistribution"><i class="el-icon-minus" style="color: red"></i></span>
+                                    <!--<i class="el-icon-arrow-right"></i>-->
                                 </td>
                             </tr>
                             </tbody>
@@ -192,11 +207,11 @@
                                                 </el-col>
                                             </el-row>
                                             <el-row>
-                                                <el-col :sm="12" :xs="12">
-                                                    <el-form-item :label="$t('network.poc_score_server')">
-                                                        <span>{{ props.row.detailedPocScore.serverScore }}</span>
-                                                    </el-form-item>
-                                                </el-col>
+<!--                                                <el-col :sm="12" :xs="12">-->
+<!--                                                    <el-form-item :label="$t('network.poc_score_server')">-->
+<!--                                                        <span>{{ props.row.detailedPocScore.serverScore }}</span>-->
+<!--                                                    </el-form-item>-->
+<!--                                                </el-col>-->
                                                 <el-col :sm="12" :xs="12">
                                                     <el-form-item :label="$t('network.poc_score_hardware')">
                                                         <span>{{ props.row.detailedPocScore.hardwareScore }}</span>
@@ -215,25 +230,25 @@
                                                     </el-form-item>
                                                 </el-col>
                                             </el-row>
-                                            <el-row>
-                                                <el-col :sm="12" :xs="12">
-                                                    <el-form-item :label="$t('network.poc_score_online_rate')">
-                                                        <span>{{ props.row.detailedPocScore.onlineRateScore }}</span>
-                                                    </el-form-item>
-                                                </el-col>
-                                                <el-col :sm="12" :xs="12">
-                                                    <el-form-item :label="$t('network.poc_score_block_missing')">
-                                                        <span>{{ props.row.detailedPocScore.blockMissScore }}</span>
-                                                    </el-form-item>
-                                                </el-col>
-                                            </el-row>
-                                            <el-row>
-                                                <el-col :sm="12" :xs="12">
-                                                    <el-form-item :label="$t('network.poc_score_bc')">
-                                                        <span>{{ props.row.detailedPocScore.bcScore }}</span>
-                                                    </el-form-item>
-                                                </el-col>
-                                            </el-row>
+<!--                                            <el-row>-->
+<!--                                                <el-col :sm="12" :xs="12">-->
+<!--                                                    <el-form-item :label="$t('network.poc_score_online_rate')">-->
+<!--                                                        <span>{{ props.row.detailedPocScore.onlineRateScore }}</span>-->
+<!--                                                    </el-form-item>-->
+<!--                                                </el-col>-->
+<!--                                                <el-col :sm="12" :xs="12">-->
+<!--                                                    <el-form-item :label="$t('network.poc_score_block_missing')">-->
+<!--                                                        <span>{{ props.row.detailedPocScore.blockMissScore }}</span>-->
+<!--                                                    </el-form-item>-->
+<!--                                                </el-col>-->
+<!--                                            </el-row>-->
+<!--                                            <el-row>-->
+<!--                                                <el-col :sm="12" :xs="12">-->
+<!--                                                    <el-form-item :label="$t('network.poc_score_bc')">-->
+<!--                                                        <span>{{ props.row.detailedPocScore.bcScore }}</span>-->
+<!--                                                    </el-form-item>-->
+<!--                                                </el-col>-->
+<!--                                            </el-row>-->
                                         </div>
                                         <div class="hidden-sm-and-down">
                                             <el-row>
@@ -247,11 +262,11 @@
                                                         <span>{{ props.row.detailedPocScore.nodeTypeScore }}</span>
                                                     </el-form-item>
                                                 </el-col>
-                                                <el-col :xl="8" :lg="8" :md="8">
-                                                    <el-form-item :label="$t('network.poc_score_server')">
-                                                        <span>{{ props.row.detailedPocScore.serverScore }}</span>
-                                                    </el-form-item>
-                                                </el-col>
+<!--                                                <el-col :xl="8" :lg="8" :md="8">-->
+<!--                                                    <el-form-item :label="$t('network.poc_score_server')">-->
+<!--                                                        <span>{{ props.row.detailedPocScore.serverScore }}</span>-->
+<!--                                                    </el-form-item>-->
+<!--                                                </el-col>-->
                                             </el-row>
                                             <el-row>
                                                 <el-col :xl="8" :lg="8" :md="8">
@@ -270,30 +285,30 @@
                                                     </el-form-item>
                                                 </el-col>
                                             </el-row>
-                                            <el-row>
-                                                <el-col :xl="8" :lg="8" :md="24" :sm="24" :xs="24">
-                                                    <el-form-item :label="$t('network.poc_score_online_rate')">
-                                                        <span>{{ props.row.detailedPocScore.onlineRateScore }}</span>
-                                                    </el-form-item>
-                                                </el-col>
-                                                <el-col :xl="8" :lg="8" :md="24" :sm="24" :xs="24">
-                                                    <el-form-item :label="$t('network.poc_score_block_missing')">
-                                                        <span>{{ props.row.detailedPocScore.blockMissScore }}</span>
-                                                    </el-form-item>
-                                                </el-col>
-                                                <el-col :xl="8" :lg="8" :md="24" :sm="24" :xs="24">
-                                                    <el-form-item :label="$t('network.poc_score_bc')">
-                                                        <span>{{ props.row.detailedPocScore.bcScore }}</span>
-                                                    </el-form-item>
-                                                </el-col>
-                                            </el-row>
+<!--                                            <el-row>-->
+<!--                                                <el-col :xl="8" :lg="8" :md="24" :sm="24" :xs="24">-->
+<!--                                                    <el-form-item :label="$t('network.poc_score_online_rate')">-->
+<!--                                                        <span>{{ props.row.detailedPocScore.onlineRateScore }}</span>-->
+<!--                                                    </el-form-item>-->
+<!--                                                </el-col>-->
+<!--                                                <el-col :xl="8" :lg="8" :md="24" :sm="24" :xs="24">-->
+<!--                                                    <el-form-item :label="$t('network.poc_score_block_missing')">-->
+<!--                                                        <span>{{ props.row.detailedPocScore.blockMissScore }}</span>-->
+<!--                                                    </el-form-item>-->
+<!--                                                </el-col>-->
+<!--                                                <el-col :xl="8" :lg="8" :md="24" :sm="24" :xs="24">-->
+<!--                                                    <el-form-item :label="$t('network.poc_score_bc')">-->
+<!--                                                        <span>{{ props.row.detailedPocScore.bcScore }}</span>-->
+<!--                                                    </el-form-item>-->
+<!--                                                </el-col>-->
+<!--                                            </el-row>-->
                                         </div>
                                     </el-form>
                                 </template>
                             </el-table-column>
-                            <el-table-column :label="$t('dialog.account_info_account')" width="220">
+                            <el-table-column :label="$t('dialog.account_info_account')" width="230">
                                 <template slot-scope="scope">
-                                    <div v-html="scope.row.accountRS" v-if="scope.row.accountRS === accountRS" style="color:#14c6fc;"></div>
+                                    <div v-html="scope.row.accountRS" v-if="scope.row.accountRS === accountRS" style="color:#1bc98e;"></div>
                                     <div v-html="scope.row.accountRS" v-if="scope.row.accountRS !== accountRS" style=""></div>
                                 </template>
                             </el-table-column>
@@ -339,33 +354,14 @@
                                                 </el-col>
                                             </el-row>
                                             <el-row>
-                                                <el-col :sm="12" :xs="12">
-                                                    <el-form-item :label="$t('network.mining_time')">
-                                                        <span>{{ dateFormat(props.row.hitTime) }}</span>
-                                                    </el-form-item>
-                                                </el-col>
-                                                <el-col :sm="12" :xs="12">
-                                                    <el-form-item :label="$t('network.poc_score_ss')">
-                                                        <span>{{ props.row.detailedPocScore.ssScore }}</span>
-                                                    </el-form-item>
-                                                </el-col>
-                                            </el-row>
-                                            <el-row>
-                                                <el-col :sm="12" :xs="12">
-                                                    <el-form-item :label="$t('network.poc_score_server')">
-                                                        <span>{{ props.row.detailedPocScore.serverScore }}</span>
-                                                    </el-form-item>
-                                                </el-col>
+<!--                                                <el-col :sm="12" :xs="12">-->
+<!--                                                    <el-form-item :label="$t('network.poc_score_server')">-->
+<!--                                                        <span>{{ props.row.detailedPocScore.serverScore }}</span>-->
+<!--                                                    </el-form-item>-->
+<!--                                                </el-col>-->
                                                 <el-col :sm="12" :xs="12">
                                                     <el-form-item :label="$t('network.poc_score_node_type')">
                                                         <span>{{ props.row.detailedPocScore.nodeTypeScore }}</span>
-                                                    </el-form-item>
-                                                </el-col>
-                                            </el-row>
-                                            <el-row>
-                                                <el-col :sm="12" :xs="12">
-                                                    <el-form-item :label="$t('network.poc_score_network')">
-                                                        <span>{{ props.row.detailedPocScore.networkScore }}</span>
                                                     </el-form-item>
                                                 </el-col>
                                                 <el-col :sm="12" :xs="12">
@@ -374,10 +370,27 @@
                                                     </el-form-item>
                                                 </el-col>
                                             </el-row>
+<!--                                            <el-row>-->
+<!--                                                <el-col :sm="12" :xs="12">-->
+<!--                                                    <el-form-item :label="$t('network.poc_score_network')">-->
+<!--                                                        <span>{{ props.row.detailedPocScore.networkScore }}</span>-->
+<!--                                                    </el-form-item>-->
+<!--                                                </el-col>-->
+<!--                                                <el-col :sm="12" :xs="12">-->
+<!--                                                    <el-form-item :label="$t('network.poc_score_hardware')">-->
+<!--                                                        <span>{{ props.row.detailedPocScore.hardwareScore }}</span>-->
+<!--                                                    </el-form-item>-->
+<!--                                                </el-col>-->
+<!--                                            </el-row>-->
                                             <el-row>
+<!--                                                <el-col :sm="12" :xs="12">-->
+<!--                                                    <el-form-item :label="$t('network.poc_score_bc')">-->
+<!--                                                        <span>{{ props.row.detailedPocScore.bcScore }}</span>-->
+<!--                                                    </el-form-item>-->
+<!--                                                </el-col>-->
                                                 <el-col :sm="12" :xs="12">
-                                                    <el-form-item :label="$t('network.poc_score_bc')">
-                                                        <span>{{ props.row.detailedPocScore.bcScore }}</span>
+                                                    <el-form-item :label="$t('network.poc_score_network')">
+                                                        <span>{{ props.row.detailedPocScore.networkScore }}</span>
                                                     </el-form-item>
                                                 </el-col>
                                                 <el-col :sm="12" :xs="12">
@@ -386,18 +399,29 @@
                                                     </el-form-item>
                                                 </el-col>
                                             </el-row>
+
                                             <el-row>
-                                                <el-col :sm="12" :xs="12">
-                                                    <el-form-item :label="$t('network.poc_score_online_rate')">
-                                                        <span>{{ props.row.detailedPocScore.onlineRateScore }}</span>
-                                                    </el-form-item>
-                                                </el-col>
-                                                <el-col :sm="12" :xs="12">
-                                                    <el-form-item :label="$t('network.poc_score_block_missing')">
-                                                        <span>{{ props.row.detailedPocScore.blockMissScore }}</span>
-                                                    </el-form-item>
-                                                </el-col>
+                                                <el-form-item :label="$t('network.poc_score_ss')">
+                                                    <span>{{ props.row.detailedPocScore.ssScore }}</span>
+                                                </el-form-item>
                                             </el-row>
+                                            <el-row>
+                                                <el-form-item :label="$t('network.mining_time')">
+                                                    <span>{{ dateFormat(props.row) }}</span>
+                                                </el-form-item>
+                                            </el-row>
+<!--                                            <el-row>-->
+<!--                                                <el-col :sm="12" :xs="12">-->
+<!--                                                    <el-form-item :label="$t('network.poc_score_online_rate')">-->
+<!--                                                        <span>{{ props.row.detailedPocScore.onlineRateScore }}</span>-->
+<!--                                                    </el-form-item>-->
+<!--                                                </el-col>-->
+<!--                                                <el-col :sm="12" :xs="12">-->
+<!--                                                    <el-form-item :label="$t('network.poc_score_block_missing')">-->
+<!--                                                        <span>{{ props.row.detailedPocScore.blockMissScore }}</span>-->
+<!--                                                    </el-form-item>-->
+<!--                                                </el-col>-->
+<!--                                            </el-row>-->
                                         </div>
                                         <div class="hidden-sm-and-down">
                                             <el-row>
@@ -411,11 +435,11 @@
                                                         <span>{{ props.row.detailedPocScore.nodeTypeScore }}</span>
                                                     </el-form-item>
                                                 </el-col>
-                                                <el-col :xl="8" :lg="8" :md="8">
-                                                    <el-form-item :label="$t('network.poc_score_server')">
-                                                        <span>{{ props.row.detailedPocScore.serverScore }}</span>
-                                                    </el-form-item>
-                                                </el-col>
+<!--                                                <el-col :xl="8" :lg="8" :md="8">-->
+<!--                                                    <el-form-item :label="$t('network.poc_score_server')">-->
+<!--                                                        <span>{{ props.row.detailedPocScore.serverScore }}</span>-->
+<!--                                                    </el-form-item>-->
+<!--                                                </el-col>-->
                                             </el-row>
                                             <el-row>
                                                 <el-col :xl="8" :lg="8" :md="8">
@@ -434,23 +458,23 @@
                                                     </el-form-item>
                                                 </el-col>
                                             </el-row>
-                                            <el-row>
-                                                <el-col :xl="8" :lg="8" :md="24" :sm="24" :xs="24">
-                                                    <el-form-item :label="$t('network.poc_score_online_rate')">
-                                                        <span>{{ props.row.detailedPocScore.onlineRateScore }}</span>
-                                                    </el-form-item>
-                                                </el-col>
-                                                <el-col :xl="8" :lg="8" :md="24" :sm="24" :xs="24">
-                                                    <el-form-item :label="$t('network.poc_score_block_missing')">
-                                                        <span>{{ props.row.detailedPocScore.blockMissScore }}</span>
-                                                    </el-form-item>
-                                                </el-col>
-                                                <el-col :xl="8" :lg="8" :md="24" :sm="24" :xs="24">
-                                                    <el-form-item :label="$t('network.poc_score_bc')">
-                                                        <span>{{ props.row.detailedPocScore.bcScore }}</span>
-                                                    </el-form-item>
-                                                </el-col>
-                                            </el-row>
+<!--                                            <el-row>-->
+<!--                                                <el-col :xl="8" :lg="8" :md="24" :sm="24" :xs="24">-->
+<!--                                                    <el-form-item :label="$t('network.poc_score_online_rate')">-->
+<!--                                                        <span>{{ props.row.detailedPocScore.onlineRateScore }}</span>-->
+<!--                                                    </el-form-item>-->
+<!--                                                </el-col>-->
+<!--                                                <el-col :xl="8" :lg="8" :md="24" :sm="24" :xs="24">-->
+<!--                                                    <el-form-item :label="$t('network.poc_score_block_missing')">-->
+<!--                                                        <span>{{ props.row.detailedPocScore.blockMissScore }}</span>-->
+<!--                                                    </el-form-item>-->
+<!--                                                </el-col>-->
+<!--                                                <el-col :xl="8" :lg="8" :md="24" :sm="24" :xs="24">-->
+<!--                                                    <el-form-item :label="$t('network.poc_score_bc')">-->
+<!--                                                        <span>{{ props.row.detailedPocScore.bcScore }}</span>-->
+<!--                                                    </el-form-item>-->
+<!--                                                </el-col>-->
+<!--                                            </el-row>-->
                                         </div>
                                     </el-form>
                                 </template>
@@ -517,7 +541,8 @@
                 currentPage: 1,
                 totalSize: 0,
                 pageSize: 10,
-                loading: true
+                loading: true,
+                limitPeerSize: 12
             };
         },
         created() {
@@ -536,12 +561,11 @@
                     _this.networkUrlBlocks();
                     _this.httpGetNextBlockGenerators();
                     _this.fetchPeers();
+                    _this.httpGetTxStatistics();
                 }else{
                     clearInterval(networkDataLoader);
                 }
-            }, SSO.downloadingBlockchain ? this.$global.cfg.soonInterval : this.$global.cfg.defaultInterval);
-
-            this.menuAdapter()
+            }, SSO.downloadingBlockchain ? this.$global.cfg.soonInterval : (this.$global.isOpenApiProxy() ? this.$global.cfg.slowInterval : this.$global.cfg.defaultInterval));
 
             let peerDataLoader = setInterval(() => {
                 if (_this.$route.path === '/network') {
@@ -550,6 +574,11 @@
                     clearInterval(peerDataLoader);
                 }
             }, 15*60*1000);
+
+            window.onbeforeunload = function (e) {
+                e = e || window.event;
+                return e;
+            };
         },
         filters: {
             generatorRSFilter(val) {
@@ -561,19 +590,6 @@
             }
         },
         methods: {
-            menuAdapter() {
-                document.getElementsByClassName('header')[0].style.display = 'block'
-                var menuLi = document.querySelectorAll('.navbar .el-menu li')
-                for (let i = 0; i < menuLi.length; i++) {
-                    if (i === 1) {
-                        menuLi[i].setAttribute('class', 'el-menu-item is-active')
-                        menuLi[i].style.borderBottomColor = '#409EFF'
-                    } else {
-                        menuLi[i].setAttribute('class', 'el-menu-item')
-                        menuLi[i].style.borderBottomColor = 'transparent'
-                    }
-                }
-            },
             init() {
                 const _this = this;
                 _this.networkUrlBlocks();
@@ -618,8 +634,8 @@
             fetchPeers(){
                 const _this = this;
                 _this.$global.fetch("GET", {startThis:"startThis"}, "getPeers").then(res => {
-                    _this.peerNum = res.peers.length + _this.limitPeerSize;
-                    _this.declaredPeerSize = res.declaredPeerSize;
+                    _this.peerNum = res.peers.length>0 ? res.peers.length : _this.limitPeerSize;
+                    _this.declaredPeerSize = _this.$global.isOpenApiProxy() ? '--' : res.declaredPeerSize;
                 }).catch(err => {
                     console.info("error", err);
                 });
@@ -627,15 +643,18 @@
             drawPeerMap(){
                 const _this = this;
                 _this.$global.fetch("GET", {startThis:"startThis"}, "getPeers").then(res => {
-                    console.log(res.coordinates);
-                    _this.peerNum = res.peers.length;
-                    _this.declaredPeerSize = res.declaredPeerSize;
-                    _this.$global.coordinatesMap = JSON.parse(res.coordinates);
-                    return _this.$global.drawPeers();
+                    _this.peerNum = res.peers.length>0 ? res.peers.length : _this.limitPeerSize;
+                    _this.declaredPeerSize = _this.$global.isOpenApiProxy() ? '--' : res.declaredPeerSize;
+                    try {
+                        _this.$global.coordinatesMap = JSON.parse(res.coordinates);
+                    }catch (e) {
+                        console.log(e);
+                    }finally {
+                        _this.$global.drawPeers();
+                    }
                 }).catch(err => {
                     console.info("error", err);
                 });
-
             },
             networkUrlBlocks() {
                 const _this = this;
@@ -647,6 +666,7 @@
                     _this.newestTime = _this.$global.myFormatTime(res.blocks[0].timestamp, 'YMDHMS', true);
                     if (_this.currentPage === 1) {
                       //   _this.blocklist.splice(0,_this.blocklist.length)
+                        //console.log(res.blocks);
                         _this.blocklist = res.blocks
                     }
                 }).catch(error => {
@@ -666,7 +686,6 @@
                     _this.loading = false;
                 }).catch(err => {
                     console.info('error', err);
-                    _this.$message.error(err);
                     _this.loading = false;
                 });
             },
@@ -743,8 +762,20 @@
             dateFormat(val) {
                 return this.$global.myFormatTime(val.hitTime, "YMDHMS", true);
             }
+            // menuAdapter() {
+            //     document.getElementsByClassName('header')[0].style.display = 'block'
+            //     var menuLi = document.querySelectorAll('.navbar .el-menu li')
+            //     for (let i = 0; i < menuLi.length; i++) {
+            //         if (i === 1) {
+            //             menuLi[i].setAttribute('class', 'el-menu-item is-active')
+            //             menuLi[i].style.borderBottomColor = '#409EFF'
+            //         } else {
+            //             menuLi[i].setAttribute('class', 'el-menu-item')
+            //             menuLi[i].style.borderBottomColor = 'transparent'
+            //         }
+            //     }
+            // }
         }
-
     };
 </script>
 <style lang="scss" type="text/scss">
@@ -805,8 +836,3 @@
     }
 
 </style>
-<!--<style scoped>-->
-<!--.modal.w700{-->
-<!--width: 960px!important;-->
-<!--}-->
-<!--</style>-->

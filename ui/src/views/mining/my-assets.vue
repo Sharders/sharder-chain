@@ -96,7 +96,7 @@
 
             getAccount(account) {
                 return new Promise((resolve) => {
-                    this.$http.get('/sharder?requestType=getAccount', {
+                    this.$http.get(_this.$global.urlPrefix() + '?requestType=getAccount', {
                         params: {
                             account: account,
                             includeLessors: true,
@@ -132,12 +132,11 @@
                 } else {
                     params.append("type", _this.selectType);
                 }
-                _this.$http.get('/sharder?requestType=getBlockchainTransactions', {params}).then(function (res) {
+                _this.$http.get(_this.$global.urlPrefix() + '?requestType=getBlockchainTransactions', {params}).then(function (res) {
                     if (res.data.transactions.length === 0) {
                         return _this.isPage = false;
                     }
                     for (let t of res.data.transactions) {
-                        console.info(t);
                         if(_this.selectType === ""){
                             _this.assetsList.push({
                                 title: _this.$global.getTransactionTypeStr(t),
@@ -251,7 +250,7 @@
     }
 
     .assets .assets-info {
-        background: #513ac8;
+        background: #3fb09a;
         border-radius: 4px;
         color: #ddd;
         padding: 25px;
@@ -314,13 +313,13 @@
         right: 0;
         top: calc(50% - 6px);
         font-weight: bold;
-        color: #333;
+        color: #555;
     }
 
     .assets .assets-list .title .strong {
         font-weight: bold;
         padding: 10px 0 4px;
-        color: #333;
+        color: #555;
     }
 
 </style>

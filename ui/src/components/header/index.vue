@@ -6,7 +6,8 @@
                     <img src="../../assets/img/logo.svg"/>
                     <div @click="openCosUpgradeDialog()">
                         <span v-if="isUpdate" title="Update" class="update"></span>
-                        <span>Sharder</span>
+                        <span v-if="openApiProxy">Sharder·<span style="color: #ccc;font-size: smaller;">Light</span></span>
+                        <span v-else>Sharder</span>
                         <span>{{blockchainStatus.application}}{{$t('header.version')}}{{blockchainStatus.fullVersion}}</span>
                     </div>
                 </a>
@@ -24,11 +25,11 @@
 <!--                        {{$t('header.mining')}}-->
 <!--                    </el-menu-item>-->
                 </el-menu>
-                <div class="navbar_console">
-                    <el-button type="text" @click="goConsole">
-                        <span class="console"></span>
-                    </el-button>
-                </div>
+<!--                <div class="navbar_console">-->
+<!--                    <el-button type="text" @click="goConsole">-->
+<!--                        <span class="console"></span>-->
+<!--                    </el-button>-->
+<!--                </div>-->
                 <div class="navbar_search">
                     <div>
                         <input class="navbar_search_input" :class="activeSearch ? 'navbar_search_input_active' : ''"
@@ -89,12 +90,28 @@
                             </el-option>
                         </el-select>
                     </div>
+                    <div class="navbar_refresh">
+                        <el-tooltip class="item csp" :content="$t('header.refresh')" placement="bottom"
+                                    effect="light">
+                            <i class="el-icon-refresh-right" @click="refreshPage"></i>
+                        </el-tooltip>
+                    </div>
                 </div>
             </nav>
         </div>
 
         <div class="mobile">
             <div class="navbar">
+                <div id="logo_mobile">
+                    <a href="#" class="logo">
+<!--                        <img src="../../assets/img/logo.svg"/>-->
+                        <div @click="openCosUpgradeDialog()">
+                            <span v-if="isUpdate" title="Update" class="update"></span>
+                            <span>Sharder</span>
+                            <span>{{blockchainStatus.fullVersion}}</span>
+                        </div>
+                    </a>
+                </div>
                 <el-menu class="navbar_left el-menu-demo" :class="this.$i18n.locale === 'en'? 'en_menu' : ''"
                          mode="horizontal" :router=isRouter @select="activeItem">
                     <el-menu-item index="/account" :class="this.$route.path.indexOf('/account') >= 0 ? 'activeLi' : ''">
@@ -103,9 +120,9 @@
                     <el-menu-item index="/network" :class="this.$route.path.indexOf('/network') >= 0 ? 'activeLi' : ''">
                         {{$t('header.network')}}
                     </el-menu-item>
-<!--                    <el-menu-item index="/mining" :class="this.$route.path.indexOf('/mining') >= 0 ? 'activeLi' : ''">-->
-<!--                        {{$t('header.mining')}}-->
-<!--                    </el-menu-item>-->
+                    <!--<el-menu-item index="/mining" :class="this.$route.path.indexOf('/mining') >= 0 ? 'activeLi' : ''">-->
+                        <!--{{$t('header.mining')}}-->
+                    <!--</el-menu-item>-->
                 </el-menu>
 
 
@@ -122,6 +139,12 @@
                     </div>
                     <div class="navbar_exit">
                         <span class="csp" @click="exit"><a>{{$t('header.exit')}}</a></span>
+                    </div>
+                    <div class="navbar_refresh">
+                        <el-tooltip class="item csp" :content="$t('header.refresh')" placement="bottom"
+                                    effect="light">
+                            <i class="el-icon-refresh-right" @click="refreshPage"></i>
+                        </el-tooltip>
                     </div>
                 </div>
             </div>
@@ -190,8 +213,9 @@
             </div>
             <div class="modal-body">
                 <div class="version-info">
-                    <span>{{$t('upgrade.current_version')}}{{blockchainStatus.version}}</span>
+                    <span>{{$t('upgrade.current_version')}}v{{blockchainStatus.version}}</span>
                     <span style="color: #555;font-style: italic;font-size: smaller;"> {{blockchainStatus.cosLastUpgradeDate}}</span>
+                    <span style="color: #ccc;font-style: italic;font-size: smaller;" v-if="openApiProxy">{{$t('sso.light_client')}}</span>
                     <br/>
                     <span v-if="isUpdate">
                         {{$t('upgrade.discover_new_version')}}
@@ -296,7 +320,6 @@
                     _this.forging = res.data;
                     // console.log("forging",_this.forging);
                 }).catch(err => {
-                    _this.$message.error(err);
                     console.error(err);
                 });
             }
@@ -305,7 +328,6 @@
                 _this.forging = res.data;
                 // console.log("forging",_this.forging);
             }).catch(err => {
-                _this.$message.error(err);
                 console.error(err);
             });
         },
@@ -313,7 +335,7 @@
             let _this = this;
             setInterval(() => {
                 _this.getData();
-            }, SSO.downloadingBlockchain ? this.$global.cfg.soonInterval : this.$global.cfg.defaultInterval);
+            }, SSO.downloadingBlockchain ? this.$global.cfg.soonInterval : (this.$global.isOpenApiProxy() ? this.$global.cfg.slowInterval : this.$global.cfg.defaultInterval));
 
             if (/(iPhone|iPad|iPod|iOS|Android)/i.test(navigator.userAgent)) { //移动端
                 this.search_focus()
@@ -322,7 +344,7 @@
         methods: {
             getAccountInfo:function(){
                 const _this = this;
-                _this.$http.get("/sharder?requestType=getAccount", {
+                _this.$http.get(_this.$global.urlPrefix() + "?requestType=getAccount", {
                     params: {
                         includeEffectiveBalance: true,
                         account: SSO.account
@@ -330,20 +352,26 @@
                 }).then(res => {
                     _this.accountInfo = res.data;
                 }).catch(err => {
-                    _this.$message.error(err);
                     console.error(err);
                 });
             },
             getData: function () {
                 const _this = this;
                 // if(_this.i%30 === 0){
-                _this.blocksLeft = SSO.blocksLeft;
+                // _this.blocksLeft = SSO.blocksLeft;
+                //后端此处请求的数据未发送变化
                 _this.$global.setBlockchainState(_this).then(res => {
                     _this.blockchainStatus = res.data;
+
+                    console.log('res.data',res.data)
+                    _this.blocksLeft = res.data.lastBlockchainFeederHeight - res.data.lastBlockHeight;
+                    _this.percentageTotal =  parseInt(res.data.lastBlockHeight/res.data.lastBlockchainFeederHeight *10000)/100;
+                    _this.lastBlockHeight = res.data.lastBlockchainFeederHeight;
+                    _this.getLatestHubVersion();
                     /*if(_this.$global.isOpenConsole){
                         _this.$global.addToConsole("/sharder?requestType=getBlockchainStatus",'GET',res);
                     }*/
-                    SSO.addToConsole("/sharder?requestType=getBlockchainStatus", 'GET', res.data, res);
+                    // SSO.addToConsole("/sharder?requestType=getBlockchainStatus", 'GET', res.data, res);
                 });
                 _this.$global.setUnconfirmedTransactions(_this, SSO.account).then(res => {
                     _this.$store.state.unconfirmedTransactionsList = res.data;
@@ -351,16 +379,16 @@
                     /*if(_this.$global.isOpenConsole){
                         _this.$global.addToConsole("/sharder?requestType=getUnconfirmedTransactions",'GET',res);
                     }*/
-                    SSO.addToConsole("/sharder?requestType=getUnconfirmedTransactions", 'GET', res.data, res);
+                    // SSO.addToConsole("/sharder?requestType=getUnconfirmedTransactions", 'GET', res.data, res);
                 });
                 _this.$global.setPeers(_this).then(res => {
                     /*if(_this.$global.isOpenConsole){
                         _this.$global.addToConsole("/sharder?requestType=getPeers",'GET',res);
                     }*/
-                    SSO.addToConsole("/sharder?requestType=getPeers", 'GET', res.data, res);
+                    // SSO.addToConsole("/sharder?requestType=getPeers", 'GET', res.data, res);
                 });
                 // }
-                _this.getLatestHubVersion();
+                // _this.getLatestHubVersion();
                 _this.downloadingBlockChain();
             },
             downloadingBlockChain(){
@@ -381,9 +409,11 @@
                         'Content-Type': 'multipart/form-data'
                     }
                 };
+                // if (SSO.isPassphraseAtRisk) {
+                //     return _this.$message.warning(_this.$t('notification.passphrase_at_risk'));
+                // }
                 if (b) {
-
-                    if(SSO.accountInfo.balanceNQT/ 100000000 + SSO.accountInfo.frozenBalanceNQT / 100000000 < 20000){
+                    if(SSO.accountInfo.balanceNQT/ _this.$global.unitValue + SSO.accountInfo.frozenBalanceNQT / _this.$global.unitValue < 133){
                         return _this.$message.error(_this.$t('notification.ss_not_enough'));
                     }
 
@@ -394,7 +424,6 @@
                                 _this.forging = res.data;
                                 // console.log("forging",_this.forging);
                             }).catch(err => {
-                                _this.$message.error(err);
                                 console.error(err);
                             });
 
@@ -403,7 +432,6 @@
                             console.error(res.data.errorDescription);
                         }
                     }).catch(err => {
-                        _this.$message.error(err);
                         console.error(err);
                     });
                 } else if (b === false && pwd === '') {
@@ -417,7 +445,6 @@
                                 _this.forging = res.data;
                                 // console.log("forging",_this.forging);
                             }).catch(err => {
-                                _this.$message.error(err);
                                 console.error(err);
                             });
                         } else {
@@ -425,7 +452,6 @@
                             console.error(res.data.errorDescription);
                         }
                     }).catch(err => {
-                        _this.$message.error(err);
                         console.error(err);
                     });
                     closeDialog();
@@ -506,6 +532,10 @@
                 // localStorage.setItem('peerNum', 0);
                 // _this.$router.push("/login");
             },
+            refreshPage: function () {
+                this.$store.commit('refresh', true);
+                setTimeout( () => this.$store.commit('refresh', false), 2000);
+            },
             isClose: function () {
                 const _this = this;
                 _this.isSearch = false;
@@ -513,7 +543,7 @@
             },
             getLatestHubVersion() {
                 const _this = this;
-                _this.$http.get('/sharder?requestType=getLatestCosVersion').then(res => {
+                _this.$http.get(_this.$global.urlPrefix() + '?requestType=getLatestCosVersion').then(res => {
                     if (res.data.success) {
                         _this.latestVersion = res.data.cosver.version;
                         _this.upgradeMode = res.data.cosver.mode;
@@ -524,7 +554,7 @@
                         _this.$message.error(res.data.error ? res.data.error : res.data.errorDescription);
                     }
                 }).catch(err => {
-                    _this.$message.error(err.message);
+                    // _this.$message.error(err.message);
                 });
             },
             updateHubVersion(adminPwd) {
@@ -546,7 +576,7 @@
                         _this.$message.error(res.data.error ? res.data.error : res.data.errorDescription);
                     }
                 }).catch(err => {
-                    _this.$message.error(err.message);
+                    // _this.$message.error(err.message);
                 });
             },
             versionCompare(current, latest) {
@@ -589,8 +619,16 @@
                         _this.selectLanValue = language;
                     }
                 }
+                _this.activeSearch = false;
+                _this.placeholder = _this.$t('header.search');
             }
         },
+        computed: {
+            openApiProxy: function () {
+                const _this = this;
+                return _this.$global.isOpenApiProxy();
+            }
+        }
     };
 </script>
 <style lang="scss" type="text/scss">
@@ -599,7 +637,7 @@
     @import './style.scss';
 </style>
 <style scoped lang="scss" type="text/scss">
-    @media only screen and (max-width: 780px) {
+     @media only screen and (max-width: 780px) {
         .navbar_left /deep/ .el-menu--horizontal .el-menu-item:not(.is-disabled):focus, .el-menu--horizontal .el-menu-item:not(.is-disabled):hover {
             border-bottom: 2px solid #3fb09a!important;
             color: #3fb09a!important;

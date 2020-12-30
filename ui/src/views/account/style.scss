@@ -1,15 +1,3 @@
-.header .pc {
-    display: flex;
-}
-.pc {
-    display: block;
-}
-.pc-table {
-    display: table-cell;
-}
-.mobile {
-    display: none;
-}
 .block_account {
     .w {
         background: #fff;
@@ -66,7 +54,8 @@
             margin-top: 50px;
 
             .common_btn {
-                width: 130px;
+                width: 100px;
+                margin: 0 5px;
             }
         }
     }
@@ -90,13 +79,13 @@
         //float: left;
         height: 30px;
         .el-select {
-            height: 24px;
+            height: 28.5px;
             width: 80px;
 
             .el-input__inner {
                 font-size: 13px;
                 width: 80px;
-                height: 24px;
+                height: 28.5px;
                 //margin-left: 20px;
                 background: transparent;
                 border: 1px solid #493eda;
@@ -106,7 +95,7 @@
         }
 
         .el-input__suffix {
-            top: -12px;
+            top: -15px;
             right: 0px;
             //right: -20px;
         }
@@ -118,6 +107,7 @@
             border: 0.5px solid #493eda;
             border-radius: 4px;
             margin-right: 10px;
+            height: 28px;
         }
 
         .active {
@@ -128,6 +118,37 @@
 }
 
 #file {
+    position: absolute;
+    cursor: pointer;
+    width: 70px;
+    height: 40px;
+    right: 0;
+    top: 30px;
+    opacity: 0;
+}
+
+#storageFile {
+    position: absolute;
+    cursor: pointer;
+    width: 70px;
+    height: 40px;
+    right: 0;
+    top: 30px;
+    opacity: 0;
+}
+
+#parseFile {
+    position: absolute;
+    cursor: pointer;
+    width: 70px;
+    height: 40px;
+    right: 0;
+    top: 30px;
+    opacity: 0;
+}
+
+
+#onChainFile{
     position: absolute;
     cursor: pointer;
     width: 70px;
@@ -253,202 +274,15 @@
 }
 
 
-
 @media only screen and (max-width: 780px) {
-    #app .page-layout-inner .header {
-        display: block;
-        margin-bottom: 20px;
-    }
-    .header {
-        min-width: 300px;
-        max-width: 375px;
-        height: 100px;
-    }
-    .header .pc,
-    .pc,
-    .pc-table {
-        display: none;
-    }
-    .mobile {
-        display: block;
-    }
-    .nav-right {
-        display: flex;
-        justify-content: space-around;
-        font-size: 14px;
-    }
-    .navbar {
-        display: flex;
-        justify-content: space-around;
-
-        .navbar_exit {
-            height: 60px;
-            line-height: 60px;
-            padding: 0 5px;
-            color: #493eda;
-        }
-    }
-    .navbar_lang {
-        line-height: 60px;
-        .el-input--suffix .el-input__inner {
-            width: 70px;
-            padding: 5px;
-        }
-        .el-input__suffix {
-            display: none;
-        }
-        .el-input__inner {
-            border: 0;
-        }
-    }
-    .navbar_search {
-        height: 100%;
-        position: relative;
-        display: flex;
-        justify-content: center;
-
-        div {
-            top: 25%;
-            position: absolute;
-
-            img {
-                position: absolute;
-                right: 15px;
-                top: 13px;
-                width: 15px;
-                height: 15px;
-            }
-
-            .navbar_search_input {
-                width: 100px;
-                height: 30px;
-                background: #edeff5;
-                border: none;
-                border-radius: 20px;
-                padding-left: 20px;
-                color: #999;
-                font-size: 13px;
-                outline: none;
-                transition: 500ms width;
-                margin-top: 5px;
-
-            }
-
-            .navbar_search_input_active {
-                transition: 500ms width;
-                width: 280px;
-            }
-
-        }
-    }
-    #app .page-layout main {
-        padding-top: 10px;
+    .block_account .w {
+        width: auto;
+        margin: 0 15px;
     }
 
-
-
-    #app .page-layout main {
-        width: auto !important;
-
-        .main-content {
-            width: 100%;
-
-            .container {
-                max-width: 375px;
-            }
-        }
-    }
-
-    #trading_info,
-    #transfer_accounts_modal,
-    #send_message_modal,
-    #account_info,
-    #block_info,
-    #account_transaction {
-        position: fixed;
-        top: 50px;
-    }
-
-    .modal,
-    .modal_info {
-        width: 350px;
-    }
-
-    .modal-content .el-form {
-        padding-left: 15px;
-        padding-right: 15px;
-    }
-
-    #trading_info .modal-body {
-        max-height: 400px;
-        overflow-y: auto;
-    }
-
-    #account_info .modal-body .table  {
-        th {
-            padding-left: 15px;
-        }
-        td {
-            padding-left: 8px;
-            padding-right: 10px;
-        }
-    }
-    #account_transaction .modal-body div {
-        max-height: 450px;
-        overflow-y: auto;
-    }
-    #account_info .modal-body .account_allInfo .account_list #account_info_table_body {
-        max-height: 300px;
-    }
-    .modal .modal-dialog .modal-content .modal-body {
-        margin: 0;
-    }
-    #block_info.modal_info .modal-body {
-        max-height: 400px;
-        margin: 65px 20px 40px !important;
-    }
     .block_receiptDisbursement .w {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
+        width: auto;
+        margin: 0 15px;
         height: 400px;
-
-        .whf {
-            width: 90%;
-            height: 400px;
-        }
-    }
-    .block_list {
-        .fl {
-            float: none;
-            padding-left: 15px;
-        }
-        .transaction_type {
-            margin-top: 10px;
-            padding-left: 15px;
-        }
-        .list_table {
-            margin-top: 30px;
-        }
-    }
-
-    .table.table_striped .w300 {
-        width: 100px;
-    }
-    .icon-box {
-        display: flex;
-        height: 38px;
-        align-items: center;
-    }
-    .block_title {
-        padding-left: 15px;
-    }
-
-    .list_pagination .el-pagination--small .el-pagination__jump {
-        display: block;
-        margin-top: 10px;
-    }
-    .block_list .list_table .list_pagination {
-        height: 90px;
     }
 }

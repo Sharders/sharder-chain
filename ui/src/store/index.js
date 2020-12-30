@@ -15,7 +15,8 @@ const store = new Vuex.Store({
         userConfig: [],
         currentLang: localStorage.getItem('lang'),
         destroyPool: [],
-        quitPool: []
+        quitPool: [],
+        isRefresh: false,
     },
     mutations: { // 类似 vue 的 methods
         loginState(state) {
@@ -27,6 +28,9 @@ const store = new Vuex.Store({
         updateLang(state, value) {
             state.currentLang = value;
             localStorage.setItem('lang', state.currentLang);
+        },
+        refresh(state, value) {
+            state.isRefresh = value;
         }
     },
     modules: {

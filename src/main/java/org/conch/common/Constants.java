@@ -219,13 +219,7 @@ public final class Constants {
 
     public static final int FXT_BLOCK = isTestnetOrDevnet() ? 10000 : 10000; 
     
-    public static final int LAST_KNOWN_BLOCK = isDevnet() ?  1 : (isTestnet() ? 268 : 500);
-    public static final int BOOTNODE_MINING_DIRECT_HEIGHT = isTestnet() ? 1600 : 1;
-
-    public static final int TESTNET_PHASE_ONE = 500000;
-    public static final int TESTNET_PHASE_TWO = 990000;
-    public static final String TESTNET_PHASE_ONE_TIME = "2019-06-30 00:00:00";
-    public static final String TESTNET_PHASE_TWO_TIME = "2019-09-30 00:00:00";
+    public static final int LAST_KNOWN_BLOCK = isDevnet() ?  1 : (isTestnet() ? 59 : 500);
     public static final int POC_LEDGER_RESET_HEIGHT = isTestnet() ? 4500 : 0;
     public static final int POC_NEW_ALGO_HEIGHT = isTestnet() ? 4751 : 0;
     public static final int POC_SS_HELD_SCORE_PHASE1_HEIGHT = isTestnet() ? 4765 : 0;

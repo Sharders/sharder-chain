@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20" viewBox="0 0 20 20">
+  <defs>
+    <clipPath id="clip-path">
+      <rect id="矩形_7761" data-name="矩形 7761" width="20" height="20" transform="translate(360 738)" fill="#359836" stroke="#707070" stroke-width="1"/>
+    </clipPath>
+  </defs>
+  <g id="money" transform="translate(-360 -738)" clip-path="url(#clip-path)">
+    <g id="stack-line" transform="translate(360 738)">
+      <path id="路径_2478" data-name="路径 2478" d="M0,0H20V20H0Z" fill="none"/>
+      <path id="路径_2479" data-name="路径 2479" d="M16.736,12.667l1,.6a.417.417,0,0,1,0,.715l-7.308,4.385a.833.833,0,0,1-.858,0L2.262,13.982a.417.417,0,0,1,0-.715l1-.6L10,16.708l6.736-4.042Zm0-3.917,1,.6a.417.417,0,0,1,0,.715L10,14.708,2.263,10.066a.417.417,0,0,1,0-.715l1-.6L10,12.792ZM10.428,1.091l7.309,4.385a.417.417,0,0,1,0,.715L10,10.833,2.262,6.191a.417.417,0,0,1,0-.715L9.571,1.091a.833.833,0,0,1,.858,0ZM10,2.777,4.906,5.833,10,8.89l5.094-3.057Z" fill="#493eda"/>
+    </g>
+  </g>
+</svg>

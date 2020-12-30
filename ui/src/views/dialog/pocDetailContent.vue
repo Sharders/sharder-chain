@@ -6,7 +6,7 @@
         <div v-if="rowData.subType === 4" class="generationMissing">
             <p>{{ $t('poc.block_missing') }}</p>
             <p>{{ $t('poc.timeStamp') }} : {{ rowData.pocInfo.missingTimeStamp }}</p>
-            <el-tag v-for="missingAccountId in rowData.pocInfo.missingAccountIds">
+            <el-tag v-for="(missingAccountId,index) in rowData.pocInfo.missingAccountIds" :key="index">
                 {{ missingAccountId }}
             </el-tag>
         </div>

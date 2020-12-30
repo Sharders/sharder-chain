@@ -10,7 +10,10 @@
                         <p class="node-type">
                             <strong>{{ $t('poc.nodeType') }}: </strong>{{ parseNodeType(pocInfo.type) }}
                         </p>
-                        
+                        <p class="node-type">
+                            <strong>{{ $t('poc.hardware_disk') }}: </strong>{{ formatDiskCapacity(pocInfo.diskCapacity) }}
+                        </p>
+
                         <div class="mobile">
                             <p class="node-type">
                                 <strong>{{ $t('poc.type') }}: </strong>{{ parseSubType(pocInfo.subType) }}
@@ -21,8 +24,11 @@
                             <p class="node-type">
                                 <strong>{{ $t('poc.heightandblock_id') }}: </strong>{{ pocInfo.heightandblock }}
                             </p>
+                            <p class="node-type">
+                                <strong>{{ $t('poc.hardware_disk') }}: </strong>{{ formatDiskCapacity(pocInfo.diskCapacity) }}
+                            </p>
                         </div>
-                       <!-- <p class="linked-account">
+                        <!-- <p class="linked-account">
                             <strong>{{ $t('poc.linkedAccount') }}: </strong><br/>
                             {{ rsAccount(pocInfo.accountId) }}
                         </p>-->
@@ -82,11 +88,14 @@
 
                 if (nxtAddress.set(accountId)) {
                     accountRS = nxtAddress.toString();
-                    console.info("node-accountRS:"+accountRS);
+                    console.log("node-accountRS:"+accountRS);
                     return accountRS;
                 }
                 return accountId;
-            }
+            },
+            formatDiskCapacity(val) {
+                return parseFloat(val / 1024 / 1024).toFixed(2) + " GB";
+            },
         }
     }
 </script>
@@ -95,7 +104,7 @@
     .nodeTypeContent {
         padding: 10px;
     }
-    
+
     .nodeTypeContent .template p {
         margin-bottom: 5px;
     }
@@ -113,7 +122,7 @@
     }
 
     .nodeTypeContent .template .content {
-        box-shadow: 1px 1px 10px #493eda;
+        box-shadow: 1px 1px 10px #3fb09a;
         border-radius: 4px;
     }
 </style>

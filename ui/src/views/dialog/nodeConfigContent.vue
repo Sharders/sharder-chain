@@ -25,7 +25,7 @@
                         <span>{{$t('poc.hardware_tx_performance')}}: </span>
                         <span>{{ pocInfo.tradePerformance }}</span>
                         <span>{{$t('poc.hardware_open_services')}}: </span>
-                        <el-tag v-for="openServiceCode in pocInfo.openServices">
+                        <el-tag v-for="(openServiceCode,index) in pocInfo.openServices" :key="index">
                             {{ openServicesMapping(openServiceCode) }}
                         </el-tag>
                     </div>
