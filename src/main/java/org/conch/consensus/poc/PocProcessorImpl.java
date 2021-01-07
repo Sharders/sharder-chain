@@ -104,7 +104,7 @@ public class PocProcessorImpl implements PocProcessor {
      * NOTE: the follow method can be removed after the snapshot function released
      *
      * re-calculate when height exceed the poc change height 'Constants.POC_MW_POC_SCORE_CHANGE_HEIGHT'
-     * mw-holding score algo. change to use the effective balance as the ; re-calculate the hardware and mw-holding score
+     * holding score algo. change to use the effective balance as the ; re-calculate the hardware and holding score
      *
      * @param height
      */
@@ -194,7 +194,7 @@ public class PocProcessorImpl implements PocProcessor {
                     DbUtils.close(pocTxsIterator);
                 }
 
-                // re-calculate the hardware and mw holding score
+                // re-calculate the hardware and holding score
                 Set<Long> accountIds = PocHolder.inst.scoreMap.keySet();
                 for(Long accountId : accountIds){
                     PocScore scoreToReCalculation = PocHolder.inst.scoreMap.get(accountId);
