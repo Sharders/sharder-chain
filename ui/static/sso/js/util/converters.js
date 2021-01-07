@@ -74,7 +74,7 @@ var converters = (function () {
 		},
 		byteArrayToSignedInt32: function (bytes, opt_startIndex) {
 			var index = this.checkBytesToIntInput(bytes, 4, opt_startIndex);
-			value = bytes[index];
+			var value = bytes[index];
 			value += bytes[index + 1] << 8;
 			value += bytes[index + 2] << 16;
 			value += bytes[index + 3] << 24;

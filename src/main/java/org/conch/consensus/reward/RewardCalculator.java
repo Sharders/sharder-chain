@@ -134,10 +134,10 @@ public class RewardCalculator {
      * - qualified condition:
      * a) create a tx to declared the node;
      * b) linked the mining address;
-     * c) current height's balance  > 4256 MW（32T staking amount）;
+     * c) current height's balance  > 4256 coins（32T staking amount）;
      * @return map: miner's account id : poc score
      */
-    private static long QUALIFIED_CROWD_MINER_HOLDING_AMOUNT_MIN = 32*133L; // 1T-133MW
+    private static long QUALIFIED_CROWD_MINER_HOLDING_AMOUNT_MIN = 32*133L; // 1T-133 coin
     private static Map<Long, Long> generateCrowdMinerPocScoreMap(List<Long> exceptAccounts, int height){
         Map<Long, Long> crowdMinerPocScoreMap = Maps.newHashMap();
         // read the qualified miner list
@@ -200,7 +200,7 @@ public class RewardCalculator {
      * @return pool reward json array:
      * [{
      *  accountId: -7108135922261388000,
-     *  accountRS: "CDW-P6TU-3A78-GRF2-BNQQU",
+     *  accountRS: "SSA-P6TU-3A78-GRF2-BNQQU",
      *  investAmount: 16000,
      *  rewardAmount: 11491
      * }]
@@ -220,7 +220,7 @@ public class RewardCalculator {
     }
 
     /**
-     * reward calculation algo.: miner's PoC score / total miner's PoC score * 667 MW
+     * reward calculation algo.: miner's PoC score / total miner's PoC score * 667 coin
      * @param updateBalance true: update and froze the balance after calculate, false: just calculate the rewards
      * @param minerAccount block's miner account
      * @param tx coinbase tx
@@ -229,7 +229,7 @@ public class RewardCalculator {
      * @return crowd miner reward json array:
      * [{
      *  accountId: -7108135922261388000,
-     *  accountRS: "CDW-P6TU-3A78-GRF2-BNQQU",
+     *  accountRS: "SSA-P6TU-3A78-GRF2-BNQQU",
      *  pocScore: 3836000,
      *  rewardAmount: 2451491
      * }]

@@ -230,7 +230,7 @@ public final class Constants {
     // the poc calculate algorithm changed height.
     // NOTE: set the height to 0 when reset the chain or start a new chain
     public static final int POC_CAL_ALGORITHM = isTestnet() ? 0 : 0;
-    // mw-holding score algo. changed; re-calculate the hardware and holding score
+    // holding score algo. changed; re-calculate the hardware and holding score
     public static final int POC_SCORE_CHANGE_HEIGHT = isTestnet() ? -1 : -1;
     public static final int POC_REPROCESS_CROWD_MINER_OPEN_HEIGHT = isDevnet() ? 1 : (isTestnet() ? 15455 : 1);
     public static final int POC_MULTIPLIER_CHANGE_HEIGHT = isDevnet() ? 0 : (isTestnet() ? 15414 : 1);

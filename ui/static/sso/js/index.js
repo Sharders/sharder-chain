@@ -4,6 +4,7 @@
     client.accountInfo = {};
     global.SSO = global.client;
 
+    require("./util/sso.remote.nodes");
     require("./util/sso.console");
     require("./util/sso.constants");
     require("./util/sso");
