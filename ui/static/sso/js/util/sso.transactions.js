@@ -1,11 +1,10 @@
 /******************************************************************************
- * Copyright © 2017 sharder.org.                             *
- * Copyright © 2014-2017 ichaoj.com.                                     *
+ * Copyright © 2017 sharder.org.                                              *
  *                                                                            *
  * See the LICENSE.txt file at the top-level directory of this distribution   *
  * for licensing information.                                                 *
  *                                                                            *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,*
+ * Unless otherwise agreed in a custom licensing agreement with sharder.org,  *
  * no part of the COS software, including this file, may be copied, modified, *
  * propagated, or distributed except according to the terms contained in the  *
  * LICENSE.txt file.                                                          *
@@ -15,7 +14,7 @@
  ******************************************************************************/
 
 /**
- * @depends {nrs.js}
+ * @depends {sso.js}
  */
 var NRS = (function(NRS, $, undefined) {
 
@@ -23,6 +22,24 @@ var NRS = (function(NRS, $, undefined) {
 	NRS.unconfirmedTransactions = [];
 	NRS.unconfirmedTransactionIds = "";
 	NRS.unconfirmedTransactionsChange = true;
+
+
+	NRS.sendMessage = function (formData, callback) {
+	    var jsonData = {};
+        formData.forEach((value, key) => jsonData[key] = value);
+        NRS.sendRequest("sendMessage", jsonData, callback);
+    };
+    NRS.sendMoney = function (formData, callback) {
+	    var jsonData = {};
+        formData.forEach((value, key) => jsonData[key] = value);
+        NRS.sendRequest("sendMoney", jsonData, callback);
+    };
+
+	NRS.setAccountInfo = function (formData, callback) {
+	    var jsonData = {};
+        formData.forEach((value, key) => jsonData[key] = value);
+        NRS.sendRequest("setAccountInfo", jsonData, callback);
+    };
 
 	NRS.handleIncomingTransactions = function(transactions, confirmedTransactionIds) {
 		var oldBlock = (confirmedTransactionIds === false); //we pass false instead of an [] in case there is no new block..
@@ -413,6 +430,7 @@ var NRS = (function(NRS, $, undefined) {
 						$phasingDiv.popover(popoverConfig);
 						$phasingDiv.appendTo($tdPhasing);
                         var votesFormatted;
+                        var unit = " SS";
 						if (vm == 0) {
 							$popoverTypeTR.find("td:first").html($.t('sso.accounts', 'Accounts') + ":");
 							$popoverTypeTR.find("td:last").html(String(attachment.phasingWhitelist ? attachment.phasingWhitelist.length : ""));
@@ -422,12 +440,12 @@ var NRS = (function(NRS, $, undefined) {
 						if (vm == 1) {
 							$popoverTypeTR.find("td:first").html($.t('sso.accounts', 'Accounts') + ":");
 							$popoverTypeTR.find("td:last").html(String(attachment.phasingWhitelist ? attachment.phasingWhitelist.length : ""));
-							votesFormatted = NRS.convertToNXT(responsePoll.result) + " / " + NRS.convertToNXT(attachment.phasingQuorum) + " SS";
+							votesFormatted = NRS.convertToNXT(responsePoll.result) + " / " + NRS.convertToNXT(attachment.phasingQuorum) + unit;
 							$popoverVotesTR.find("td:last").html(votesFormatted);
 						}
 						if (mbModel == 1) {
 							if (minBalance > 0) {
-								minBalanceFormatted = NRS.convertToNXT(minBalance) + " SS";
+								minBalanceFormatted = NRS.convertToNXT(minBalance) + unit;
 								$approveBtn.data('minBalanceFormatted', minBalanceFormatted.escapeHTML());
 							}
 						}
