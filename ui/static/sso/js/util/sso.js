@@ -385,14 +385,14 @@ var Sso = (function (NRS, $, undefined) {
                     }
 
                     if (!isTestnet) {
-                        $(".testnet_only").hide();
+                        // $(".testnet_only").hide();
                     } else {
                         NRS.isTestNet = true;
-                        var testnetWarningDiv = $("#testnet_warning");
-                        var warningText = testnetWarningDiv.text() + " The testnet peer port is " + peerPort + (isOffline ? ", the peer is working offline." : ".");
-                        NRS.logConsole(warningText);
-                        testnetWarningDiv.text(warningText);
-                        $(".testnet_only, #testnet_login, #testnet_warning").show();
+                        // var testnetWarningDiv = $("#testnet_warning");
+                        // var warningText = testnetWarningDiv.text() + " The testnet peer port is " + peerPort + (isOffline ? ", the peer is working offline." : ".");
+                        // NRS.logConsole(warningText);
+                        // testnetWarningDiv.text(warningText);
+                        // $(".testnet_only, #testnet_login, #testnet_warning").show();
                     }
 
                     if (NRS.isInitializePlugins()) {
@@ -423,16 +423,16 @@ var Sso = (function (NRS, $, undefined) {
                     return; // do not load client if local storage is disabled
                 }
 
-                if (!(navigator.userAgent.indexOf("Safari") != -1 &&
-                    navigator.userAgent.indexOf("Chrome") == -1) &&
-                    navigator.userAgent.indexOf("JavaFX") == -1) {
-                    // Don't use account based DB in Safari due to a buggy indexedDB implementation (2015-02-24)
-                    NRS.createLegacyDatabase();
-                }
+                // if (!(navigator.userAgent.indexOf("Safari") != -1 &&
+                //     navigator.userAgent.indexOf("Chrome") == -1) &&
+                //     navigator.userAgent.indexOf("JavaFX") == -1) {
+                //     // Don't use account based DB in Safari due to a buggy indexedDB implementation (2015-02-24)
+                //     NRS.createLegacyDatabase();
+                // }
 
-                if (NRS.mobileSettings.is_check_remember_me) {
-                    $("#remember_me").prop("checked", true);
-                }
+                // if (NRS.mobileSettings.is_check_remember_me) {
+                //     $("#remember_me").prop("checked", true);
+                // }
                 NRS.getSettings(false);
 
                 NRS.getState(function () {
@@ -453,11 +453,11 @@ var Sso = (function (NRS, $, undefined) {
                 if (!savedPassphrase) {
                     NRS.showLockscreen();
                 }
-                NRS.setStateInterval(30);
+                NRS.setStateInterval(60);
 
                 // setInterval(NRS.checkAliasVersions, 1000 * 60 * 60);
 
-                NRS.allowLoginViaEnter();
+                // NRS.allowLoginViaEnter();
                 // NRS.automaticallyCheckRecipient();
 
                 // $("#dashboard_table, #transactions_table").on("mouseenter", "td.confirmations", function () {
@@ -467,15 +467,15 @@ var Sso = (function (NRS, $, undefined) {
                     // $(".popover").remove();
                 // });
 
-                _fix();
+                // _fix();
 
-                $(window).on("resize", function () {
-                    _fix();
-
-                    if (NRS.currentPage == "asset_exchange") {
-                        NRS.positionAssetSidebar();
-                    }
-                });
+                // $(window).on("resize", function () {
+                //     _fix();
+                //
+                //     if (NRS.currentPage == "asset_exchange") {
+                //         NRS.positionAssetSidebar();
+                //     }
+                // });
                 // Enable all static tooltip components
                 // tooltip components generated dynamically (for tables cells for example)
                 // has to be enabled by activating this code on the specific widget
@@ -548,7 +548,7 @@ var Sso = (function (NRS, $, undefined) {
     }
 
     NRS.setStateInterval = function (seconds) {
-        if (!NRS.isPollGetState()) {
+        if (!NRS.isPGetStateoll()) {
             return;
         }
         if (seconds == stateIntervalSeconds && stateInterval) {
@@ -576,6 +576,7 @@ var Sso = (function (NRS, $, undefined) {
         var previousLastBlock = (firstTime ? "0" : NRS.state.lastBlock);
 
         NRS.state = response;
+        console.log("NRS.state", NRS.state);
         var lastBlock = NRS.state.lastBlock;
         var height = response.apiProxy ? NRS.lastProxyBlockHeight : NRS.state.numberOfBlocks - 1;
 
@@ -645,18 +646,18 @@ var Sso = (function (NRS, $, undefined) {
         }
         NRS.sendRequest("getBlockchainStatus", {}, function (response) {
             if (response.errorCode) {
-                NRS.connectionError(response.errorDescription);
+                // NRS.connectionError(response.errorDescription);
             } else {
                 var clientOptionsLink = $("#header_client_options_link");
                 if (NRS.isMobileApp()) {
-                    clientOptionsLink.html($.t("sso.mobile_client"));
+                    // clientOptionsLink.html($.t("sso.mobile_client"));
                 }
                 if (response.apiProxy) {
                     if (!NRS.isMobileApp()) {
                         if (response.isLightClient) {
-                            clientOptionsLink.html($.t("sso.light_client"));
+                            // clientOptionsLink.html($.t("sso.light_client"));
                         } else {
-                            clientOptionsLink.html($.t("sso.roaming_client"));
+                            // clientOptionsLink.html($.t("sso.roaming_client"));
                         }
                     }
                     NRS.sendRequest("getBlocks", {
@@ -671,14 +672,14 @@ var Sso = (function (NRS, $, undefined) {
                             NRS.lastProxyBlockHeight = proxyBlocksResponse.blocks[0].height;
                             NRS.lastBlockHeight = NRS.lastProxyBlockHeight;
                             // NRS.incoming.updateDashboardBlocks(NRS.lastProxyBlockHeight - prevHeight);
-                            NRS.updateDashboardLastBlock(proxyBlocksResponse.blocks[0]);
+                            // NRS.updateDashboardLastBlock(proxyBlocksResponse.blocks[0]);
                             NRS.handleBlockchainStatus(response, callback);
                             // NRS.updateDashboardMessage();
                         }
                     }, {isAsync: false});
                     if (!NRS.isMobileApp()) {
                         NRS.logConsole("look for remote confirmation nodes");
-                        NRS.initRemoteNodesMgr(NRS.isTestnet);
+                        // NRS.initRemoteNodesMgr(NRS.isTestnet);
                     }
                 } else {
                     NRS.handleBlockchainStatus(response, callback);
@@ -1781,14 +1782,13 @@ var Sso = (function (NRS, $, undefined) {
     };
 
     NRS.updateBlockchainDownloadProgress = function () {
-        debug("Check block chain download progess....");
+        debug("Check block chain download progress....");
         var lastNumBlocks = 5000;
 
         // var downloadingBlockchain = $("#downloading_blockchain");
         // downloadingBlockchain.find(".last_num_blocks").html($.t("sso.last_num_blocks", {"blocks": lastNumBlocks}));
 
         debug("NRS.state.isLightClient=" + NRS.state.isLightClient + ",NRS.serverConnect=" + NRS.serverConnect + ",NRS.peerConnect=" + NRS.peerConnect);
-
         if (NRS.state.isLightClient) {
             // downloadingBlockchain.find(".db_active").hide();
             // downloadingBlockchain.find(".db_halted").hide();
@@ -1806,7 +1806,7 @@ var Sso = (function (NRS, $, undefined) {
             // downloadingBlockchain.find(".db_light").hide();
         // if(!NRS.state.isLightClient && NRS.serverConnect && NRS.peerConnect){
             NRS.percentageTotal = 0;    //进度百分比
-            NRS.blocksLeft = null;             //剩余区块数量
+            NRS.blocksLeft = null;      //剩余区块数量
             NRS.percentageLast = 0;     //
             if (NRS.state.lastBlockchainFeederHeight && NRS.state.numberOfBlocks <= NRS.state.lastBlockchainFeederHeight) {
                 NRS.percentageTotal = parseInt(Math.round((NRS.state.numberOfBlocks / NRS.state.lastBlockchainFeederHeight) * 100), 10);
