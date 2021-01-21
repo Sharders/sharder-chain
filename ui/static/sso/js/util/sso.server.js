@@ -1,3 +1,22 @@
+/******************************************************************************
+ * Copyright © 2017 sharder.org.                                              *
+ *                                                                            *
+ * See the LICENSE.txt file at the top-level directory of this distribution   *
+ * for licensing information.                                                 *
+ *                                                                            *
+ * Unless otherwise agreed in a custom licensing agreement with sharder.org,  *
+ * no part of the COS software, including this file, may be copied, modified, *
+ * propagated, or distributed except according to the terms contained in the  *
+ * LICENSE.txt file.                                                          *
+ *                                                                            *
+ * Removal or modification of this copyright notice is prohibited.            *
+ *                                                                            *
+ ******************************************************************************/
+
+/**
+ * @depends {sso.js}
+ */
+
 var NRS = (function (NRS, $, undefined) {
     var _password;
 
@@ -70,9 +89,11 @@ var NRS = (function (NRS, $, undefined) {
                 }
             }
         } catch (err) {
+            console.log(err);
             callback({
                 "errorCode": 1,
-                "errorDescription": err + " (" + $.t("sso."+field) + ")"
+                // "errorDescription": err + " (" + $.t("sso."+field) + ")"
+                "errorDescription": "$.t" + "sso." + field
             });
             return;
         }
@@ -104,9 +125,11 @@ var NRS = (function (NRS, $, undefined) {
                 delete data[toDelete[i]];
             }
         } catch (err) {
+            console.log(err)
             callback({
                 "errorCode": 1,
-                "errorDescription": err + " (" + $.t(field) + ")"
+                // "errorDescription": err + " (" + $.t(field) + ")"
+                "errorDescription": "$.t" + field
             });
             return;
         }
@@ -121,9 +144,10 @@ var NRS = (function (NRS, $, undefined) {
             if (maxFees > 0 && new BigInteger(data.feeNQT).compareTo(new BigInteger(phasingControl.maxFees)) > 0) {
                 callback({
                     "errorCode": 1,
-                    "errorDescription": $.t("sso.error_fee_exceeds_max_account_control_fee", {
-                        "maxFee": NRS.convertToNXT(phasingControl.maxFees)
-                    })
+                    // "errorDescription": $.t("sso.error_fee_exceeds_max_account_control_fee", {
+                    //     "maxFee": NRS.convertToNXT(phasingControl.maxFees)
+                    // })
+                    "errorDescription": "$.t" + "sso.error_fee_exceeds_max_account_control_fee"
                 });
                 return;
             }
@@ -134,10 +158,11 @@ var NRS = (function (NRS, $, undefined) {
             if (phasingDuration < minDuration || phasingDuration > maxDuration) {
                 callback({
                     "errorCode": 1,
-                    "errorDescription": $.t("sso.error_finish_height_out_of_account_control_interval", {
-                        "min": NRS.lastBlockHeight + minDuration,
-                        "max": NRS.lastBlockHeight + maxDuration
-                    })
+                    // "errorDescription": $.t("sso.error_finish_height_out_of_account_control_interval", {
+                    //     "min": NRS.lastBlockHeight + minDuration,
+                    //     "max": NRS.lastBlockHeight + maxDuration
+                    // })
+                    "errorDescription": "$.t"+"sso.error_finish_height_out_of_account_control_interval"
                 });
                 return;
             }
@@ -180,7 +205,8 @@ var NRS = (function (NRS, $, undefined) {
             if (accountId != NRS.account && !data.calculateFee) {
                 callback({
                     "errorCode": 1,
-                    "errorDescription": $.t("sso.error_passphrase_incorrect")
+                    // "errorDescription": $.t("sso.error_passphrase_incorrect")
+                    "errorDescription": "$.t" + "sso.error_passphrase_incorrect"
                 });
             } else {
                 // ok, accountId matches..continue with the real request.
@@ -246,7 +272,8 @@ var NRS = (function (NRS, $, undefined) {
             NRS.isRequireBlockchain(requestType) && NRS.accountInfo.errorCode && NRS.accountInfo.errorCode == 5) {
             callback({
                 "errorCode": 2,
-                "errorDescription": $.t("sso.error_new_account")
+                // "errorDescription": $.t("sso.error_new_account")
+                "errorDescription": "$.t"+"sso.error_new_account"
             }, data);
             return;
         }
@@ -255,7 +282,8 @@ var NRS = (function (NRS, $, undefined) {
             if (!/^[a-z0-9]{64}$/.test(data.referencedTransactionFullHash)) {
                 callback({
                     "errorCode": -1,
-                    "errorDescription": $.t("sso.error_invalid_referenced_transaction_hash")
+                    // "errorDescription": $.t("sso.error_invalid_referenced_transaction_hash")
+                    "errorDescription": "$.t"+"sso.error_invalid_referenced_transaction_hash"
                 }, data);
                 return;
             }
@@ -312,17 +340,19 @@ var NRS = (function (NRS, $, undefined) {
             if (!file && requestType == "uploadTaggedData") {
                 callback({
                     "errorCode": 3,
-                    "errorDescription": $.t("sso.error_no_file_chosen")
+                    // "errorDescription": $.t("sso.error_no_file_chosen")
+                    "errorDescription": "$.t"+"sso.error_no_file_chosen"
                 }, data);
                 return;
             }
             if (file && file.size > config.maxSize) {
                 callback({
                     "errorCode": 3,
-                    "errorDescription": $.t(config.errorDescription, {
-                        "size": file.size,
-                        "allowed": config.maxSize
-                    })
+                    // "errorDescription": $.t(config.errorDescription, {
+                    //     "size": file.size,
+                    //     "allowed": config.maxSize
+                    // })
+                    "errorDescription": "$.t"+config.errorDescription
                 }, data);
                 return;
             }
@@ -366,6 +396,7 @@ var NRS = (function (NRS, $, undefined) {
             if (!options.remoteNode && NRS.isConfirmResponse() &&
                 !(response.errorCode || response.errorDescription || response.errorMessage || response.error)) {
                 var requestRemoteNode = NRS.isMobileApp() ? NRS.getRemoteNode() : { address: "localhost", announcedAddress: "localhost" }; // TODO unify getRemoteNode with apiProxyPeer
+                console.log("NRS",NRS);
                 NRS.confirmResponse(requestType, data, response, requestRemoteNode);
             }
             if (!options.doNotEscape) {
@@ -427,7 +458,8 @@ var NRS = (function (NRS, $, undefined) {
                                     !NRS.verifyTransactionBytes(converters.hexStringToByteArray(response.unsignedTransactionBytes), requestType, data, response.transactionJSON.attachment, isVolatile)) {
                                     callback({
                                         "errorCode": 1,
-                                        "errorDescription": $.t("sso.error_bytes_validation_server")
+                                        // "errorDescription": $.t("sso.error_bytes_validation_server")
+                                        "errorDescription": "$.t"+"sso.error_bytes_validation_server"
                                     }, data);
                                     return;
                                 }
@@ -471,7 +503,7 @@ var NRS = (function (NRS, $, undefined) {
                     NRS.resetRemoteNode(true);
                 }
                 if (error == "timeout") {
-                    error = "sso.error_request_timeout";
+                    error = "$.t"+"sso.error_request_timeout";
                 }
                 callback({
                     "errorCode": -1,
@@ -486,7 +518,8 @@ var NRS = (function (NRS, $, undefined) {
         if (!NRS.verifyTransactionBytes(byteArray, requestType, data, response.transactionJSON.attachment, isVerifyECBlock)) {
             callback({
                 "errorCode": 1,
-                "errorDescription": $.t("sso.error_bytes_validation_server")
+                // "errorDescription": $.t("sso.error_bytes_validation_server")
+                "errorDescription": "$.t"+"sso.error_bytes_validation_server"
             }, data);
             return;
         }
@@ -1490,7 +1523,7 @@ var NRS = (function (NRS, $, undefined) {
     NRS.broadcastTransactionBytes = function (transactionData, callback, originalResponse, originalData) {
         var requestType = NRS.state.apiProxy ? "sendTransaction" : "broadcastTransaction";
         $.ajax({
-            url: NRS.getRequestPath() + "?requestType=" + requestType,
+            url: window.api.sharderUrl + "?requestType=" + requestType,
             crossDomain: true,
             dataType: "json",
             type: "POST",
@@ -1537,7 +1570,8 @@ var NRS = (function (NRS, $, undefined) {
             }
             NRS.resetRemoteNode(true);
             if (error == "timeout") {
-                error = $.t("sso.error_request_timeout");
+                // error = $.t("sso.error_request_timeout");
+                error = "$.t"+"sso.error_request_timeout";
             }
             callback({
                 "errorCode": -1,

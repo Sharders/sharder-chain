@@ -1,11 +1,10 @@
 /******************************************************************************
- * Copyright © 2017 sharder.org.                             *
- * Copyright © 2014-2017 ichaoj.com.                                     *
+ * Copyright © 2017 sharder.org.                                              *
  *                                                                            *
  * See the LICENSE.txt file at the top-level directory of this distribution   *
  * for licensing information.                                                 *
  *                                                                            *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,*
+ * Unless otherwise agreed in a custom licensing agreement with sharder.org,  *
  * no part of the COS software, including this file, may be copied, modified, *
  * propagated, or distributed except according to the terms contained in the  *
  * LICENSE.txt file.                                                          *
@@ -15,7 +14,7 @@
  ******************************************************************************/
 
 /**
- * @depends {nrs.js}
+ * @depends {sso.js}
  */
 var NRS = (function(NRS, $) {
 	NRS.defaultSettings = {
@@ -35,7 +34,7 @@ var NRS = (function(NRS, $) {
 		"enable_plugins": "0",
 		"items_page": "15",
 		"admin_password": "",
-        "exchange_url": "http://www.sharder.org/",
+        "exchange_url": "http://sharder.org/",
         "exchange_api_key": "773ecd081abd54e760a45b3551bbd4d725cf788590619e3f4bdeb81d01994d1dcad8a1d35771f669cfa47742af38e2207e297bc0eeeaea733853c2235548fba3",
         "exchange_coin0": "BTC",
         "exchange_coin1": "LTC",
@@ -658,7 +657,7 @@ var NRS = (function(NRS, $) {
 	//为了触发添加菜单的操作
 	NRS.pages.network = function(){}
 
-	//豆匣网络菜单
+	//网络菜单
 	NRS.setup.network = function() {
 		var sidebarId = 'sidebar_network';
 		var options = {

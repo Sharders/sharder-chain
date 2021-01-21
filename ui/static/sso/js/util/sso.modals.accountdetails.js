@@ -1,11 +1,10 @@
 /******************************************************************************
- * Copyright © 2017 sharder.org.                             *
- * Copyright © 2014-2017 ichaoj.com.                                     *
+ * Copyright © 2017 sharder.org.                                              *
  *                                                                            *
  * See the LICENSE.txt file at the top-level directory of this distribution   *
  * for licensing information.                                                 *
  *                                                                            *
- * Unless otherwise agreed in a custom licensing agreement with ichaoj.com,*
+ * Unless otherwise agreed in a custom licensing agreement with sharder.org,  *
  * no part of the COS software, including this file, may be copied, modified, *
  * propagated, or distributed except according to the terms contained in the  *
  * LICENSE.txt file.                                                          *
@@ -15,7 +14,7 @@
  ******************************************************************************/
 
 /**
- * @depends {nrs.js}
+ * @depends {sso.js}
  * @depends {nrs.modals.js}
  */
 var NRS = (function(NRS, $, undefined) {
@@ -47,11 +46,12 @@ var NRS = (function(NRS, $, undefined) {
 				$("#account_balance_account_rs").html(NRS.getAccountLink(NRS, "account", undefined, undefined, true));
 				$("#account_balance_account").html(NRS.escapeRespStr(NRS.account));
 			} else {
-				$("#account_balance_balance").html(NRS.formatAmount(new BigInteger(NRS.accountInfo.balanceNQT)) + " SS");
-				$("#account_balance_unconfirmed_balance").html(NRS.formatAmount(new BigInteger(NRS.accountInfo.unconfirmedBalanceNQT)) + " SS");
-				$("#account_balance_effective_balance").html(NRS.formatAmount(NRS.accountInfo.effectiveBalanceNXT) + " SS");
-				$("#account_balance_guaranteed_balance").html(NRS.formatAmount(new BigInteger(NRS.accountInfo.guaranteedBalanceNQT)) + " SS");
-				$("#account_balance_forged_balance").html(NRS.formatAmount(new BigInteger(NRS.accountInfo.forgedBalanceNQT)) + " SS");
+                var unit = " SS";
+				$("#account_balance_balance").html(NRS.formatAmount(new BigInteger(NRS.accountInfo.balanceNQT)) + unit);
+				$("#account_balance_unconfirmed_balance").html(NRS.formatAmount(new BigInteger(NRS.accountInfo.unconfirmedBalanceNQT)) + unit);
+				$("#account_balance_effective_balance").html(NRS.formatAmount(NRS.accountInfo.effectiveBalanceNXT) + unit);
+				$("#account_balance_guaranteed_balance").html(NRS.formatAmount(new BigInteger(NRS.accountInfo.guaranteedBalanceNQT)) + unit);
+				$("#account_balance_forged_balance").html(NRS.formatAmount(new BigInteger(NRS.accountInfo.forgedBalanceNQT)) + unit);
 
 				accountBalancePublicKey.html(NRS.escapeRespStr(NRS.accountInfo.publicKey));
 				$("#account_balance_account_rs").html(NRS.getAccountLink(NRS.accountInfo, "account", undefined, undefined, true));
