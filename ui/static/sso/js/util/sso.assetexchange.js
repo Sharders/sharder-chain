@@ -1,6 +1,5 @@
 /******************************************************************************
  * Copyright © 2017 sharder.org.                             *
- * Copyright © 2014-2017 ichaoj.com.                                     *
  *                                                                            *
  * See the LICENSE.txt file at the top-level directory of this distribution   *
  * for licensing information.                                                 *
@@ -15,7 +14,7 @@
  ******************************************************************************/
 
 /**
- * @depends {nrs.js}
+ * @depends {sso.js}
  */
 var NRS = (function (NRS, $, undefined) {
     var assets;

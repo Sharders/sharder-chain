@@ -36,7 +36,10 @@ import org.conch.asset.AssetDividend;
 import org.conch.asset.AssetTransfer;
 import org.conch.asset.token.Currency;
 import org.conch.asset.token.*;
-import org.conch.chain.*;
+import org.conch.chain.Blockchain;
+import org.conch.chain.BlockchainImpl;
+import org.conch.chain.BlockchainProcessor;
+import org.conch.chain.BlockchainProcessorImpl;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.common.UrlManager;
@@ -117,6 +120,18 @@ public final class Conch {
     private static String serialNum = "";
     private static String nodeType = Peer.Type.NORMAL.getSimpleName();
     public static String nodeIp = IpUtil.getNetworkIp();
+    public static Map<Integer, Boolean> airdropHeightMap = Maps.newHashMap();
+
+    public static boolean getAirdropHeighStatus(int height) {
+        if (airdropHeightMap.get(height) != null) {
+            return true;
+        }
+        return false;
+    }
+
+    public static synchronized void setAirdropHeighStatus(int height, boolean status) {
+        airdropHeightMap.put(height, status);
+    }
     
     public static SystemInfo systemInfo = null;
 
@@ -194,7 +209,7 @@ public final class Conch {
     private static int readSerialNoCount = 0;
     public static String getSerialNum(){
         if((StringUtils.isEmpty(Conch.serialNum) || Conch.serialNum.length() < 6)
-                && readSerialNoCount == 0) {
+        && readSerialNoCount == 0) {
             readAndSetSerialNum();
         }
         // every specified times to read the serial no from
@@ -212,7 +227,7 @@ public final class Conch {
         String filePath = ".hubSetting/.tempCache/.sysCache";
         String userHome = Paths.get(System.getProperty("user.home"), filePath).toString();
         File tempFile = new File(userHome);
-        // hub node check if serial number exist
+        // node check if serial number exist
         if (tempFile.exists()) {
             String num = null;
             try {
@@ -221,7 +236,9 @@ public final class Conch {
                 e.printStackTrace();
             }
             Conch.serialNum = StringUtils.isEmpty(num) ? "" : num.replaceAll("(\\r\\n|\\n)", "");
-            Logger.logDebugMessage("serialNum => " + Conch.serialNum);
+            if(Logger.printNow(Logger.CONCH_P_readAndSetSerialNum)) {
+                Logger.logDebugMessage("serialNum => " + Conch.serialNum);
+            }
         }
     }
     
@@ -324,14 +341,22 @@ public final class Conch {
 //    }
     public static boolean matchMyAddress(String host){
         try{
-            if(StringUtils.isEmpty(host)) return false;
+            if(StringUtils.isEmpty(myAddress)){
+                return false;
+            }
+
+            if(StringUtils.isEmpty(host)) {
+                return false;
+            }
 
             if(Conch.useNATService) {
                 return myAddress.equalsIgnoreCase(host);
             }
 
             if(IpUtil.isDomain(host)) {
-                if(myAddress.equalsIgnoreCase(host)) return true;
+                if(myAddress.equalsIgnoreCase(host)) {
+                    return true;
+                }
                 return IpUtil.getHost(myAddress).equalsIgnoreCase(IpUtil.getHost(host));
             } 
         } catch(Exception e){
@@ -377,10 +402,10 @@ public final class Conch {
 
     static {
         loadProperties(properties, CONCH_PROPERTIES, false);
-
+        
         // use the external ip as its myAddress default value
         myAddress = readAndParseMyAddress();
-        
+
         // check port of myAddress whether equal to port of TESTNET
         if (myAddress != null && myAddress.endsWith(":" + PresetParam.getPeerPort(Constants.Network.TESTNET)) && !Constants.isTestnet()) {
             throw new RuntimeException("Port " + PresetParam.getPeerPort(Constants.Network.TESTNET) + " should only be used for testnet!!!");
@@ -408,7 +433,7 @@ public final class Conch {
             }
         }
 
-        return myAddr;
+        return  myAddr;
     }
     /**
      * [NAT] useNATService and client configuration
@@ -426,7 +451,7 @@ public final class Conch {
         
         try {
             if (isUseNAT()) {
-                Logger.logInfoMessage("[NAT] Node joins the network via sharder foundation or 3rd part NAT|DDNS service");
+                Logger.logInfoMessage("[NAT] Node joins the network via foundation NAT or 3rd part NAT|DDNS service");
                 
                 File natCmdFile = new File(SystemUtils.IS_OS_WINDOWS ? "nat_client.exe" : "nat_client");
 
@@ -783,22 +808,26 @@ public final class Conch {
                 logSystemProperties();
                 runtimeMode.init();
                 Thread secureRandomInitThread = initSecureRandom();
+                setHeartBeatTimer();
                 ForceConverge.init();
                 setServerStatus(ServerStatus.BEFORE_DATABASE, null);
+//                CompactDatabase.checkAndRestore();
                 try {
                     Db.init();
                 }catch(Exception e){
-                    Logger.logInfoMessage("[DB EXCEPTION HANDLE] Fetch and restore to last db archive because the db instance init failed[ %s ]", e.getMessage());
-                    ClientUpgradeTool.forceDownloadFromOSS = true;
-                    ClientUpgradeTool.restoreDbToLastArchive(true, true);
-                    ClientUpgradeTool.forceDownloadFromOSS = false;
+                    Logger.logErrorMessage("[DB INIT EXCEPTION] Can't init the  db instance", e);
+//                    Logger.logWarningMessage("[DB EXCEPTION HANDLE] Fetch and restore to last db archive because the db instance init failed[ %s ]", e.getMessage());
+//                    ClientUpgradeTool.forceDownloadFromOSS = true;
+//                    ClientUpgradeTool.restoreDbToLastArchive(true, true);
+//                    ClientUpgradeTool.forceDownloadFromOSS = false;
                 }
+
                 setServerStatus(ServerStatus.AFTER_DATABASE, null);
                 StorageManager.init();
 
                 SharderPoolProcessor.init();
                 PocProcessorImpl.init();
-                
+
                 TransactionProcessorImpl.getInstance();
                 BlockchainProcessorImpl.getInstance();
 
@@ -846,7 +875,9 @@ public final class Conch {
                 Users.init();
                 DebugTrace.init();
                 DbBackup.init();
-             
+
+//                Account.truncateHistoryData();
+
                 int timeMultiplier = (Constants.isTestnetOrDevnet() && Constants.isOffline) ? Math.max(Conch.getIntProperty("sharder.timeMultiplier"), 1) : 1;
                 ThreadPool.start(timeMultiplier);
                 if (timeMultiplier > 1) {
@@ -1032,7 +1063,7 @@ public final class Conch {
         if (height < Constants.LAST_KNOWN_BLOCK) {
             if(Logger.printNow(Logger.CONCH_P_reachLastKnownBlock)) {
                 Logger.logDebugMessage("current height %d is less than last known height %s and current state is %s, wait till blocks sync finished..."
-                        , height, Constants.LAST_KNOWN_BLOCK, Peers.getMyBlockchainState());
+                        , height, Constants.LAST_KNOWN_BLOCK, Peers.getMyBlockchainStateName());
             }
             return false;
         }
@@ -1052,10 +1083,12 @@ public final class Conch {
     public static void restartApplication(Runnable runBeforeRestart) {
         try {
             pause();
-            
-            Logger.logInfoMessage("Clear the all logs");
-            FileUtil.clearAllLogs();
-            
+
+
+            //            Logger.logInfoMessage("Clear the all logs");
+            //            FileUtil.clearAllLogs();
+
+
             // java binary
             String java = System.getProperty("java.home") + "/bin/java";
             // vm arguments
@@ -1103,7 +1136,7 @@ public final class Conch {
                 runBeforeRestart.run();
             }
             // exit
-            Logger.logInfoMessage("Sharder Server Shutting down...");
+            Logger.logInfoMessage("COS Server Shutting down...");
             System.exit(0);
         } catch (Exception e) {
             // something went wrong
@@ -1179,7 +1212,7 @@ public final class Conch {
         
         Integer verInt = Integer.valueOf(version.replaceAll("\\.", ""));
         Integer currentVerInt = Integer.valueOf(VERSION.replaceAll("\\.", ""));
-        
+
         return currentVerInt.compareTo(verInt);
     }
 
@@ -1224,13 +1257,19 @@ public final class Conch {
     static final String UPDATE_DATE_FORMAT_SHORT = "yyyy-MM-dd HH:mm";
 
     private static Date _convertUpdateDate(String dateStr) throws ParseException {
-        if(StringUtils.isEmpty(dateStr)) return null;
+        if(StringUtils.isEmpty(dateStr)) {
+            return null;
+        }
 
         // short date format 'yyyyy-MM-dd HH:mm'
-        if(dateStr.length() == 16) return DateUtils.parseDate(dateStr,UPDATE_DATE_FORMAT_SHORT);
+        if(dateStr.length() == 16) {
+            return DateUtils.parseDate(dateStr,UPDATE_DATE_FORMAT_SHORT);
+        }
 
         // long date format 'yyyyy-MM-dd HH:mm:ss'
-        if(dateStr.length() == 19) return DateUtils.parseDate(dateStr,UPDATE_DATE_FORMAT);
+        if(dateStr.length() == 19) {
+            return DateUtils.parseDate(dateStr,UPDATE_DATE_FORMAT);
+        }
 
         return null;
     }
@@ -1250,5 +1289,14 @@ public final class Conch {
     }
     public static String getVersion(){ return VERSION; }
     public static String getCosUpgradeDate(){ return ClientUpgradeTool.cosLastUpdateDate; }
+
+    public static void setHeartBeatTimer() {
+        Timer timer = new Timer();
+        timer.scheduleAtFixedRate(new TimerTask() {
+            public void run() {
+                Logger.logInfoMessage("[HeartBeat]:cos is working properly");
+            }
+        }, 3*60*1000, Constants.HeartBeat_Time);
+    }
 
 }
