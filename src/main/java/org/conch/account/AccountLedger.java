@@ -124,10 +124,20 @@ public class AccountLedger {
          */
         @Override
         public void trim(int height) {
-            if (trimKeep <= 0) return;
+            if(Constants.SYNC_BUTTON){
+                return;
+            }
 
+            if (trimKeep <= 0) {
+                return;
+            }
             int trimHeight = Math.max(height - trimKeep, 0);
             _trim("account_ledger", trimHeight, false);
+        }
+
+        @Override
+        public void rollback(int height) {
+            super.rollback(height);
         }
     }
     private static final AccountLedgerTable accountLedgerTable = new AccountLedgerTable();
@@ -243,6 +253,20 @@ public class AccountLedger {
             }
         }
         pendingEntries.add(ledgerEntry);
+    }
+
+    public static void clearAllHistoryEntries(){
+        try {
+            Db.db.beginTransaction();
+            accountLedgerTable.truncate();
+            Db.db.commitTransaction();
+        } catch (Exception e) {
+            Logger.logErrorMessage(e.toString(), e);
+            Db.db.rollbackTransaction();
+            throw e;
+        } finally {
+            Db.db.endTransaction();
+        }
     }
 
     /**
@@ -462,8 +486,10 @@ public class AccountLedger {
             STORAGE_UPLOAD(71, true),
             STORAGE_BACKUP(72, true),
             STORAGE_EXTEND(73, true),
-        // BURN
-            BURN(75, true);
+        //  TYPE_BURN
+            BURN(75, true),
+        //  SAVE_HASH
+            SAVE_HASH(76, true);
 
         /** Event code mapping */
         private static final Map<Integer, LedgerEvent> eventMap = new HashMap<>();
@@ -855,10 +881,52 @@ public class AccountLedger {
          * @throws  SQLException            Database error occurred
          */
         private void save(Connection con) throws SQLException {
-            try (PreparedStatement stmt = con.prepareStatement("INSERT INTO account_ledger "
-                    + "(account_id, event_type, event_id, holding_type, holding_id, change, balance, "
-                    + "block_id, height, timestamp) "
-                    + "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
+            boolean insertNew = true;
+            if(Constants.updateHistoryRecord()){
+                PreparedStatement pstmt = con.prepareStatement("SELECT db_id, height FROM account_ledger"
+                        + " WHERE account_id=? AND latest = TRUE ORDER BY height DESC LIMIT 1");
+                pstmt.setLong(1, this.accountId);
+
+                ResultSet queryRS = pstmt.executeQuery();
+                if(queryRS != null && queryRS.next()){
+                    Long dbid = queryRS.getLong("db_id");
+                    pstmt = con.prepareStatement("UPDATE account_ledger "
+                            + "SET height = ?"
+                            + ",event_type = ?"
+                            + ",event_id = ?"
+                            + ",holding_type = ?"
+                            + ",holding_id = ?"
+                            + ",change = ?"
+                            + ",balance = ?"
+                            + ",block_id = ?"
+                            + ",timestamp = ?"
+                            + " WHERE DB_ID = ?"
+                    );
+                    int i=0;
+                    pstmt.setInt(++i, this.height);
+                    pstmt.setByte(++i, (byte) this.event.getCode());
+                    pstmt.setLong(++i, this.eventId);
+                    if (holding != null) {
+                        pstmt.setByte(++i, (byte)holding.getCode());
+                    } else {
+                        pstmt.setByte(++i, (byte)-1);
+                    }
+                    DbUtils.setLong(pstmt, ++i, holdingId);
+                    pstmt.setLong(++i, change);
+                    pstmt.setLong(++i, balance);
+                    pstmt.setLong(++i, blockId);
+                    pstmt.setInt(++i, timestamp);
+                    pstmt.setLong(++i, dbid);
+                    pstmt.executeUpdate();
+                    insertNew = false;
+                }
+            }
+
+            if(insertNew){
+                PreparedStatement stmt = con.prepareStatement("INSERT INTO account_ledger "
+                        + "(account_id, event_type, event_id, holding_type, holding_id, change, balance, "
+                        + "block_id, height, timestamp) "
+                        + "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
                 int i=0;
                 stmt.setLong(++i, accountId);
                 stmt.setByte(++i, (byte) event.getCode());
@@ -881,6 +949,7 @@ public class AccountLedger {
                     }
                 }
             }
+
         }
     }
 }

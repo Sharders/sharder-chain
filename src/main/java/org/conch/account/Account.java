@@ -22,6 +22,21 @@
 package org.conch.account;
 
 import com.google.common.collect.Sets;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import org.conch.Conch;
 import org.conch.asset.AssetDividend;
 import org.conch.asset.AssetTransfer;
@@ -31,9 +46,18 @@ import org.conch.chain.CheckSumValidator;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.consensus.genesis.SharderGenesis;
+import org.conch.consensus.reward.RewardCalculator;
 import org.conch.crypto.Crypto;
 import org.conch.crypto.EncryptedData;
-import org.conch.db.*;
+import org.conch.db.Db;
+import org.conch.db.DbClause;
+import org.conch.db.DbIterator;
+import org.conch.db.DbKey;
+import org.conch.db.DbTrimUtils;
+import org.conch.db.DbUtils;
+import org.conch.db.DerivedDbTable;
+import org.conch.db.VersionedEntityDbTable;
+import org.conch.db.VersionedPersistentDbTable;
 import org.conch.market.Exchange;
 import org.conch.market.Trade;
 import org.conch.shuffle.ShufflingTransaction;
@@ -45,16 +69,10 @@ import org.conch.util.Listener;
 import org.conch.util.Listeners;
 import org.conch.util.Logger;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
 @SuppressWarnings({"UnusedDeclaration", "SuspiciousNameCombination"})
 public final class Account {
+
+    private static final int NONE_PUBLICKEY_ACTIVE_HEIGHT = 12500;
 
     public enum Event {
         BALANCE, UNCONFIRMED_BALANCE, ASSET_BALANCE, UNCONFIRMED_ASSET_BALANCE, CURRENCY_BALANCE, UNCONFIRMED_CURRENCY_BALANCE,
@@ -490,8 +508,139 @@ public final class Account {
 
         @Override
         public void trim(int height) {
+            if(Constants.SYNC_BUTTON) {
+               return;
+            }
             _trim("account",height);
         }
+
+        @Override
+        public void rollback(int height) {
+            if (!db.isInTransaction()) {
+                throw new IllegalStateException("Not in transaction");
+            }
+            Connection con = null;
+            try {
+                con = Db.db.getConnection();
+                PreparedStatement pstmtSelect = con.prepareStatement("select distinct id FROM account WHERE height > ?");
+                pstmtSelect.setInt(1, height);
+                ResultSet resultSet = pstmtSelect.executeQuery();
+                try (PreparedStatement pstmtWorkDelete = con.prepareStatement("DELETE FROM account WHERE height > ?");
+                     PreparedStatement pstmtCacheDelete = con.prepareStatement("DELETE FROM account_cache WHERE height > ?");
+                     PreparedStatement pstmtHistoryDelete = con.prepareStatement("DELETE FROM account_history WHERE height > ?");
+                ) {
+                    pstmtWorkDelete.setInt(1, height);
+                    pstmtWorkDelete.executeUpdate();
+                    pstmtCacheDelete.setInt(1, height);
+                    pstmtCacheDelete.executeUpdate();
+                    pstmtHistoryDelete.setInt(1, height);
+                    pstmtHistoryDelete.executeUpdate();
+                } catch (SQLException e) {
+                    throw new RuntimeException(e.toString(), e);
+                }
+                while (resultSet.next()) {
+                    long accountId = resultSet.getLong("id");
+                    PreparedStatement workTable = con.prepareStatement("select * FROM account WHERE id = ? order by height desc limit 1");
+                    workTable.setLong(1, accountId);
+                    ResultSet resultSetWork = workTable.executeQuery();
+                    if (resultSetWork.next()) {
+                        PreparedStatement update = con.prepareStatement("update account set latest = true where db_id = ?");
+                        update.setLong(1,resultSetWork.getLong("db_id"));
+                        update.executeUpdate();
+                        continue;
+                    }
+                    PreparedStatement cacheTable = con.prepareStatement("select * FROM account_cache WHERE id = ? order by height desc limit 1");
+                    cacheTable.setLong(1, accountId);
+                    ResultSet resultSetCache = cacheTable.executeQuery();
+                    if (!resultSetCache.next()) {
+                        PreparedStatement historyTable = con.prepareStatement("select * FROM account_history WHERE id" +
+                         " = ? order by height desc limit 1");
+                        historyTable.setLong(1, accountId);
+                        resultSetCache = historyTable.executeQuery();
+                        if (!resultSetCache.next()) {
+                            continue;
+                        }
+                    }
+                    PreparedStatement pstmtInsert = con.prepareStatement("INSERT INTO account (ID,BALANCE," +
+                            "UNCONFIRMED_BALANCE,FORGED_BALANCE," +
+                            "ACTIVE_LESSEE_ID,HAS_CONTROL_PHASING,HEIGHT,FROZEN_BALANCE) VALUES(?, ?, ?, ?, ?, ?, ?, " +
+                            "?)");
+                    pstmtInsert.setLong(1, resultSetCache.getLong("ID"));
+                    pstmtInsert.setLong(2, resultSetCache.getLong("BALANCE"));
+                    pstmtInsert.setLong(3, resultSetCache.getLong("UNCONFIRMED_BALANCE"));
+                    pstmtInsert.setLong(4, resultSetCache.getLong("FORGED_BALANCE"));
+                    pstmtInsert.setLong(5, resultSetCache.getLong("ACTIVE_LESSEE_ID"));
+                    pstmtInsert.setBoolean(6, resultSetCache.getBoolean("HAS_CONTROL_PHASING"));
+                    pstmtInsert.setInt(7, resultSetCache.getInt("HEIGHT"));
+                    pstmtInsert.setLong(8, resultSetCache.getLong("FROZEN_BALANCE"));
+                    pstmtInsert.executeUpdate();
+                }
+
+            }catch (SQLException e) {
+                throw new RuntimeException(e.toString(), e);
+            }
+        }
+    };
+
+    private static final VersionedEntityDbTable<Account> accountCacheTable = new VersionedEntityDbTable<Account>("account_cache", accountDbKeyFactory) {
+
+        @Override
+        protected Account load(Connection con, ResultSet rs, DbKey dbKey) throws SQLException {
+            return new Account(rs, dbKey);
+        }
+
+        @Override
+        protected void save(Connection con, Account account) throws SQLException {
+            account.save(con);
+        }
+
+        @Override
+        public void trim(int height) {
+            if(Constants.SYNC_BUTTON) {
+                return;
+            }
+            _trim("account_cache", height, false);
+        }
+
+        @Override
+        public void rollback(int height) {
+            //super.rollback(height);
+        }
+
+        @Override
+        public void truncate() {}
+
+    };
+
+    private static final VersionedEntityDbTable<Account> accountHistoryTable = new VersionedEntityDbTable<Account>("account_history", accountDbKeyFactory) {
+
+        @Override
+        protected Account load(Connection con, ResultSet rs, DbKey dbKey) throws SQLException {
+            return new Account(rs, dbKey);
+        }
+
+        @Override
+        protected void save(Connection con, Account account) throws SQLException {
+            account.save(con);
+        }
+
+        @Override
+        public void trim(int height) {
+            if(Constants.SYNC_BUTTON) {
+                return;
+            }
+            _trim("account_history", height, false);
+        }
+
+        @Override
+        public void rollback(int height) {
+            //super.rollback(height);
+        }
+
+        @Override
+        public void truncate() {
+        }
+
     };
 
     private static final DbKey.LongKeyFactory<AccountInfo> accountInfoDbKeyFactory = new DbKey.LongKeyFactory<AccountInfo>("account_id") {
@@ -525,6 +674,11 @@ public final class Account {
             accountLease.save(con);
         }
 
+        @Override
+        public void trim(int height) {
+            _trim("account_lease", height);
+        }
+
     };
 
     private static final VersionedEntityDbTable<AccountInfo> accountInfoTable = new VersionedEntityDbTable<AccountInfo>("account_info",
@@ -538,6 +692,11 @@ public final class Account {
         @Override
         protected void save(Connection con, AccountInfo accountInfo) throws SQLException {
             accountInfo.save(con);
+        }
+
+        @Override
+        public void trim(int height) {
+            _trim("account_info",height);
         }
 
     };
@@ -593,7 +752,7 @@ public final class Account {
 
         @Override
         public void trim(int height) {
-            super.trim(Math.max(0, height - Constants.MAX_DIVIDEND_PAYMENT_ROLLBACK));
+            _trim("account_asset", height - Constants.MAX_DIVIDEND_PAYMENT_ROLLBACK);
         }
 
         @Override
@@ -635,6 +794,11 @@ public final class Account {
         }
 
         @Override
+        public void trim(int height) {
+            _trim("account_currency", height);
+        }
+
+        @Override
         protected String defaultSort() {
             return " ORDER BY units DESC, account_id, currency_id ";
         }
@@ -645,20 +809,73 @@ public final class Account {
 
         @Override
         public void trim(int height) {
+            if(Constants.SYNC_BUTTON) {
+                return;
+            }
+            _trim("account_guaranteed_balance", height, false);
+            _trim("account_guaranteed_balance_cache", height, false);
+            _trim("account_guaranteed_balance_history", height, false);
+        }
+
+        @Override
+        public void rollback(int height) {
+            if (!db.isInTransaction()) {
+                throw new IllegalStateException("Not in transaction");
+            }
             Connection con = null;
             try {
                 con = Db.db.getConnection();
-                PreparedStatement pstmtDelete = con.prepareStatement("DELETE FROM account_guaranteed_balance "
-                        + "WHERE height < ? AND height >= 0");
-                pstmtDelete.setInt(1, height - Constants.GUARANTEED_BALANCE_CONFIRMATIONS);
-                pstmtDelete.executeUpdate();
-            } catch (SQLException e) {
+                PreparedStatement pstmtSelect = con.prepareStatement("select distinct account_id FROM account_guaranteed_balance WHERE height > ?");
+                pstmtSelect.setInt(1, height);
+                ResultSet resultSet = pstmtSelect.executeQuery();
+                try (PreparedStatement pstmtWorkDelete = con.prepareStatement("DELETE FROM account_guaranteed_balance WHERE height > ?");
+                     PreparedStatement pstmtCacheDelete = con.prepareStatement("DELETE FROM account_guaranteed_balance_cache WHERE height > ?");
+                     PreparedStatement pstmtHistoryDelete = con.prepareStatement("DELETE FROM account_guaranteed_balance_history WHERE height > ?");
+                ) {
+                    pstmtWorkDelete.setInt(1, height);
+                    pstmtWorkDelete.executeUpdate();
+                    pstmtCacheDelete.setInt(1, height);
+                    pstmtCacheDelete.executeUpdate();
+                    pstmtHistoryDelete.setInt(1, height);
+                    pstmtHistoryDelete.executeUpdate();
+                } catch (SQLException e) {
+                    throw new RuntimeException(e.toString(), e);
+                }
+                while (resultSet.next()) {
+                    long accountId = resultSet.getLong("account_id");
+                    PreparedStatement workTable = con.prepareStatement("select * FROM account_guaranteed_balance WHERE account_id = ? order by height desc limit 1");
+                    workTable.setLong(1, accountId);
+                    ResultSet resultSetWork = workTable.executeQuery();
+                    if (resultSetWork.next()) {
+                        PreparedStatement update = con.prepareStatement("update account_guaranteed_balance set latest = true where db_id = ?");
+                        update.setLong(1,resultSetWork.getLong("db_id"));
+                        update.executeUpdate();
+                        continue;
+                    }
+                    PreparedStatement cacheTable = con.prepareStatement("select * FROM account_guaranteed_balance_cache WHERE account_id = ? order by height desc limit 1");
+                    cacheTable.setLong(1, accountId);
+                    ResultSet resultSetCache = cacheTable.executeQuery();
+                    if (!resultSetCache.next()) {
+                        PreparedStatement historyTable = con.prepareStatement("select * FROM account_guaranteed_balance_history WHERE account_id = ? order by height desc limit 1");
+                        historyTable.setLong(1, accountId);
+                        resultSetCache = historyTable.executeQuery();
+                        if (!resultSetCache.next()) {
+                            continue;
+                        }
+                    }
+                    PreparedStatement pstmtUpdate = con.prepareStatement("INSERT INTO ACCOUNT_GUARANTEED_BALANCE (ACCOUNT_ID,"
+                            + " ADDITIONS, HEIGHT, LATEST) VALUES (?, ?, ?, ?)");
+                    pstmtUpdate.setLong(1, resultSetCache.getLong("ACCOUNT_ID"));
+                    pstmtUpdate.setLong(2, resultSetCache.getLong("ADDITIONS"));
+                    pstmtUpdate.setInt(3, resultSetCache.getInt("HEIGHT"));
+                    pstmtUpdate.setBoolean(4, false);
+                    pstmtUpdate.executeUpdate();
+                }
+
+            }catch (SQLException e) {
                 throw new RuntimeException(e.toString(), e);
-            }finally {
-                DbUtils.close(con);
             }
         }
-
     };
 
     private static final DbKey.LongKeyFactory<AccountProperty> accountPropertyDbKeyFactory = new DbKey.LongKeyFactory<AccountProperty>("id") {
@@ -680,6 +897,11 @@ public final class Account {
         @Override
         protected void save(Connection con, AccountProperty accountProperty) throws SQLException {
             accountProperty.save(con);
+        }
+
+        @Override
+        public void trim(int height) {
+            _trim("account_property", height);
         }
 
     };
@@ -826,6 +1048,7 @@ public final class Account {
         return accountPropertyTable.getBy(dbClause);
     }
 
+    /**
     public static Account getAccount(long id) {
         DbKey dbKey = accountDbKeyFactory.newKey(id);
         Account account = accountTable.get(dbKey);
@@ -843,13 +1066,134 @@ public final class Account {
         DbKey dbKey = accountDbKeyFactory.newKey(id);
         Account account = accountTable.get(dbKey, height);
         if (account == null) {
-            PublicKey publicKey = publicKeyTable.get(dbKey, height);
-            if (publicKey != null) {
-                account = accountTable.newEntity(dbKey);
-                account.publicKey = publicKey;
+            account = accountCacheTable.get(dbKey, height);
+            if (account == null) {
+                account = accountHistoryTable.get(dbKey, height);
+                if (account == null) {
+                    PublicKey publicKey = publicKeyTable.get(dbKey, height);
+                    if (publicKey != null) {
+                        account = accountTable.newEntity(dbKey);
+                        account.publicKey = publicKey;
+                    }
+                }
             }
         }
         return account;
+    }
+   **/
+
+
+    private static final Integer DONT_APPOINT_HEIGHT = -1;
+
+    /**
+     * query account according to accountId and height
+     * if account data not exist at the height, return the closest height's account data in work,cache and history table
+     * if exist cache data, return account data from cache
+     * use the cache when the query operations happen in the same transaction
+     *
+     * @param accountId
+     * @param height    null or -1(DONT_APPOINT_HEIGHT) means don't appoint end height
+     * @return
+     */
+    private static Account _getAccount(long accountId, Integer height, boolean cache) {
+        // get data from cache
+        DbKey dbKey = accountDbKeyFactory.newKey(accountId);
+        if (cache && Db.db.isInTransaction()) {
+            Account account = (Account) Db.db.getCache("account").get(dbKey);
+            if (account != null) {
+                return account;
+            }
+        }
+
+        boolean appointHeight = true;
+        if(height == null || (height.intValue() == DONT_APPOINT_HEIGHT.intValue())) {
+            appointHeight = false;
+        }
+
+        // query height should smaller than current height
+        if (appointHeight
+                && height > Conch.getHeight()) {
+            throw new IllegalArgumentException("Height " + height + " exceeds blockchain height " + Conch.getHeight());
+        }
+        boolean isInTx = Db.db.isInTransaction();
+        Connection con = null;
+        try {
+            con = Db.db.getConnection();
+            Account account = null;
+            String querySql = "select * FROM %s WHERE id = ?"
+                    + (appointHeight ? " and height <= ?" : "")
+                    + " order by height desc limit 1";
+
+            String workTableQuerySql = String.format(querySql, "account");
+            PreparedStatement accountWorkQuery = con.prepareStatement(workTableQuerySql);
+            accountWorkQuery.setLong(1, accountId);
+            if (appointHeight) {
+                accountWorkQuery.setInt(2, height);
+            }
+
+            ResultSet resultSet = accountWorkQuery.executeQuery();
+            if (!resultSet.next()) {
+                String cacheTableQuerySql = String.format(querySql, "account_cache");
+                PreparedStatement accountCacheQuery = con.prepareStatement(cacheTableQuerySql);
+                accountCacheQuery.setLong(1, accountId);
+                if (appointHeight) {
+                    accountCacheQuery.setInt(2, height);
+                }
+                resultSet = accountCacheQuery.executeQuery();
+                if (!resultSet.next()) {
+                    String historyTableQuerySql = String.format(querySql, "account_history");
+                    PreparedStatement accountHistoryQuery = con.prepareStatement(historyTableQuerySql);
+                    accountHistoryQuery.setLong(1, accountId);
+                    if (appointHeight) {
+                        accountHistoryQuery.setInt(2, height);
+                    }
+                    resultSet = accountHistoryQuery.executeQuery();
+                    // if database doesn't exist data return new entity
+                    if (!resultSet.next()) {
+                        PublicKey publicKey = publicKeyTable.get(dbKey);
+                        if (publicKey != null) {
+                            account = accountTable.newEntity(dbKey);
+                            account.publicKey = publicKey;
+                        }
+                        return account;
+                    }
+                }
+            }
+            // set data to cache and return
+            if (Db.db.isInTransaction()) {
+                DbKey dbKey1 = accountDbKeyFactory.newKey(resultSet);
+                account = (Account) Db.db.getCache("account").get(dbKey1);
+                if (account == null) {
+                    account = new Account(resultSet, dbKey1);
+                    Db.db.getCache("account").put(dbKey1, account);
+                }
+            } else {
+                account = new Account(resultSet, dbKey);
+            }
+            return account;
+        } catch (SQLException e) {
+            throw new RuntimeException(e.toString(), e);
+        } finally {
+            if (!isInTx) {
+                DbUtils.close(con);
+            }
+        }
+
+    }
+
+    public static Account getAccount(long id) {
+        return _getAccount(id, DONT_APPOINT_HEIGHT, true);
+    }
+
+    public static Account getAccount(long id, int height) {
+        // if param height illegal or setting not allowed, get the latest data
+        boolean doesNotExceed = Conch.getHeight() <= height
+                && !(accountTable.isPersistent() && Conch.getBlockchainProcessor().isScanning());
+
+        if (height < 0 || doesNotExceed) {
+            return getAccount(id);
+        }
+        return _getAccount(id, height, false);
     }
 
     public static Account getAccount(byte[] publicKey) {
@@ -1141,10 +1485,45 @@ public final class Account {
     }
 
     private void save(Connection con) throws SQLException {
-        try (PreparedStatement pstmt = con.prepareStatement("MERGE INTO account (id, "
-                + "balance, unconfirmed_balance, forged_balance, frozen_balance,"
-                + "active_lessee_id, has_control_phasing, height, latest) "
-                + "KEY (id, height) VALUES (?, ?, ?, ?,?, ?, ?, ?, TRUE)")) {
+        boolean insertNew = true;
+        if(Constants.updateHistoryRecord()){
+                PreparedStatement pstmt = con.prepareStatement("SELECT db_id, height FROM account"
+                    + " WHERE id=? AND latest = TRUE ORDER BY height DESC LIMIT 1");
+                pstmt.setLong(1, this.id);
+
+                ResultSet queryRS = pstmt.executeQuery();
+                if(queryRS != null && queryRS.next()){
+                    Long dbid = queryRS.getLong("db_id");
+                    pstmt = con.prepareStatement("UPDATE account "
+                            + "SET height = ?"
+                            + ",balance = ?"
+                            + ",unconfirmed_balance = ?"
+                            + ",forged_balance = ?"
+                            + ",frozen_balance = ?"
+                            + ",active_lessee_id = ?"
+                            + ",has_control_phasing = ?"
+                            + ",latest = ?"
+                            + " WHERE DB_ID = ?"
+                    );
+                    pstmt.setInt(1, Conch.getHeight());
+                    pstmt.setLong(2, this.balanceNQT);
+                    pstmt.setLong(3, this.unconfirmedBalanceNQT);
+                    pstmt.setLong(4, this.forgedBalanceNQT);
+                    pstmt.setLong(5, this.frozenBalanceNQT);
+                    DbUtils.setLongZeroToNull(pstmt, 6, this.activeLesseeId);
+                    pstmt.setBoolean(7, controls.contains(ControlType.PHASING_ONLY));
+                    pstmt.setBoolean(8, true);
+                    pstmt.setLong(9, dbid);
+                    pstmt.executeUpdate();
+                    insertNew = false;
+                }
+        }
+
+        if(insertNew){
+            PreparedStatement pstmt = con.prepareStatement("MERGE INTO account (id, "
+                    + "balance, unconfirmed_balance, forged_balance, frozen_balance,"
+                    + "active_lessee_id, has_control_phasing, height, latest) "
+                    + "KEY (id, height) VALUES (?, ?, ?, ?,?, ?, ?, ?, TRUE)");
             int i = 0;
             pstmt.setLong(++i, this.id);
             pstmt.setLong(++i, this.balanceNQT);
@@ -1264,8 +1643,34 @@ public final class Account {
     public long getCurrentEffectiveBalanceSS() {
         return getEffectiveBalanceSS(Conch.getHeight());
     }
+
+    public long getConfirmedEffectiveBalanceSS(int height) {
+        if (height != Conch.getHeight()) {
+            throw new RuntimeException("argument height " + height + " not equal blockchain height " + Conch.getHeight());
+        }
+        if (this.publicKey == null) {
+            this.publicKey = publicKeyTable.get(accountDbKeyFactory.newKey(this));
+        }
+
+        // adding height judgment logic, not check the account publicKey
+        // TODO Network reset turn off the judgment
+        if (height <= RewardCalculator.NETWORK_ROBUST_PHASE && this.publicKey == null || this.publicKey.publicKey == null) {
+            return 0;
+        }
+
+        try {
+            Conch.getBlockchain().readLock();
+            long effectiveBalanceNQT = getLessorsGuaranteedBalanceNQT(height);
+            if (activeLesseeId == 0 || Constants.SYNC_BUTTON) {
+                effectiveBalanceNQT += getGuaranteedBalanceNQT(Constants.GUARANTEED_BALANCE_CONFIRMATIONS);
+            }
+            return  effectiveBalanceNQT / Constants.ONE_SS;
+        } finally {
+            Conch.getBlockchain().readUnlock();
+        }
+    }
     /**
-     * return the effective balance in the unit SS
+     * return the effective balance in the unit
      * @param height
      * @return
      */
@@ -1283,14 +1688,15 @@ public final class Account {
             this.publicKey = publicKeyTable.get(accountDbKeyFactory.newKey(this));
         }
 
-        if (this.publicKey == null || this.publicKey.publicKey == null) {
+        // adding height judgment logic, not check the account publicKey
+        if (height <= NONE_PUBLICKEY_ACTIVE_HEIGHT && (this.publicKey == null || this.publicKey.publicKey == null)) {
             return 0;
         }
 
         try {
             Conch.getBlockchain().readLock();
             long effectiveBalanceNQT = getLessorsGuaranteedBalanceNQT(height);
-            if (activeLesseeId == 0) {
+            if (activeLesseeId == 0 || Constants.SYNC_BUTTON) {
                 effectiveBalanceNQT += getGuaranteedBalanceNQT(Constants.GUARANTEED_BALANCE_CONFIRMATIONS, height);
             }
             return  effectiveBalanceNQT;
@@ -1299,9 +1705,11 @@ public final class Account {
         }
     }
 
-
-
     private long getLessorsGuaranteedBalanceNQT(int height) {
+        if (!Constants.isOpenLessorMode) {
+            return 0;
+        }
+        boolean inInTx = Db.db.isInTransaction();
         List<Account> lessors = new ArrayList<>();
         DbIterator<Account> iterator = null;
         try {
@@ -1310,7 +1718,12 @@ public final class Account {
                 lessors.add(iterator.next());
             }
         }finally {
-            DbUtils.close(iterator);
+            if (!inInTx) {
+                DbUtils.close(iterator);
+            }
+        }
+        if (lessors.isEmpty()) {
+            return 0;
         }
         Long[] lessorIds = new Long[lessors.size()];
         long[] balances = new long[lessors.size()];
@@ -1352,7 +1765,9 @@ public final class Account {
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
         }finally {
-            DbUtils.close(con);
+            if (!inInTx) {
+                DbUtils.close(con);
+            }
         }
     }
 
@@ -1366,11 +1781,13 @@ public final class Account {
 
     private void resetGuaranteedBalance(Connection con, final long balance) {
         long currentGuarantBalance = getGuaranteedBalanceNQT();
-        if(currentGuarantBalance == balance) return;
-        
-     
+        if(currentGuarantBalance == balance) {
+            return;
+        }
+
         try {
             Conch.getBlockchain().readLock();
+            boolean isInTx = Db.db.isInTransaction();
             Connection connDel = Db.db.getConnection();
             try{
                 // delete records which the height larger than the current height
@@ -1381,32 +1798,34 @@ public final class Account {
             }catch (SQLException e) {
                 e.printStackTrace();
             } finally {
-                DbUtils.close(connDel);
+                if (!isInTx) {
+                    DbUtils.close(connDel);
+                }
             }
-            
-            
+
+
             if(balance > currentGuarantBalance) {
                 PreparedStatement pstmtUpdate = con.prepareStatement("INSERT INTO ACCOUNT_GUARANTEED_BALANCE (ACCOUNT_ID,"
                         + " ADDITIONS, HEIGHT) VALUES (?, ?, ?)");
-                
+
                 long additions = balance - currentGuarantBalance;
                 pstmtUpdate.setLong(1, this.id);
                 pstmtUpdate.setLong(2, additions);
                 pstmtUpdate.setInt(3, Conch.getHeight());
                 pstmtUpdate.executeUpdate();
             }else {
-                PreparedStatement pstmt = con.prepareStatement("SELECT DB_ID, ADDITIONS "
-                        + "FROM ACCOUNT_GUARANTEED_BALANCE WHERE ACCOUNT_ID = ? AND HEIGHT <= ? ORDER BY HEIGHT DESC");
+                PreparedStatement pstmt = con.prepareStatement("SELECT DB_ID, ADDITIONS, min(height) minHeight"
+                        + "FROM ACCOUNT_GUARANTEED_BALANCE WHERE ACCOUNT_ID = ? AND HEIGHT < ? ORDER BY HEIGHT DESC");
+                int queryHeight = Conch.getHeight() + 1;
                 pstmt.setLong(1, this.id);
-                pstmt.setInt(2, Conch.getHeight());
+                pstmt.setInt(2, queryHeight);
                 long afterSub = currentGuarantBalance;
-                
                 String delIds = "";
                 Set<Long> delList = Sets.newHashSet();
                 try (ResultSet rs = pstmt.executeQuery()) {
                     while (rs.next()) {
                         long tmp = Math.subtractExact(afterSub, rs.getLong("ADDITIONS"));
-                        
+                        queryHeight = rs.getInt("minHeight");
                         Long dbId = rs.getLong("DB_ID");
                         delList.add(dbId);
                         delIds += dbId + ",";
@@ -1418,13 +1837,59 @@ public final class Account {
                         }
                     }
                 }
-                
+
+                PreparedStatement cachePstmt = con.prepareStatement("SELECT DB_ID, ADDITIONS, min(height) minHeight"
+                        + "FROM ACCOUNT_GUARANTEED_BALANCE_CACHE WHERE ACCOUNT_ID = ? AND HEIGHT < ? ORDER BY HEIGHT DESC");
+                cachePstmt.setLong(1, this.id);
+                cachePstmt.setInt(2, queryHeight);
+
+                try (ResultSet rs = cachePstmt.executeQuery()) {
+                    while (rs.next()) {
+                        long tmp = Math.subtractExact(afterSub, rs.getLong("ADDITIONS"));
+                        queryHeight = rs.getInt("minHeight");
+                        Long dbId = rs.getLong("DB_ID");
+                        delList.add(dbId);
+                        delIds += dbId + ",";
+                        if(tmp > balance) {
+                            afterSub = tmp;
+                        }else{
+                            afterSub = Math.subtractExact(afterSub,balance);
+                            break;
+                        }
+                    }
+                }
+
+                PreparedStatement historyPstmt = con.prepareStatement("SELECT DB_ID, ADDITIONS "
+                        + "FROM ACCOUNT_GUARANTEED_BALANCE_HISTORY WHERE ACCOUNT_ID = ? AND HEIGHT < ? ORDER BY HEIGHT DESC");
+                historyPstmt.setLong(1, this.id);
+                historyPstmt.setInt(2, queryHeight);
+
+                try (ResultSet rs = historyPstmt.executeQuery()) {
+                    while (rs.next()) {
+                        long tmp = Math.subtractExact(afterSub, rs.getLong("ADDITIONS"));
+
+                        Long dbId = rs.getLong("DB_ID");
+                        delList.add(dbId);
+                        delIds += dbId + ",";
+                        if(tmp > balance) {
+                            afterSub = tmp;
+                        }else{
+                            afterSub = Math.subtractExact(afterSub,balance);
+                            break;
+                        }
+                    }
+                }
+
                 if(delIds.length() > 1) {
                     delIds = delIds.substring(0, delIds.length() - 1);
                     PreparedStatement pstmtUpdate = con.prepareStatement("DELETE FROM ACCOUNT_GUARANTEED_BALANCE WHERE DB_ID IN (" + delIds + ")");
                     pstmtUpdate.executeUpdate();
+                    PreparedStatement cachePstmtUpdate = con.prepareStatement("DELETE FROM ACCOUNT_GUARANTEED_BALANCE_CACHE WHERE DB_ID IN (" + delIds + ")");
+                    cachePstmtUpdate.executeUpdate();
+                    PreparedStatement historyPstmtUpdate = con.prepareStatement("DELETE FROM ACCOUNT_GUARANTEED_BALANCE_HISTORY WHERE DB_ID IN (" + delIds + ")");
+                    historyPstmtUpdate.executeUpdate();
                 }
-                
+
                 if(afterSub > 0) {
                     PreparedStatement pstmtUpdate = con.prepareStatement("INSERT INTO ACCOUNT_GUARANTEED_BALANCE (ACCOUNT_ID,"
                             + " ADDITIONS, HEIGHT) VALUES (?, ?, ?)");
@@ -1432,7 +1897,7 @@ public final class Account {
                     pstmtUpdate.setLong(1, this.id);
                     pstmtUpdate.setLong(2, afterSub);
                     pstmtUpdate.setInt(3, Conch.getHeight());
-                    pstmtUpdate.executeUpdate(); 
+                    pstmtUpdate.executeUpdate();
                 }
             }
         } catch (SQLException e) {
@@ -1446,37 +1911,98 @@ public final class Account {
         return getGuaranteedBalanceNQT(Constants.GUARANTEED_BALANCE_CONFIRMATIONS, Conch.getHeight());
     }
 
-    public long getGuaranteedBalanceNQT(final int numberOfConfirmations, final int currentHeight) {
-      
+    public long getGuaranteedBalanceNQT(final int numberOfConfirmations,final int currentHeight) {
+
         try {
             Conch.getBlockchain().readLock();
-            
+
             int fromHeight = currentHeight - numberOfConfirmations;
             if(fromHeight < 0){
                 fromHeight = 0;
-            } 
+            }
 //            if (fromHeight + Constants.GUARANTEED_BALANCE_CONFIRMATIONS < Conch.getBlockchainProcessor().getMinRollbackHeight()
 //                    || fromHeight > Conch.getBlockchain().getHeight()) {
 //                throw new IllegalArgumentException("Height " + fromHeight + " not available for guaranteed balance calculation");
 //            }
+            boolean isInTx = Db.db.isInTransaction();
             Connection con = null;
             try {
                 con = Db.db.getConnection();
-                PreparedStatement pstmt = con.prepareStatement("SELECT SUM (additions) AS additions "
-                        + "FROM account_guaranteed_balance WHERE account_id = ? AND height > ? AND height <= ?");
+                Long additions = 0L;
+                int toHeight = currentHeight + 1;
+                PreparedStatement pstmt = con.prepareStatement("SELECT SUM (additions) AS additions, min(height) as height "
+                        + "FROM account_guaranteed_balance WHERE account_id = ? AND height > ? AND height < ?");
                 pstmt.setLong(1, this.id);
                 pstmt.setInt(2, fromHeight);
-                pstmt.setInt(3, currentHeight);
-                try (ResultSet rs = pstmt.executeQuery()) {
-                    if (!rs.next()) {
-                        return balanceNQT;
-                    }
-                    return Math.max(Math.subtractExact(balanceNQT, rs.getLong("additions")), 0);
+                pstmt.setInt(3, toHeight);
+                ResultSet workRs = pstmt.executeQuery();
+                String cacheSql;
+                if (workRs.next()) {
+                    toHeight = workRs.getInt("height");
+                    additions += workRs.getLong("additions");
                 }
+                PreparedStatement cachePstmt = con.prepareStatement("SELECT SUM (additions) AS additions, min(height) as height "
+                        + "FROM account_guaranteed_balance_cache WHERE account_id = ? AND height > ? AND height < ?");
+                cachePstmt.setLong(1, this.id);
+                cachePstmt.setInt(2, fromHeight);
+                cachePstmt.setInt(3, toHeight);
+                ResultSet cacheRs = cachePstmt.executeQuery();
+                String historySql;
+                if (cacheRs.next()) {
+                    toHeight = cacheRs.getInt("height");
+                    additions += cacheRs.getLong("additions");
+                }
+                PreparedStatement historyPstmt = con.prepareStatement("SELECT SUM (additions) AS additions "
+                        + "FROM account_guaranteed_balance_history WHERE account_id = ? AND height > ? AND height < ?");
+                historyPstmt.setLong(1, this.id);
+                historyPstmt.setInt(2, fromHeight);
+                historyPstmt.setInt(3, toHeight);
+                ResultSet historyRs = historyPstmt.executeQuery();
+                return Math.max(Math.subtractExact(balanceNQT, additions + (historyRs.next() ? historyRs.getLong("additions") : 0)), 0);
             } catch (SQLException e) {
                 throw new RuntimeException(e.toString(), e);
             }finally {
-                DbUtils.close(con);
+                if (!isInTx) {
+                    DbUtils.close(con);
+                }
+            }
+        } finally {
+            Conch.getBlockchain().readUnlock();
+        }
+    }
+
+    public long getGuaranteedBalanceNQT(final int numberOfConfirmations) {
+
+        try {
+            Conch.getBlockchain().readLock();
+
+            int fromHeight = Conch.getHeight() - numberOfConfirmations;
+            if(fromHeight < 0){
+                fromHeight = 0;
+            }
+//            if (fromHeight + Constants.GUARANTEED_BALANCE_CONFIRMATIONS < Conch.getBlockchainProcessor().getMinRollbackHeight()
+//                    || fromHeight > Conch.getBlockchain().getHeight()) {
+//                throw new IllegalArgumentException("Height " + fromHeight + " not available for guaranteed balance calculation");
+//            }
+            boolean isInTx = Db.db.isInTransaction();
+            Connection con = null;
+            try {
+                con = Db.db.getConnection();
+                Long additions = 0L;
+                int toHeight = Conch.getHeight() + 1;
+                PreparedStatement pstmt = con.prepareStatement("SELECT SUM (additions) AS additions, min(height) as height "
+                        + "FROM account_guaranteed_balance WHERE account_id = ? AND height > ? AND height < ?");
+                pstmt.setLong(1, this.id);
+                pstmt.setInt(2, fromHeight);
+                pstmt.setInt(3, toHeight);
+                ResultSet workRs = pstmt.executeQuery();
+                return Math.max(Math.subtractExact(balanceNQT, additions), 0);
+            } catch (SQLException e) {
+                throw new RuntimeException(e.toString(), e);
+            }finally {
+                if (!isInTx) {
+                    DbUtils.close(con);
+                }
             }
         } finally {
             Conch.getBlockchain().readUnlock();
@@ -1824,7 +2350,9 @@ public final class Account {
     }
     
     private long frozenAmountValidation(long amountNQT){
-        if(amountNQT >= 0) return amountNQT;
+        if(amountNQT >= 0) {
+            return amountNQT;
+        }
         
         long absAmount = Math.abs(amountNQT);
         
@@ -1893,7 +2421,9 @@ public final class Account {
      * @param changeUnconfirmed
      */
     private void frozen(AccountLedger.LedgerEvent event, long eventId, long amountNQT, boolean changeUnconfirmed){
-        if (amountNQT == 0)   return;
+        if (amountNQT == 0) {
+            return;
+        }
 
         amountNQT = frozenAmountValidation(amountNQT);
         
@@ -1916,7 +2446,9 @@ public final class Account {
             }
             save();
         }catch(Account.DoubleSpendingException e) {
-            if(!CheckSumValidator.isDirtyPoolTx(Conch.getHeight(), id)) throw e;
+            if(!CheckSumValidator.isDirtyPoolTx(Conch.getHeight(), id)) {
+                throw e;
+            }
         }
     }
 
@@ -1938,11 +2470,14 @@ public final class Account {
 
 
     private long balanceAmountValidation(long amountNQT){
-        if(!Constants.isTestnet()) return amountNQT;
-        if(Conch.getHeight() < Constants.POC_BALANCE_CORRECTION_HEIGHT) return amountNQT;
-        
-        // this.balanceNQT is null or 0
-        if(amountNQT >= 0) return amountNQT;
+        if(!Constants.isTestnet()) {
+            return amountNQT;
+        }
+
+        /* this.balanceNQT is null or 0 */
+        if(amountNQT >= 0) {
+            return amountNQT;
+        }
         
         long absAmount = Math.abs(amountNQT);
         if(this.balanceNQT <= absAmount){
@@ -2023,7 +2558,6 @@ public final class Account {
         if (amountNQT == 0 && feeNQT == 0) {
             return;
         }
-
         amountNQT = balanceAmountValidation(amountNQT);
         
         long totalAmountNQT = Math.addExact(amountNQT, feeNQT);
@@ -2084,6 +2618,7 @@ public final class Account {
             return;
         }
         int blockchainHeight = Conch.getHeight();
+        boolean isInTx = Db.db.isInTransaction();
         Connection con = null;
         try {
             con = Db.db.getConnection();
@@ -2091,9 +2626,19 @@ public final class Account {
                     + "WHERE account_id = ? and height = ?");
             PreparedStatement pstmtUpdate = con.prepareStatement("MERGE INTO account_guaranteed_balance (account_id, "
                     + " additions, height) KEY (account_id, height) VALUES(?, ?, ?)");
-            
+
+//            PreparedStatement pstmtUpdateLatest = null;
+//            if(Constants.TRIM_AT_INSERT){
+//                pstmtUpdateLatest = con.prepareStatement("DELETE FROM account_guaranteed_balance " +
+//                        "WHERE account_id = ? AND height < ?");
+//            }else{
+//                pstmtUpdateLatest = con.prepareStatement("UPDATE account_guaranteed_balance SET "
+//                        + "latest = false WHERE account_id = ? AND height < ?");
+//            }
+
             pstmtSelect.setLong(1, this.id);
             pstmtSelect.setInt(2, blockchainHeight);
+
             try (ResultSet rs = pstmtSelect.executeQuery()) {
                 long additions = amountNQT;
                 if (rs.next()) {
@@ -2103,17 +2648,24 @@ public final class Account {
                 pstmtUpdate.setLong(2, additions);
                 pstmtUpdate.setInt(3, blockchainHeight);
                 pstmtUpdate.executeUpdate();
+
+//                pstmtUpdateLatest.setLong(1, this.id);
+//                pstmtUpdateLatest.setInt(2, blockchainHeight);
+//                pstmtUpdateLatest.executeUpdate();
             }
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
         }finally {
-            DbUtils.close(con);
+            if (!isInTx) {
+                DbUtils.close(con);
+            }
         }
     }
 
     public void payDividends(final long transactionId, Attachment.ColoredCoinsDividendPayment attachment) {
         long totalDividend = 0;
         List<AccountAsset> accountAssets = new ArrayList<>();
+        boolean isInTx = Db.db.isInTransaction();
         DbIterator<AccountAsset> iterator = null;
         try {
             iterator = getAssetAccounts(attachment.getAssetId(), attachment.getHeight(), 0, -1);
@@ -2121,7 +2673,9 @@ public final class Account {
                 accountAssets.add(iterator.next());
             }
         }finally {
-            DbUtils.close(iterator);
+            if (!isInTx) {
+                DbUtils.close(iterator);
+            }
         }
         final long amountNQTPerQNT = attachment.getAmountNQTPerQNT();
         long numAccounts = 0;
@@ -2145,10 +2699,504 @@ public final class Account {
         if (!correctRs.equals(address)) {
             throw new ConchException.AccountControlException("Auto Poc Tx account address does not match! please reset sharder.autoTransactionAddress configuration");
         }
+//        Logger.logInfoMessage("[ OK ] Auto Poc Tx account address (" + correctRs + ") is correct!");
     }
 
     @Override
     public String toString() {
         return "Account " + Long.toUnsignedString(getId());
     }
+
+
+    public static void syncAccountTable(Connection con, String sourceTable, String targetTable, int dif) {
+        boolean closeCon = false;
+        try {
+            if (con == null) {
+                con = Db.db.getConnection();
+                closeCon = true;
+            }
+            long t1 = System.currentTimeMillis();
+            Statement statement = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            String idQuerySql = "SELECT distinct id" + " FROM " + sourceTable;
+            ResultSet accountIdRs = statement.executeQuery(idQuerySql);
+            while (accountIdRs.next()) {
+                long accountId = accountIdRs.getLong("id");
+                PreparedStatement pstmtSelectWork =
+                 con.prepareStatement("SELECT max(HEIGHT) height FROM " + sourceTable + " where id = " + accountId);
+                PreparedStatement pstmtSelectHistory =
+                 con.prepareStatement("SELECT max(HEIGHT) height FROM " + targetTable + " where id = " + accountId);
+                PreparedStatement pstmtSelect = con.prepareStatement("SELECT DB_ID,ID,BALANCE,UNCONFIRMED_BALANCE," +
+                 "FORGED_BALANCE," +
+                        "ACTIVE_LESSEE_ID,HAS_CONTROL_PHASING,HEIGHT,LATEST,FROZEN_BALANCE FROM " + sourceTable
+                        + " WHERE height > ? and height < ? and id = ?");
+
+    /*
+                PreparedStatement pstmtInsert = con.prepareStatement("INSERT INTO account (ID,BALANCE,UNCONFIRMED_BALANCE,FORGED_BALANCE," +
+                        "ACTIVE_LESSEE_ID,HAS_CONTROL_PHASING,HEIGHT,LATEST,FROZEN_BALANCE) KEY (account_id, height) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    */
+
+                ResultSet workHeightRs = pstmtSelectWork.executeQuery();
+                ResultSet heightRs = pstmtSelectHistory.executeQuery();
+                if (!workHeightRs.next()) {
+                    throw new RuntimeException("table " + sourceTable + " data not exist!");
+                }
+                int workHeight = workHeightRs.getInt("height");
+                int floorHeight = heightRs.next() ? heightRs.getInt("height") : 0;
+                //Logger.logDebugMessage("table " + targetTable + " sync block height:" + floorHeight);
+                int ceilingHeight = workHeight - dif;
+//                if (workHeight - floorHeight > Constants.SYNC_BLOCK_NUM) {
+//                    ceilingHeight = floorHeight + Constants.SYNC_BLOCK_NUM;
+//                }
+
+                if (workHeight - floorHeight < dif) {
+//                    return;
+                    continue;
+                }
+                pstmtSelect.setInt(1, floorHeight);
+                pstmtSelect.setInt(2, ceilingHeight);
+                pstmtSelect.setLong(3, accountId);
+                ResultSet resultSet = pstmtSelect.executeQuery();
+                if (!resultSet.next()) {
+                    continue;
+                }
+                StringBuilder sb = new StringBuilder("INSERT INTO " + targetTable + " (DB_ID,ID,BALANCE,UNCONFIRMED_BALANCE,FORGED_BALANCE," +
+                        "ACTIVE_LESSEE_ID,HAS_CONTROL_PHASING,HEIGHT,LATEST,FROZEN_BALANCE) VALUES");
+                do {
+                    sb.append("(").append(resultSet.getLong("db_id")).append(",");
+                    sb.append(resultSet.getLong("id")).append(",");
+                    sb.append(resultSet.getLong("balance")).append(",");
+                    sb.append(resultSet.getLong("unconfirmed_balance")).append(",");
+                    sb.append(resultSet.getLong("forged_balance")).append(",");
+                    sb.append(resultSet.getLong("active_lessee_id")).append(",");
+                    sb.append(resultSet.getBoolean("has_control_phasing")).append(",");
+                    sb.append(resultSet.getInt("height")).append(",");
+                    sb.append(resultSet.getBoolean("latest")).append(",");
+                    sb.append(resultSet.getLong("frozen_balance")).append(")").append(",");
+                } while (resultSet.next());
+                sb.deleteCharAt(sb.length() - 1);
+                PreparedStatement pstmtInsert = con.prepareStatement(sb.toString());
+                pstmtInsert.execute();
+                PreparedStatement pstmtDelete = con.prepareStatement("DELETE FROM " + sourceTable + " "
+                        + "WHERE height <= ? and id = ?");
+                pstmtDelete.setInt(1, ceilingHeight);
+                //pstmtDelete.setBoolean(2, false);
+                pstmtDelete.setLong(2, accountId);
+                pstmtDelete.execute();
+            }
+            Logger.logDebugMessage("sync time:" + (System.currentTimeMillis() - t1));
+        } catch (SQLException e) {
+            throw new RuntimeException(e.toString(), e);
+        } finally {
+            if (closeCon) {
+                DbUtils.close(con);
+            }
+        }
+    }
+
+
+    public static void syncAccountGuaranteedBalanceTable(Connection con, String sourceTable, String targetTable,
+     int dif) {
+        boolean closeCon = false;
+        try {
+            if (con == null) {
+                con = Db.db.getConnection();
+                closeCon = true;
+            }
+            Statement statement = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            String idQuerySql = "SELECT distinct ACCOUNT_ID" + " FROM " + sourceTable;
+            ResultSet accountIdRs = statement.executeQuery(idQuerySql);
+            while (accountIdRs.next()) {
+                long accountId = accountIdRs.getLong("ACCOUNT_ID");
+                PreparedStatement pstmtSelectWork =
+                 con.prepareStatement("SELECT max(HEIGHT) height FROM " + sourceTable + " where account_id = " + accountId);
+                PreparedStatement pstmtSelectHistory =
+                 con.prepareStatement("SELECT max(HEIGHT) height FROM " + targetTable + " where account_id = " + accountId);
+                PreparedStatement pstmtSelect = con.prepareStatement("SELECT DB_ID,ACCOUNT_ID,ADDITIONS,HEIGHT,LATEST" +
+                        " FROM " + sourceTable + " WHERE height > ? and height < ? and account_id = ?");
+
+/*
+            PreparedStatement pstmtInsert = con.prepareStatement("INSERT INTO account (ID,BALANCE,UNCONFIRMED_BALANCE,FORGED_BALANCE," +
+                    "ACTIVE_LESSEE_ID,HAS_CONTROL_PHASING,HEIGHT,LATEST,FROZEN_BALANCE) KEY (account_id, height) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)");
+*/
+
+                ResultSet workHeightRs = pstmtSelectWork.executeQuery();
+                ResultSet heightRs = pstmtSelectHistory.executeQuery();
+                if (!workHeightRs.next()) {
+                    throw new RuntimeException("table " + sourceTable + " data not exist!");
+                }
+                int workHeight = workHeightRs.getInt("height");
+                int floorHeight = heightRs.next() ? heightRs.getInt("height") : 0;
+                //Logger.logDebugMessage("table " + targetTable + " sync block height:" + floorHeight);
+
+                int ceilingHeight = workHeight - dif;
+//                if (workHeight - floorHeight > Constants.SYNC_BLOCK_NUM) {
+//                    ceilingHeight = floorHeight + Constants.SYNC_BLOCK_NUM - dif;
+//                }
+                if (workHeight - floorHeight < dif) {
+//                    return;
+                    continue;
+                }
+                pstmtSelect.setInt(1, floorHeight);
+                pstmtSelect.setInt(2, ceilingHeight);
+                pstmtSelect.setLong(3, accountId);
+                ResultSet resultSet = pstmtSelect.executeQuery();
+                if (!resultSet.next()) {
+                    continue;
+                }
+                StringBuilder sb = new StringBuilder("INSERT INTO " + targetTable + " (DB_ID,ACCOUNT_ID,ADDITIONS,HEIGHT,LATEST) VALUES");
+                do {
+                    sb.append("(").append(resultSet.getLong("db_id")).append(",");
+                    sb.append(resultSet.getLong("account_id")).append(",");
+                    sb.append(resultSet.getLong("additions")).append(",");
+                    sb.append(resultSet.getInt("height")).append(",");
+                    sb.append(resultSet.getBoolean("latest")).append(")").append(",");
+                } while (resultSet.next());
+                sb.deleteCharAt(sb.length() - 1);
+                PreparedStatement pstmtInsert = con.prepareStatement(sb.toString());
+                pstmtInsert.execute();
+                PreparedStatement pstmtDelete = con.prepareStatement("DELETE FROM " + sourceTable
+                        + " WHERE height <= ? and account_id = ?");
+                pstmtDelete.setInt(1, Math.min(ceilingHeight, Conch.getHeight() - Constants.GUARANTEED_BALANCE_CONFIRMATIONS));
+                //pstmtDelete.setBoolean(2, false);
+                pstmtDelete.setLong(2, accountId);
+                pstmtDelete.execute();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e.toString(), e);
+        } finally {
+            if (closeCon) {
+                DbUtils.close(con);
+            }
+        }
+    }
+
+
+    public static void syncAccountLedgerTable(Connection con, String sourceTable, String targetTable, int dif) {
+        boolean closeCon = false;
+        try {
+            if (con == null) {
+                con = Db.db.getConnection();
+                closeCon = true;
+            }
+            Statement statement = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            String idQuerySql = "SELECT distinct ACCOUNT_ID" + " FROM " + sourceTable;
+            ResultSet accountIdRs = statement.executeQuery(idQuerySql);
+            while (accountIdRs.next()) {
+                long accountId = accountIdRs.getLong("ACCOUNT_ID");
+                PreparedStatement pstmtSelectWork =
+                 con.prepareStatement("SELECT max(HEIGHT) height FROM " + sourceTable + " where account_id = " + accountId);
+                PreparedStatement pstmtSelectHistory =
+                 con.prepareStatement("SELECT max(HEIGHT) height FROM " + targetTable + " where account_id = " + accountId);
+                PreparedStatement pstmtSelect = con.prepareStatement("SELECT DB_ID,ACCOUNT_ID,EVENT_TYPE,EVENT_ID," +
+                 "HOLDING_TYPE," +
+                        "HOLDING_ID,CHANGE,BALANCE,BLOCK_ID,HEIGHT,TIMESTAMP,LATEST FROM " + sourceTable
+                        + " WHERE height > ? and height < ? and account_id = ?");
+
+/*
+            PreparedStatement pstmtInsert = con.prepareStatement("INSERT INTO account (ID,BALANCE,UNCONFIRMED_BALANCE,FORGED_BALANCE," +
+                    "ACTIVE_LESSEE_ID,HAS_CONTROL_PHASING,HEIGHT,LATEST,FROZEN_BALANCE) KEY (account_id, height) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)");
+*/
+
+                ResultSet workHeightRs = pstmtSelectWork.executeQuery();
+                ResultSet heightRs = pstmtSelectHistory.executeQuery();
+                if (!workHeightRs.next()) {
+                    throw new RuntimeException("table " + sourceTable + " data not exist!");
+                }
+                int workHeight = workHeightRs.getInt("height");
+                int floorHeight = heightRs.next() ? heightRs.getInt("height") : 0;
+                //Logger.logDebugMessage("table " + targetTable + " sync block height:" + floorHeight);
+
+                int ceilingHeight = workHeight - dif;
+//                if (workHeight - floorHeight > Constants.SYNC_BLOCK_NUM) {
+//                    ceilingHeight = floorHeight + Constants.SYNC_BLOCK_NUM;
+//                }
+
+                if (workHeight - floorHeight < dif) {
+//                    return;
+                    continue;
+                }
+                pstmtSelect.setInt(1, floorHeight);
+                pstmtSelect.setInt(2, ceilingHeight);
+                pstmtSelect.setLong(3, accountId);
+                ResultSet resultSet = pstmtSelect.executeQuery();
+                if (!resultSet.next()) {
+                    continue;
+                }
+                StringBuilder sb = new StringBuilder("INSERT INTO " + targetTable + " (DB_ID,ACCOUNT_ID,EVENT_TYPE,EVENT_ID,HOLDING_TYPE," +
+                        "HOLDING_ID,CHANGE,BALANCE,BLOCK_ID,HEIGHT,TIMESTAMP,LATEST) VALUES");
+                do {
+                    sb.append("(").append(resultSet.getLong("DB_ID")).append(",");
+                    sb.append(resultSet.getLong("ACCOUNT_ID")).append(",");
+                    sb.append(resultSet.getInt("EVENT_TYPE")).append(",");
+                    sb.append(resultSet.getLong("EVENT_ID")).append(",");
+                    sb.append(resultSet.getInt("HOLDING_TYPE")).append(",");
+                    sb.append(resultSet.getLong("HOLDING_ID")).append(",");
+                    sb.append(resultSet.getLong("CHANGE")).append(",");
+                    sb.append(resultSet.getLong("BALANCE")).append(",");
+                    sb.append(resultSet.getLong("BLOCK_ID")).append(",");
+                    sb.append(resultSet.getInt("HEIGHT")).append(",");
+                    sb.append(resultSet.getInt("TIMESTAMP")).append(",");
+                    sb.append(resultSet.getBoolean("LATEST")).append(")").append(",");
+                } while (resultSet.next());
+                sb.deleteCharAt(sb.length() - 1);
+                PreparedStatement pstmtInsert = con.prepareStatement(sb.toString());
+                pstmtInsert.execute();
+                PreparedStatement pstmtDelete = con.prepareStatement("DELETE FROM " + sourceTable
+                        + " WHERE height <= ? and account_id = ?");
+                pstmtDelete.setInt(1, ceilingHeight);
+                //pstmtDelete.setBoolean(2, false);
+                pstmtDelete.setLong(2, accountId);
+                pstmtDelete.execute();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e.toString(), e);
+        } finally {
+            if (closeCon) {
+                DbUtils.close(con);
+            }
+        }
+    }
+
+
+    public static void syncAccountPocScoreTable(Connection con, String sourceTable, String targetTable, int dif) {
+        boolean closeCon = false;
+        try {
+            if (con == null) {
+                con = Db.db.getConnection();
+                closeCon = true;
+            }
+            Statement statement = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            String idQuerySql = "SELECT distinct ACCOUNT_ID" + " FROM " + sourceTable;
+            ResultSet accountIdRs = statement.executeQuery(idQuerySql);
+            while (accountIdRs.next()) {
+                long accountId = accountIdRs.getLong("ACCOUNT_ID");
+                PreparedStatement pstmtSelectWork =
+                 con.prepareStatement("SELECT max(HEIGHT) height FROM " + sourceTable + " where account_id = " + accountId);
+                PreparedStatement pstmtSelectHistory =
+                 con.prepareStatement("SELECT max(HEIGHT) height FROM " + targetTable + " where account_id = " + accountId);
+                PreparedStatement pstmtSelect = con.prepareStatement("SELECT DB_ID,ACCOUNT_ID,POC_SCORE,HEIGHT,POC_DETAIL,LATEST" +
+                        " FROM " + sourceTable
+                        + " WHERE height > ? and height < ? and account_id = ?");
+
+/*
+            PreparedStatement pstmtInsert = con.prepareStatement("INSERT INTO account (ID,BALANCE,UNCONFIRMED_BALANCE,FORGED_BALANCE," +
+                    "ACTIVE_LESSEE_ID,HAS_CONTROL_PHASING,HEIGHT,LATEST,FROZEN_BALANCE) KEY (account_id, height) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)");
+*/
+
+                ResultSet workHeightRs = pstmtSelectWork.executeQuery();
+                ResultSet heightRs = pstmtSelectHistory.executeQuery();
+                if (!workHeightRs.next()) {
+                    throw new RuntimeException("table " + sourceTable + " data not exist!");
+                }
+                int workHeight = workHeightRs.getInt("height");
+                int floorHeight = heightRs.next() ? heightRs.getInt("height") : 0;
+                //Logger.logDebugMessage("table " + targetTable + " sync block height:" + floorHeight);
+                int ceilingHeight = workHeight - dif;
+//                if (workHeight - floorHeight > Constants.SYNC_BLOCK_NUM) {
+//                    ceilingHeight = floorHeight + Constants.SYNC_BLOCK_NUM;
+//                }
+
+                if (workHeight - floorHeight < dif) {
+//                    return;
+                    continue;
+                }
+                pstmtSelect.setInt(1, floorHeight);
+                pstmtSelect.setInt(2, ceilingHeight);
+                pstmtSelect.setLong(3, accountId);
+                ResultSet resultSet = pstmtSelect.executeQuery();
+                if (!resultSet.next()) {
+                    continue;
+                }
+                StringBuilder sb = new StringBuilder("INSERT INTO " + targetTable + " (DB_ID,ACCOUNT_ID,POC_SCORE,HEIGHT,POC_DETAIL,LATEST) VALUES");
+                do {
+                    sb.append("(").append(resultSet.getLong("DB_ID")).append(",");
+                    sb.append(resultSet.getLong("ACCOUNT_ID")).append(",");
+                    sb.append(resultSet.getLong("POC_SCORE")).append(",");
+                    sb.append(resultSet.getInt("HEIGHT")).append(",");
+                    sb.append("'").append(resultSet.getString("POC_DETAIL")).append("',");
+                    sb.append(resultSet.getBoolean("LATEST")).append(")").append(",");
+                } while (resultSet.next());
+                sb.deleteCharAt(sb.length() - 1);
+                PreparedStatement pstmtInsert = con.prepareStatement(sb.toString());
+                pstmtInsert.execute();
+                PreparedStatement pstmtDelete = con.prepareStatement("DELETE FROM " + sourceTable
+                        + " WHERE height <= ? and account_id = ?");
+                pstmtDelete.setInt(1, ceilingHeight);
+                //pstmtDelete.setBoolean(2, false);
+                pstmtDelete.setLong(2, accountId);
+                pstmtDelete.execute();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e.toString(), e);
+        } finally {
+            if (closeCon) {
+                DbUtils.close(con);
+            }
+        }
+    }
+
+    public static void trimHistoryData(int height){
+        DbTrimUtils.trimTables(height,"ACCOUNT_HISTORY", "ACCOUNT_GUARANTEED_BALANCE_HISTORY", "ACCOUNT_POC_SCORE_HISTORY");
+    }
+
+    public static boolean needCompact = true;
+    public static void truncateHistoryData(){
+        if(!Constants.HISTORY_RECORD_CLEAR) {
+            return;
+        }
+        long clearStartMS = System.currentTimeMillis();
+
+        try (Connection con = Db.db.beginTransaction()){
+            Statement stmt = con.createStatement();
+            Logger.logMessage("[HistoryRecords] Truncate tables [ACCOUNT_LEDGER]");
+            stmt.executeUpdate("TRUNCATE TABLE ACCOUNT_LEDGER");
+
+//            Logger.logMessage("[HistoryRecords] Truncate tables [ACCOUNT_POC_SCORE_HISTORY,]");
+//            stmt.executeUpdate("TRUNCATE TABLE ACCOUNT_POC_SCORE_HISTORY");
+//
+//            Logger.logMessage("[HistoryRecords] Truncate tables [ACCOUNT_GUARANTEED_BALANCE_HISTORY]");
+//            stmt.executeUpdate("TRUNCATE TABLE ACCOUNT_GUARANTEED_BALANCE_HISTORY");
+//
+//            Logger.logMessage("[HistoryRecords] Truncate tables [ACCOUNT_HISTORY]");
+//            stmt.executeUpdate("TRUNCATE TABLE ACCOUNT_HISTORY");
+
+            stmt.executeUpdate("ALTER TABLE ACCOUNT_GUARANTEED_BALANCE_HISTORY ADD COLUMN IF NOT EXISTS latest BOOLEAN NOT NULL DEFAULT false");
+            Db.db.commitTransaction();
+        } catch(Exception e){
+            Db.db.rollbackTransaction();
+            Logger.logWarningMessage("[HistoryRecords] Truncate occur error[%s], rollback and break", e.getMessage());
+        }finally {
+            Db.db.endTransaction();
+        }
+        Logger.logMessage(String.format("[HistoryRecords] Finished to clear history records, used %d S",(System.currentTimeMillis() - clearStartMS) / 1000));
+
+//        if(needCompact) {
+//            Logger.logMessage("[HistoryRecords] Compact the current db");
+//            int code = CompactDatabase.compactAndRestoreDB();
+//            if(code != 2) {
+//                Logger.logInfoMessage("[HistoryRecords] You need restart the client to finish the compact & restore db");
+//                Conch.shutdown();
+//            }
+//        }
+    }
+
+    /**
+     * Migrate the all account's records to working table and cache table
+     * latest height record to working table
+     * others to cache table
+     */
+    public static void migrateHistoryData(){
+//        String[] dataArr = {"ACCOUNT", "ACCOUNT_LEDGER", "ACCOUNT_GUARANTEED_BALANCE", "ACCOUNT_POC_SCORE"};
+        String[] dataArr = {"ACCOUNT", "ACCOUNT_GUARANTEED_BALANCE", "ACCOUNT_POC_SCORE"};
+        Logger.logInfoMessage("[HistoryRecords] Migrate history data to working and cache table " + Arrays.toString(dataArr) + ", it will take a few minutes...");
+
+        long startMS = System.currentTimeMillis();
+        int migrationSize = 18; //Constants.MAX_ROLLBACK;
+        try (Connection con = Db.db.beginTransaction()){
+            for (String table : dataArr) {
+                String historyTable = table + "_HISTORY";
+                String cacheTable = table + "_CACHE";
+                String idColumn;
+                if ("ACCOUNT".equalsIgnoreCase(table)) {
+                    idColumn = "ID";
+                } else {
+                    idColumn = "ACCOUNT_ID";
+                }
+                Statement statement = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                String idQuerySql = "SELECT distinct " + idColumn + " FROM " + historyTable;
+                Logger.logDebugMessage("[HistoryRecords] %s", idQuerySql);
+
+                ResultSet accountIdRs = statement.executeQuery(idQuerySql);
+                accountIdRs.last();
+                int totalAccountCount = accountIdRs.getRow();
+                accountIdRs.beforeFirst();
+                Logger.logInfoMessage("[HistoryRecords] Migrate %d unique account's records from %s to %s", totalAccountCount, historyTable, table);
+
+                int accountMigrateCount = 0;
+                int totalMigrateCount = 0;
+                while (accountIdRs.next()) {
+                    // migrate all account's records from history table to working & cache tables
+                    long accountId = accountIdRs.getLong(idColumn);
+                    try{
+                        PreparedStatement maxHeightStmt = con.prepareStatement("SELECT max(HEIGHT) maxHeight FROM " + historyTable + " WHERE " + idColumn + " = ?");
+                        maxHeightStmt.setLong(1, accountId);
+                        ResultSet idSet = maxHeightStmt.executeQuery();
+                        if (idSet.next()) {
+                            int maxHeight = idSet.getInt("maxHeight");
+                            int migrationStartHeight = maxHeight - migrationSize;
+
+                            //TODO 增加目标表里记录的检查逻辑，如果目标表的记录超过了 Constants.SYNC_CACHE_BLOCK_NUM，就无需进行数据迁移和同步
+
+
+                            Statement selectStmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                            String recordsQuerySql = String.format("SELECT * FROM %s WHERE HEIGHT >= %d and %s = %d ORDER BY HEIGHT DESC", historyTable, migrationStartHeight, idColumn, accountId);
+
+                            ResultSet data = selectStmt.executeQuery(recordsQuerySql);
+                            data.last();
+                            int totalRecordsCount = data.getRow();
+                            data.beforeFirst();
+//                            Logger.logDebugMessage("[HistoryRecords] Migrate account[%d] %d records from %s to %s where height >= %d", accountId, totalRecordsCount, historyTable, table, migrationStartHeight);
+
+                            // migrate single account's records: first to working table, others to cache table
+                            int historyDataMigrateCount = 0;
+                            while (data != null && data.next()) {
+                                historyDataMigrateCount++;
+                                String migrationTable = (historyDataMigrateCount == 1) ? table : cacheTable;
+
+                                try{
+                                    ResultSetMetaData metaData = data.getMetaData();
+                                    int columnCount = metaData.getColumnCount();
+                                    StringBuilder insert = new StringBuilder();
+                                    StringBuilder values = new StringBuilder();
+                                    for (int i = 1; i <= columnCount; i++) {
+                                        if (i == 1) {
+                                            insert.append("insert into " + migrationTable + " (");
+                                            insert.append(metaData.getColumnName(i)).append(",");
+                                            values.append("values (").append("?,");
+                                        } else if (1 < i && i < columnCount) {
+                                            insert.append(metaData.getColumnName(i)).append(",");
+                                            values.append("?,");
+                                        } else {
+                                            insert.append(metaData.getColumnName(i)).append(")");
+                                            values.append("?)");
+                                        }
+                                    }
+                                    PreparedStatement insertStmt = con.prepareStatement(insert.append(values).toString());
+                                    for (int i = 1; i <= columnCount; i++) {
+                                        if ("latest".equalsIgnoreCase(metaData.getColumnName(i))) {
+                                            insertStmt.setObject(i, true);
+                                        } else {
+                                            insertStmt.setObject(i, data.getObject(i));
+                                        }
+                                    }
+                                    insertStmt.executeUpdate();
+                                } catch(Exception e){
+                                    Logger.logWarningMessage("[HistoryRecords] Migration account[%d]'s records[from %s to %s] occur error[%s], ignore and process next", accountId, historyTable, migrationTable, e.getMessage());
+                                }
+                            }
+                            // single account's history records migration finished
+                            totalMigrateCount += historyDataMigrateCount;
+                            Logger.logInfoMessage("[HistoryRecords] Migrate account[%d]'s records %d finished [from %s to %s]", accountId, historyDataMigrateCount,  historyTable, table);
+                        }
+
+                        if(accountMigrateCount++ % 1000 == 0) {
+                            Logger.logDebugMessage("[HistoryRecords] Migrated %d records and progress is %d/%d accounts [from %s to %s]", totalMigrateCount, accountMigrateCount, totalAccountCount, historyTable, table);
+                        }
+                    }catch(Exception e){
+                        Logger.logWarningMessage("[HistoryRecords] Migration account[%d] occur error[%s], ignore and process next", accountId,  e.getMessage());
+                    }
+                }
+            }
+            Db.db.commitTransaction();
+        } catch (SQLException throwable) {
+            Db.db.rollbackTransaction();
+            Logger.logMessage(String.format("[HistoryRecords] Migrate history records occur error %s", throwable.getMessage()));
+        }finally {
+            Db.db.endTransaction();
+        }
+        long usedS= (System.currentTimeMillis() - startMS) / 1000;
+        long usedM= usedS / 60;
+        Logger.logMessage(String.format("[HistoryRecords] Migrate history records[%d height] used %d Minutes(%d S)", migrationSize, usedM, usedS));
+    }
+
 }
