@@ -262,7 +262,7 @@ public abstract class MonetaryTx extends TransactionType {
         public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
             Attachment.MonetarySystemReserveIncrease attachment = (Attachment.MonetarySystemReserveIncrease) transaction.getAttachment();
             if (attachment.getAmountPerUnitNQT() <= 0) {
-                throw new ConchException.NotValidException("Reserve increase SS amount must be positive: " + attachment.getAmountPerUnitNQT());
+                throw new ConchException.NotValidException("Reserve increase amount must be positive: " + attachment.getAmountPerUnitNQT());
             }
             CurrencyType.validate(Currency.getCurrency(attachment.getCurrencyId()), transaction);
         }
