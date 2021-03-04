@@ -51,6 +51,7 @@ public final class BlockImpl implements Block {
     private final int version;
     private final int timestamp;
     private final long previousBlockId;
+    private int rewardDistributionHeight;
     private volatile byte[] generatorPublicKey;
     private final byte[] previousBlockHash;
     private final long totalAmountNQT;
@@ -164,6 +165,11 @@ public final class BlockImpl implements Block {
         return extensionJson.getObject(extensionEnum.name,clazz);
     }
 
+    @Override
+    public int getRewardDistributionHeight() {
+        return rewardDistributionHeight;
+    }
+
 
     public BlockImpl(int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength, byte[] payloadHash,
               byte[] generatorPublicKey, byte[] generationSignature, byte[] previousBlockHash, List<TransactionImpl> transactions, String secretPhrase) {
@@ -209,10 +215,11 @@ public final class BlockImpl implements Block {
     public BlockImpl(int version, int timestamp, long previousBlockId, long totalAmountNQT, long totalFeeNQT, int payloadLength,
               byte[] payloadHash, long generatorId, byte[] generationSignature, byte[] blockSignature,
               byte[] previousBlockHash, BigInteger cumulativeDifficulty, long baseTarget, long nextBlockId, int height, long id, byte[] extension,
-              List<TransactionImpl> blockTransactions) {
+              List<TransactionImpl> blockTransactions,int rewardDistributionHeight) {
         this(version, timestamp, previousBlockId, totalAmountNQT, totalFeeNQT, payloadLength, payloadHash,
                 generatorId, generationSignature, blockSignature, previousBlockHash,cumulativeDifficulty,baseTarget,nextBlockId,height,id,blockTransactions);
         this.extension = extension;
+        this.rewardDistributionHeight = rewardDistributionHeight;
     }
 
     //just for genesis block
@@ -220,7 +227,8 @@ public final class BlockImpl implements Block {
                      byte[] generatorPublicKey, byte[] generationSignature, byte[] blockSignature, byte[] previousBlockHash, List<TransactionImpl> transactions){
         BlockImpl block = new BlockImpl(version,  timestamp,  previousBlockId,  totalAmountNQT,  totalFeeNQT,  payloadLength, payloadHash,
                 generatorPublicKey, generationSignature, blockSignature, previousBlockHash, transactions);
-        block.id= blockId;
+        block.id = blockId;
+        block.rewardDistributionHeight = 0;
         return block;
     }
 
@@ -485,17 +493,19 @@ public final class BlockImpl implements Block {
 //            if(Constants.isTestnet() && Conch.getHeight() <= 1000 && SharderGenesis.isGenesisRecipients(getGeneratorId())){
 //                return true;
 //            }
-            
+
             BlockImpl previousBlock = BlockchainImpl.getInstance().getBlock(getPreviousBlockId());
+            int currentMiningHeight = previousBlock.getHeight()+1;
             if (previousBlock == null) {
                 throw new BlockchainProcessor.BlockOutOfOrderException("Can't verify signature because previous block is missing", this);
             }
             Account creator = Account.getAccount(getGeneratorId());
             
-            PocScore pocScoreObj = Conch.getPocProcessor().calPocScore(creator,previousBlock.getHeight());
+            PocScore pocScoreObj = Conch.getPocProcessor().calPocScore(creator, previousBlock.getHeight());
             BigInteger pocScore = pocScoreObj.total();
-            if (!pocScoreObj.qualifiedMiner()) {
-                Logger.logWarningMessage(creator.getRsAddress() + " poc score is less than 0 in this block calculation generation signature verification");
+            if (!pocScoreObj.qualifiedMiner()
+            && !Generator.isBootDirectlyMiningPhase(currentMiningHeight)) {
+                Logger.logWarningMessage(creator.getRsAddress() + " poc score is less than 0 in signature verification");
                 return false;
             }
 
@@ -504,26 +514,29 @@ public final class BlockImpl implements Block {
             digest.update(previousBlock.generationSignature);
             generationSignatureHash = digest.digest(getGeneratorPublicKey());
             if (!Arrays.equals(generationSignature, generationSignatureHash)) {
-                Logger.logWarningMessage("current calculate generation signature of previous block is not same with previous block's generation signature");
+                Logger.logWarningMessage("Generation signature of previous block is not same with previous block's generation signature");
                 return false;
             }
 
-            BigInteger hit = new BigInteger(1, new byte[]{generationSignatureHash[7], generationSignatureHash[6], generationSignatureHash[5], generationSignatureHash[4], generationSignatureHash[3], generationSignatureHash[2], generationSignatureHash[1], generationSignatureHash[0]});
+            BigInteger hit = new BigInteger(1, new byte[]{generationSignatureHash[7], generationSignatureHash[6],
+                    generationSignatureHash[5], generationSignatureHash[4], generationSignatureHash[3],
+                    generationSignatureHash[2], generationSignatureHash[1], generationSignatureHash[0]});
             boolean validHit = Generator.verifyHit(hit, pocScore, previousBlock, timestamp);
-            
+
             boolean isIgnoreBlock = CheckSumValidator.isKnownIgnoreBlock(this.id, this.getBlockSignature());
             if(isIgnoreBlock) {
-                Logger.logWarningMessage("Known ignore block[id=%d, height=%d] in %s, skip validation", this.getId(), (previousBlock.getHeight()+1), Constants.getNetwork().getName());
+                Logger.logWarningMessage("Known ignore block[id=%d, height=%d] in %s, skip validation",
+                        this.getId(), currentMiningHeight, Constants.getNetwork().getName());
             }
 
-            if(LocalDebugTool.isCheckPocAccount(creator.getId())){
+            if(LocalDebugTool.isCheckPocAccount(creator.getId())) {
                 Logger.logDebugMessage("[LocalDebugMode] block creator %s is in the poc accounts check list, ", creator.getRsAddress());
-                return false;
+                return true;
             }
             return validHit || isIgnoreBlock;
 
         } catch (RuntimeException e) {
-            Logger.logMessage("Error verifying block generation signature " + toSummary(), e);
+            Logger.logMessage("Error verifying block generation signature " + toSummaryWithSign(), e);
             return false;
         }
     }
@@ -546,19 +559,24 @@ public final class BlockImpl implements Block {
                 }
                 totalBackFees += backFees[i];
                 Account previousGeneratorAccount = Account.getAccount(BlockDb.findBlockAtHeight(this.height - i - 1).getGeneratorId());
-                Logger.logDebugMessage("Back fees %f SS to miner at height %d", ((double)backFees[i])/Constants.ONE_SS, this.height - i - 1);
+                Logger.logDebugMessage("Back fees %f to miner at height %d", ((double)backFees[i])/Constants.ONE_SS, this.height - i - 1);
                 previousGeneratorAccount.addBalanceAddUnconfirmed(AccountLedger.LedgerEvent.BLOCK_GENERATED, getId(), backFees[i]);
                 previousGeneratorAccount.addMintedBalance(backFees[i]);
             }
         }
         if (totalBackFees != 0) {
-            Logger.logDebugMessage("Fee reduced by %f SS at height %d", ((double)totalBackFees)/Constants.ONE_SS, this.height);
+            Logger.logDebugMessage("Fee reduced by %f at height %d", ((double)totalBackFees)/Constants.ONE_SS, this.height);
         }
         generatorAccount.addBalanceAddUnconfirmed(AccountLedger.LedgerEvent.BLOCK_GENERATED, getId(), totalFeeNQT - totalBackFees);
         generatorAccount.addMintedBalance(totalFeeNQT - totalBackFees);
     }
 
-    public void setPrevious(BlockImpl block) {
+    /**
+     * calculate the difficult of current block
+     * set height and tx list
+     * @param block
+     */
+    public void calAndSetByPreviousBlock(BlockImpl block) {
         if (block != null) {
             if (block.getId() != getPreviousBlockId()) {
                 // shouldn't happen as previous id is already verified, but just in case
@@ -583,6 +601,7 @@ public final class BlockImpl implements Block {
         }
     }
 
+    private static final long TWENTY_YEARS_SECONDS = 10 * 365 * 24 * 60 * 60;
     private void calculateBaseTarget(BlockImpl previousBlock) {
         long prevBaseTarget = previousBlock.baseTarget;
         if (previousBlock.getHeight() <= Constants.SHUFFLING_BLOCK_HEIGHT) {
@@ -607,7 +626,7 @@ public final class BlockImpl implements Block {
             }
         } else if (previousBlock.getHeight() != 0 && previousBlock.getHeight() % 2 == 0) {
             BlockImpl block = BlockDb.findBlockAtHeight(previousBlock.getHeight() - 2);
-            int blockTimeAverage = (this.timestamp - block.timestamp) / 3 - Constants.getBlockGapSeconds();
+            int blockTimeAverage = (this.timestamp - block.timestamp) / 3 - Constants.GAP_SECONDS;
             if (blockTimeAverage > 60) {
                 baseTarget = (prevBaseTarget * Math.min(blockTimeAverage, Constants.MAX_BLOCKTIME_LIMIT)) / 60;
             } else {
@@ -623,7 +642,22 @@ public final class BlockImpl implements Block {
         } else {
             baseTarget = prevBaseTarget;
         }
+
         cumulativeDifficulty = previousBlock.cumulativeDifficulty.add(Convert.two64.divide(BigInteger.valueOf(baseTarget)));
+        // One block difficult
+        BigInteger oneBlockDiff = BigInteger.ZERO;
+        if(TWENTY_YEARS_SECONDS > timestamp) {
+            oneBlockDiff = BigInteger.valueOf(TWENTY_YEARS_SECONDS - timestamp);
+        }else{
+            oneBlockDiff = BigInteger.ZERO;
+//            if(timestamp
+//            > cumulativeDifficulty.intValue()) {
+//                oneBlockDiff =  BigInteger.valueOf(-1 * timestamp - TWENTY_YEARS_SECONDS);
+//            }else{
+//                oneBlockDiff = BigInteger.valueOf(-1 * timestamp);
+//            }
+        }
+        cumulativeDifficulty = cumulativeDifficulty.add(oneBlockDiff);
     }
 
     @Override
@@ -632,11 +666,20 @@ public final class BlockImpl implements Block {
     }
 
     public String toSummary(){
-        return String.format(" [block id=%d, block generator=%s, block timestamp=%d, block string id=%s, block signature=%s]"
+        return String.format(" [id=%d, miner=%s, time=%s, previous block id=%d]"
                 , getId()
                 , Account.rsAccount(getGeneratorId())
-                , getTimestamp()
-                , getStringId()
+                , Convert.dateFromEpochTime(getTimestamp())
+                , getPreviousBlockId()
+        );
+    }
+
+    public String toSummaryWithSign(){
+        return String.format(" [id=%d, miner=%s, time=%s, previous block id=%d, block sign=%s]"
+                , getId()
+                , Account.rsAccount(getGeneratorId())
+                , Convert.dateFromEpochTime(getTimestamp())
+                , getPreviousBlockId()
                 , Convert.toHexString(getBlockSignature())
         );
     }

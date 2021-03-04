@@ -22,6 +22,8 @@
 package org.conch.chain;
 
 import org.conch.Conch;
+import org.conch.common.ConchException;
+import org.conch.common.Constants;
 import org.conch.db.Db;
 import org.conch.db.DbUtils;
 import org.conch.tx.TransactionDb;
@@ -106,14 +108,21 @@ public final class BlockDb {
             }
         }
         // Search the database
-        try (Connection con = Db.db.getConnection();
-             PreparedStatement pstmt = con.prepareStatement("SELECT height FROM block WHERE id = ?")) {
+        boolean isInTx = Db.db.isInTransaction();
+        Connection con = null;
+        try {
+            con = Db.db.getConnection();
+            PreparedStatement pstmt = con.prepareStatement("SELECT height FROM block WHERE id = ?");
             pstmt.setLong(1, blockId);
             try (ResultSet rs = pstmt.executeQuery()) {
                 return rs.next() && rs.getInt("height") <= height;
             }
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
+        }finally {
+            if (!isInTx) {
+                DbUtils.close(con);
+            }
         }
     }
 
@@ -199,9 +208,12 @@ public final class BlockDb {
 
     public static Set<Long> getBlockGenerators(int startHeight) {
         Set<Long> generators = new HashSet<>();
-        try (Connection con = Db.db.getConnection();
-                PreparedStatement pstmt = con.prepareStatement(
-                        "SELECT generator_id, COUNT(generator_id) AS count FROM block WHERE height >= ? GROUP BY generator_id")) {
+        Connection con = null;
+        boolean isInTx = Db.db.isInTransaction();
+        try {
+            con = Db.db.getConnection();
+            PreparedStatement pstmt = con.prepareStatement(
+                    "SELECT generator_id, COUNT(generator_id) AS count FROM block WHERE height >= ? GROUP BY generator_id");
             pstmt.setInt(1, startHeight);
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
@@ -212,6 +224,10 @@ public final class BlockDb {
             }
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
+        }finally {
+            if (!isInTx) {
+                DbUtils.close(con);
+            }
         }
         return generators;
     }
@@ -239,9 +255,10 @@ public final class BlockDb {
             byte[] payloadHash = rs.getBytes("payload_hash");
             byte[] ext = rs.getBytes("ext");
             long id = rs.getLong("id");
+            int rewardDistributionHeight = rs.getInt("REWARD_DISTRIBUTION_HEIGHT");
             return new BlockImpl(version, timestamp, previousBlockId, totalAmountNQT, totalFeeNQT, payloadLength, payloadHash,
                     generatorId, generationSignature, blockSignature, previousBlockHash,
-                    cumulativeDifficulty, baseTarget, nextBlockId, height, id, ext, loadTransactions ? TransactionDb.findBlockTransactions(con, id) : null);
+                    cumulativeDifficulty, baseTarget, nextBlockId, height, id, ext, loadTransactions ? TransactionDb.findBlockTransactions(con, id) : null, rewardDistributionHeight);
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
         }
@@ -251,8 +268,8 @@ public final class BlockDb {
         try {
             try (PreparedStatement pstmt = con.prepareStatement("INSERT INTO block (id, version, timestamp, previous_block_id, "
                     + "total_amount, total_fee, payload_length, previous_block_hash, cumulative_difficulty, "
-                    + "base_target, height, generation_signature, block_signature, payload_hash, generator_id, ext) "
-                    + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+                    + "base_target, height, generation_signature, block_signature, payload_hash, generator_id, ext, REWARD_DISTRIBUTION_HEIGHT) "
+                    + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
                 int i = 0;
                 pstmt.setLong(++i, block.getId());
                 pstmt.setInt(++i, block.getVersion());
@@ -270,6 +287,7 @@ public final class BlockDb {
                 pstmt.setBytes(++i, block.getPayloadHash());
                 pstmt.setLong(++i, block.getGeneratorId());
                 pstmt.setBytes(++i, block.getExtension());
+                pstmt.setInt(++i, block.getRewardDistributionHeight());
                 pstmt.executeUpdate();
                 TransactionDb.saveTransactions(con, block.getTransactions());
             }
@@ -408,4 +426,136 @@ public final class BlockDb {
         }
     }
 
+    /**
+     * if the latest rewardDistributionHeight more than the height over settlement height, return true.
+     * @return
+     */
+    public static boolean reachRewardSettlementHeight(int height) throws ConchException.StopException {
+        Connection con = null;
+        boolean isIntx = Db.db.isInTransaction();
+        try {
+            con = Db.db.getConnection();
+            PreparedStatement pstmt = con.prepareStatement("select REWARD_DISTRIBUTION_HEIGHT from BLOCK where HEIGHT <= ? order by REWARD_DISTRIBUTION_HEIGHT desc limit 1");
+            pstmt.setInt(1, height);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    int rewardDistributionHeightDifference = height - rs.getInt("REWARD_DISTRIBUTION_HEIGHT");
+                    int rewardSettlementHeight = Constants.getRewardSettlementHeight(height);
+
+                    if (rewardDistributionHeightDifference == rewardSettlementHeight) {
+                        return true;
+                    } else if (rewardDistributionHeightDifference > rewardSettlementHeight) {
+                        Block rollbackHeight = blockchain.getBlockAtHeight(rs.getInt("REWARD_DISTRIBUTION_HEIGHT") + rewardSettlementHeight - 1);
+                        BlockImpl lastBlock = BlockDb.deleteBlocksFrom(rollbackHeight.getId());
+                        blockchain.setLastBlock(lastBlock);
+                        BlockchainProcessorImpl.getInstance().popOffTo(lastBlock);
+                        Logger.logWarningMessage("current height over the reward distribution height," +
+                                "roll back to the reward distribution height %d", lastBlock.getHeight());
+                        Conch.restartApplication(null);
+                    }
+                }
+                return false;
+            }
+        } catch (SQLException | ConchException.StopException e) {
+            if (e instanceof ConchException.StopException){
+                throw new ConchException.StopException("current height over the reward distribution height," +
+                        "roll back to the reward distribution height " + height);
+            }
+            throw new RuntimeException(e);
+        }finally {
+            if (!isIntx) {
+                DbUtils.close(con);
+            }
+        }
+        //return (height % Constants.SETTLEMENT_INTERVAL_SIZE) == 0;
+    }
+
+    /**
+     * Load all un-settlement blocks: current turn blocks & missing/un-settlement blocks
+     * @param height
+     * @return
+     */
+    public static List<? extends Block> getSettlementBlocks(int height) {
+        try (Connection con = Db.db.getConnection()) {
+            PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block WHERE REWARD_DISTRIBUTION_HEIGHT = 0 and Height <= ? order by height asc");
+            pstmt.setInt(1, height);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                List<BlockImpl> list = new ArrayList<>();
+                while (rs.next()) {
+                    list.add(loadBlock(con, rs));
+                }
+                return list;
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e.toString(), e);
+        }
+    }
+
+    /**
+     * update the rewardDistributionHeight of the block record according the list of blockId
+     * @param blockIds
+     * @param height
+     */
+    public static void updateDistributionState(List<Long> blockIds, int height) {
+        if (blockIds == null || blockIds.size() == 0) {
+            return;
+        }
+        Logger.logDebugMessage("Update the REWARD_DISTRIBUTION_HEIGHT of blocks to current height ", Arrays.toString(blockIds.toArray()));
+
+        try (Connection con = Db.db.getConnection()) {
+            Statement stmt = con.createStatement();
+            StringBuilder sqlStringBuilder = new StringBuilder();
+            sqlStringBuilder.append("UPDATE block SET REWARD_DISTRIBUTION_HEIGHT = " + height + " WHERE ID in (");
+            for (Long blockId : blockIds) {
+                sqlStringBuilder.append(blockId + ",");
+            }
+            sqlStringBuilder.replace(sqlStringBuilder.length() - 1, sqlStringBuilder.length(), "");
+            sqlStringBuilder.append(")");
+            stmt.execute(sqlStringBuilder.toString());
+        } catch (SQLException e) {
+            throw new RuntimeException(e.toString(), e);
+        }
+    }
+
+
+    public static int getLatestRewardHeight() {
+        boolean isInTx = Db.db.isInTransaction();
+        Connection con = null;
+        try {
+            con = Db.db.getConnection();
+            PreparedStatement preparedStatement = con.prepareStatement("SELECT REWARD_DISTRIBUTION_HEIGHT from BLOCK order by REWARD_DISTRIBUTION_HEIGHT desc limit 1");
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getInt("REWARD_DISTRIBUTION_HEIGHT");
+            }
+            return 0;
+        } catch (SQLException e) {
+            throw new RuntimeException(e.toString(), e);
+        }finally {
+            if (!isInTx) {
+                DbUtils.close(con);
+            }
+        }
+    }
+
+    /**
+     * roll back the reward distribution height of block to 0
+     * @param latestRewardHeight
+     */
+    public static void rollBackRewardHeight(int latestRewardHeight) {
+        boolean isInTx = Db.db.isInTransaction();
+        Connection con = null;
+        try {
+            con = Db.db.getConnection();
+            PreparedStatement preparedStatement = con.prepareStatement("update BLOCK set REWARD_DISTRIBUTION_HEIGHT = 0 where REWARD_DISTRIBUTION_HEIGHT = ?");
+            preparedStatement.setInt(1, latestRewardHeight);
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e.toString(), e);
+        }finally {
+            if (!isInTx) {
+                DbUtils.close(con);
+            }
+        }
+    }
 }
