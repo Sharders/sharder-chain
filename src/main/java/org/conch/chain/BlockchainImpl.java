@@ -24,8 +24,9 @@ package org.conch.chain;
 import org.conch.Conch;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
-import org.conch.consensus.genesis.GenesisRecipient;
-import org.conch.db.*;
+import org.conch.db.Db;
+import org.conch.db.DbIterator;
+import org.conch.db.DbUtils;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionDb;
 import org.conch.tx.TransactionImpl;
@@ -88,6 +89,7 @@ public final class BlockchainImpl implements Blockchain {
         return lastBlock.get();
     }
 
+    @Override
     public void setLastBlock(BlockImpl block) {
         lastBlock.set(block);
     }
@@ -106,8 +108,6 @@ public final class BlockchainImpl implements Blockchain {
             return TransactionDb.countByBlockIncludeType(con, includeType);
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
-        }finally {
-            DbUtils.close(con);
         }
     }
 
@@ -166,7 +166,7 @@ public final class BlockchainImpl implements Blockchain {
             sortField = orderPair[0];
             sortDirection = orderPair[1];
         }
-        Connection con = null;
+        Connection con;
         try {
             con = Db.db.getConnection();
             PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block WHERE height <= ? AND height >= ? ORDER BY " + sortField + " " + sortDirection);
@@ -179,6 +179,37 @@ public final class BlockchainImpl implements Blockchain {
         }
     }
 
+    /**
+     *
+     * @param from
+     * @param to
+     * @param orderPair String[2]: orderPair[0] - sort field, orderPair[0] - sort direction
+     * @return
+     */
+    private DbIterator<BlockImpl> _getBlocksByHeight(int from, int to, String[] orderPair) {
+        String sortField = "height";
+        String sortDirection = "DESC";
+        if(orderPair != null && orderPair.length == 2) {
+            sortField = orderPair[0];
+            sortDirection = orderPair[1];
+        }
+        Connection con = null;
+        try {
+            con = Db.db.getConnection();
+            PreparedStatement pstmt = con.prepareStatement("SELECT * FROM block WHERE height <= ? AND height >= ? ORDER BY " + sortField + " " + sortDirection);
+            pstmt.setInt(1, to);
+            pstmt.setInt(2, from);
+            return getBlocks(con, pstmt);
+        } catch (SQLException e) {
+            throw new RuntimeException(e.toString(), e);
+        }
+    }
+
+    @Override
+    public DbIterator<BlockImpl> getBlocksByHeight(int from, int to, String[] orderPair) {
+        return _getBlocksByHeight(from, to, orderPair);
+    }
+
     @Override
     public DbIterator<BlockImpl> getBlocks(int from, int to, String[] orderPair) {
         return _getBlocks(from, to, orderPair);
@@ -186,8 +217,9 @@ public final class BlockchainImpl implements Blockchain {
 
     @Override
     public DbIterator<BlockImpl> getBlocks(int from, int to) {
-        return _getBlocks(from, to, null);
+       return _getBlocks(from, to, null);
     }
+
 
     @Override
     public DbIterator<BlockImpl> getBlocks(long accountId, int timestamp) {
@@ -418,15 +450,32 @@ public final class BlockchainImpl implements Blockchain {
     @Override
     public int getTransactionCount() {
         Connection con = null;
+        boolean isInTx = Db.db.isInTransaction();
         try {
-            con = Db.db.getConnection(); PreparedStatement pstmt = con.prepareStatement("SELECT COUNT(*) FROM transaction");
+            con = Db.db.getConnection();
+            PreparedStatement pstmt = con.prepareStatement("SELECT COUNT(*) FROM transaction");
             ResultSet rs = pstmt.executeQuery();
             rs.next();
             return rs.getInt(1);
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
-        }finally {
-            DbUtils.close(con);
+        } finally {
+            if (!isInTx) {
+                DbUtils.close(con);
+            }
+        }
+    }
+
+    @Override
+    public int getTransactionCountByType(int type, Connection con) {
+        try {
+            PreparedStatement pstmt = con.prepareStatement("SELECT COUNT(*) FROM transaction WHERE TYPE = ?");
+            pstmt.setInt(1, type);
+            ResultSet rs = pstmt.executeQuery();
+            rs.next();
+            return rs.getInt(1);
+        } catch (SQLException e) {
+            throw new RuntimeException(e.toString(), e);
         }
     }
 
@@ -462,8 +511,6 @@ public final class BlockchainImpl implements Blockchain {
             }
         }catch (SQLException e){
             throw new RuntimeException(e.toString(), e);
-        }finally {
-            DbUtils.close(con);
         }
     }
 
@@ -550,7 +597,6 @@ public final class BlockchainImpl implements Blockchain {
                                                        boolean includeExpiredPrunable) {
         return getTransactions(accountId, 0, type, subtype, blockTimestamp, false, false, false, 0, -1, includeExpiredPrunable, false);
     }
-
 
     @Override
     public DbIterator<TransactionImpl> getTransactions(long accountId, int numberOfConfirmations, byte type, byte subtype,
