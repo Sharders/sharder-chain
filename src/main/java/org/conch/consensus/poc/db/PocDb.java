@@ -4,6 +4,7 @@ import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.chain.BlockchainImpl;
+import org.conch.common.Constants;
 import org.conch.consensus.poc.PocScore;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.consensus.poc.tx.PocTxWrapper;
@@ -11,6 +12,7 @@ import org.conch.db.Db;
 import org.conch.db.DbIterator;
 import org.conch.db.DbUtils;
 import org.conch.db.DerivedDbTable;
+import org.conch.mint.Generator;
 import org.conch.peer.CertifiedPeer;
 import org.conch.peer.Peer;
 import org.conch.tx.Transaction;
@@ -27,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- *
+ * 
  * @author <a href="mailto:xy@sharder.org">Ben</a>
  * @since 2019-05-17
  */
@@ -46,9 +48,13 @@ public class PocDb  {
                 throw new IllegalStateException("Not in transaction");
             }
             try (Connection con = Db.db.getConnection();
-                 PreparedStatement pstmtDelete = con.prepareStatement("DELETE FROM ACCOUNT_POC_SCORE WHERE height > ?")) {
+                PreparedStatement pstmtDelete = con.prepareStatement("DELETE FROM ACCOUNT_POC_SCORE WHERE height > ?");
+                PreparedStatement pstmtDeleteCache = con.prepareStatement("DELETE FROM ACCOUNT_POC_SCORE_CACHE WHERE height > ?");
+                PreparedStatement pstmtDeleteHistory = con.prepareStatement("DELETE FROM ACCOUNT_POC_SCORE_HISTORY WHERE height > ?")) {
                 pstmtDelete.setInt(1, height);
-                return pstmtDelete.executeUpdate();
+                pstmtDeleteCache.setInt(1, height);
+                pstmtDeleteHistory.setInt(1, height);
+                return pstmtDelete.executeUpdate() & pstmtDeleteCache.executeUpdate() & pstmtDeleteHistory.executeUpdate();
             } catch (SQLException e) {
                 throw new RuntimeException(e.toString(), e);
             }
@@ -58,6 +64,7 @@ public class PocDb  {
         public Map<Long,PocScore> reGenerateAllScores() {
             Map<Long,PocScore> scoreMap = Maps.newHashMap();
             Connection con = null;
+            boolean isInTx = Db.db.isInTransaction();
             try {
                 con = Db.db.getConnection();
                 PreparedStatement pstmt = con.prepareStatement("SELECT poc_detail AS detail, db_id, account_id, height FROM account_poc_score ORDER BY height ASC");
@@ -79,22 +86,29 @@ public class PocDb  {
             } catch (SQLException e) {
                 throw new RuntimeException(e.toString(), e);
             }finally {
-                DbUtils.close(con);
+                if (!isInTx) {
+                    DbUtils.close(con);
+                }
             }
             return scoreMap;
         }
 
         public Map<Long,PocScore> listAll() {
-            Map<Long,PocScore> scoreMap = Maps.newHashMap();
+            Map<Long, PocScore> scoreMap = Maps.newHashMap();
+
+            boolean isInTx = Db.db.isInTransaction();
             Connection con = null;
             try {
                 con = Db.db.getConnection();
-//                PreparedStatement pstmt = con.prepareStatement("SELECT poc_detail AS detail, db_id, account_id, height FROM account_poc_score ORDER BY height DESC");
-                PreparedStatement pstmt = con.prepareStatement("SELECT poc_detail AS detail, db_id, account_id, height FROM account_poc_score WHERE latest = TRUE ORDER BY height DESC");
+                //                PreparedStatement pstmt = con.prepareStatement("SELECT poc_detail AS detail, db_id,
+                //                account_id, height FROM account_poc_score ORDER BY height DESC");
+                PreparedStatement pstmt = con.prepareStatement("SELECT poc_detail AS detail, db_id, account_id, " +
+                        "height FROM account_poc_score WHERE latest = TRUE ORDER BY height DESC");
                 ResultSet rs = pstmt.executeQuery();
-                while(rs.next()){
-                    try{
-                        PocScore pocScore = new PocScore(rs.getLong("account_id"), rs.getInt("height"), rs.getString("detail"));
+                while (rs.next()) {
+                    try {
+                        PocScore pocScore = new PocScore(rs.getLong("account_id"), rs.getInt("height"), rs.getString(
+                                "detail"));
                         scoreMap.put(pocScore.getAccountId(), pocScore);
 //                        // compare the height
 //                        if(scoreMap.containsKey(pocScore.getAccountId())){
@@ -117,42 +131,80 @@ public class PocDb  {
             } catch (SQLException e) {
                 throw new RuntimeException(e.toString(), e);
             }finally {
-                DbUtils.close(con);
+                if (!isInTx) {
+                    DbUtils.close(con);
+                }
             }
             return scoreMap;
         }
 
         public PocScore get(long accountId, int height, boolean loadHistory) {
-            if(height < 0) return null;
+            if (height < 0) {
+                return null;
+            }
 
             // close the start height in query
             int appointStart = -1;
 
+            boolean isInTx = Db.db.isInTransaction();
             Connection con = null;
             try {
                 con = Db.db.getConnection();
                 PreparedStatement pstmt = con.prepareStatement("SELECT poc_detail AS detail, poc_score, account_id, height "
                         + "FROM account_poc_score WHERE account_id = ?"
-                        + (loadHistory ? " AND height <= ?" : " AND height = ?")
-                        + (appointStart != -1 ? " AND height > ?" : "")
+                        + " AND height <= ?"
                         + " ORDER BY height DESC LIMIT 1");
-
                 pstmt.setLong(1, accountId);
-                pstmt.setInt(2, height);
-
-                if(appointStart != -1) {
-                    pstmt.setInt(3, appointStart);
-                }
-
+                pstmt.setLong(2, height);
                 ResultSet rs = pstmt.executeQuery();
-                if(rs !=null && rs.next()){
+                if (rs != null && rs.next()) {
                     PocScore pocScore = new PocScore(rs.getLong("account_id"), rs.getInt("height"), rs.getString("detail"));
                     return pocScore.setTotal(rs.getLong("poc_score"));
+                } else {
+                    PreparedStatement cachePstmt = con.prepareStatement("SELECT poc_detail AS detail, poc_score, account_id, height "
+                            + "FROM account_poc_score_cache WHERE account_id = ?"
+                            + (loadHistory ? " AND height <= ?" : " AND height = ?")
+                            + (appointStart != -1 ? " AND height > ?" : "")
+                            + " ORDER BY height DESC LIMIT 1");
+
+                    cachePstmt.setLong(1, accountId);
+                    cachePstmt.setInt(2, height);
+
+                    if(appointStart != -1) {
+                        cachePstmt.setInt(3, appointStart);
+                    }
+
+                    rs = cachePstmt.executeQuery();
+                    if (rs != null && rs.next()) {
+                        PocScore pocScore = new PocScore(rs.getLong("account_id"), rs.getInt("height"), rs.getString("detail"));
+                        return pocScore.setTotal(rs.getLong("poc_score"));
+                    } else {
+                        PreparedStatement history = con.prepareStatement("SELECT poc_detail AS detail, poc_score, account_id, height "
+                                + "FROM account_poc_score_history WHERE account_id = ?"
+                                + (loadHistory ? " AND height <= ?" : " AND height = ?")
+                                + (appointStart != -1 ? " AND height > ?" : "")
+                                + " ORDER BY height DESC LIMIT 1");
+
+                        history.setLong(1, accountId);
+                        history.setInt(2, height);
+
+                        if(appointStart != -1) {
+                            history.setInt(3, appointStart);
+                        }
+
+                        rs = history.executeQuery();
+                        if (rs != null && rs.next()) {
+                            PocScore pocScore = new PocScore(rs.getLong("account_id"), rs.getInt("height"), rs.getString("detail"));
+                            return pocScore.setTotal(rs.getLong("poc_score"));
+                        }
+                    }
                 }
             } catch (SQLException e) {
                 throw new RuntimeException(e.toString(), e);
             }finally {
-                DbUtils.close(con);
+                if (!isInTx) {
+                    DbUtils.close(con);
+                }
             }
             return null;
         }
@@ -202,19 +254,48 @@ public class PocDb  {
 
         private int insert(Connection con, PocScore pocScore) throws SQLException {
             if(con == null
-                    || pocScore.total().longValue() <= 0) {
+            || pocScore.total().longValue() <= 0) {
                 return 0;
             }
 
-            PreparedStatement pstmtInsert = con.prepareStatement("INSERT INTO account_poc_score(account_id, "
-                    + " poc_score, height, poc_detail) VALUES(?, ?, ?, ?)");
+            boolean insertNew = true;
+            if(Constants.updateHistoryRecord()){
+                PreparedStatement pstmt = con.prepareStatement("SELECT db_id, height FROM account_poc_score"
+                        + " WHERE account_id=? AND latest = TRUE ORDER BY height DESC LIMIT 1");
+                pstmt.setLong(1, pocScore.getAccountId());
 
-            pstmtInsert.setLong(1, pocScore.getAccountId());
-            pstmtInsert.setLong(2, pocScore.total().longValue());
-            pstmtInsert.setInt(3, pocScore.getHeight());
-            pstmtInsert.setString(4, pocScore.toSimpleJson());
-            return pstmtInsert.executeUpdate();
+                ResultSet queryRS = pstmt.executeQuery();
+                if(queryRS != null && queryRS.next()){
+                    Long dbid = queryRS.getLong("db_id");
+                    pstmt = con.prepareStatement("UPDATE account_poc_score "
+                            + "SET height = ?"
+                            + ",poc_score = ?"
+                            + ",poc_detail = ?"
+                            + " WHERE DB_ID = ?"
+                    );
+                    pstmt.setInt(1, pocScore.getHeight());
+                    pstmt.setLong(2, pocScore.total().longValue());
+                    pstmt.setString(3, pocScore.toSimpleJson());
+                    pstmt.setLong(4, dbid);
+                    pstmt.executeUpdate();
+                    insertNew = false;
+                }
+            }
+
+            if(insertNew){
+                PreparedStatement pstmtInsert = con.prepareStatement("INSERT INTO account_poc_score(account_id, "
+                        + " poc_score, height, poc_detail) VALUES(?, ?, ?, ?)");
+                PreparedStatement updateStmt = null;
+
+                pstmtInsert.setLong(1, pocScore.getAccountId());
+                pstmtInsert.setLong(2, pocScore.total().longValue());
+                pstmtInsert.setInt(3, pocScore.getHeight());
+                pstmtInsert.setString(4, pocScore.toSimpleJson());
+                pstmtInsert.executeUpdate();
+            }
+            return 1;
         }
+
 
         private int update(Connection con, PocScore pocScore, Long dbId) throws SQLException {
             String detail = pocScore.toSimpleJson();
@@ -231,6 +312,7 @@ public class PocDb  {
         }
 
         public void delete(long accountId, int height) {
+            boolean isInTx = Db.db.isInTransaction();
             Connection con = null;
             try {
                 con = Db.db.getConnection();
@@ -242,13 +324,74 @@ public class PocDb  {
             } catch (SQLException e) {
                 throw new RuntimeException(e.toString(), e);
             } finally {
-                DbUtils.close(con);
+                if (!isInTx) {
+                    DbUtils.close(con);
+                }
             }
         }
 
         @Override
         public void rollback(int height) {
-            countAndRollback(height);
+            if (!db.isInTransaction()) {
+                throw new IllegalStateException("Not in transaction");
+            }
+            Connection con = null;
+            try {
+                con = Db.db.getConnection();
+                PreparedStatement pstmtSelect = con.prepareStatement("select distinct account_id FROM account_poc_score WHERE height > ?");
+                pstmtSelect.setInt(1, height);
+                ResultSet resultSet = pstmtSelect.executeQuery();
+                try (PreparedStatement pstmtWorkDelete = con.prepareStatement("DELETE FROM account_poc_score WHERE height > ?");
+                     PreparedStatement pstmtCacheDelete = con.prepareStatement("DELETE FROM account_poc_score_cache WHERE height > ?");
+                     PreparedStatement pstmtHistoryDelete = con.prepareStatement("DELETE FROM account_poc_score_history WHERE height > ?");
+                ) {
+                    pstmtWorkDelete.setInt(1, height);
+                    pstmtWorkDelete.executeUpdate();
+                    pstmtCacheDelete.setInt(1, height);
+                    pstmtCacheDelete.executeUpdate();
+                    pstmtHistoryDelete.setInt(1, height);
+                    pstmtHistoryDelete.executeUpdate();
+                } catch (SQLException e) {
+                    throw new RuntimeException(e.toString(), e);
+                }
+                while (resultSet.next()) {
+                    long accountId = resultSet.getLong("account_id");
+                    PreparedStatement workTable = con.prepareStatement("select * FROM account_poc_score WHERE account_id = ? order by height desc limit 1");
+                    workTable.setLong(1, accountId);
+                    ResultSet resultSetWork = workTable.executeQuery();
+                    if (resultSetWork.next()) {
+                        PreparedStatement update = con.prepareStatement("update account_poc_score set latest = true where db_id = ?");
+                        PocScore pocScore = new PocScore(resultSetWork.getLong("account_id"), resultSetWork.getInt("height"), resultSetWork.getString("poc_detail"));
+                        Generator.updatePocScore(pocScore);
+                        update.setLong(1,resultSetWork.getLong("db_id"));
+                        update.executeUpdate();
+                        continue;
+                    }
+                    PreparedStatement cacheTable = con.prepareStatement("select * FROM account_poc_score_cache WHERE account_id = ? order by height desc limit 1");
+                    cacheTable.setLong(1, accountId);
+                    ResultSet resultSetCache = cacheTable.executeQuery();
+                    if (!resultSetCache.next()) {
+                        PreparedStatement historyTable = con.prepareStatement("select * FROM account_poc_score_history WHERE account_id = ? order by height desc limit 1");
+                        historyTable.setLong(1, accountId);
+                        resultSetCache = historyTable.executeQuery();
+                        if (!resultSetCache.next()) {
+                            continue;
+                        }
+                    }
+                    PocScore pocScore = new PocScore(resultSetCache.getLong("account_id"), resultSetCache.getInt("height"), resultSetCache.getString("poc_detail"));
+                    Generator.updatePocScore(pocScore);
+                    PreparedStatement pstmtInsert = con.prepareStatement("INSERT INTO account_poc_score(account_id, "
+                            + " poc_score, height, poc_detail) VALUES(?, ?, ?, ?)");
+                    pstmtInsert.setLong(1, pocScore.getAccountId());
+                    pstmtInsert.setLong(2, pocScore.total().longValue());
+                    pstmtInsert.setInt(3, pocScore.getHeight());
+                    pstmtInsert.setString(4, pocScore.toSimpleJson());
+                    pstmtInsert.executeUpdate();
+                }
+
+            }catch (SQLException e) {
+                throw new RuntimeException(e.toString(), e);
+            }
         }
 
         /**
@@ -258,7 +401,12 @@ public class PocDb  {
          */
         @Override
         public void trim(int height) {
+            if(Constants.SYNC_BUTTON) {
+                return;
+            }
             _trim("account_poc_score", height);
+            _trim("account_poc_score_cache", height, false);
+            _trim("account_poc_score_history", height, false);
         }
     }
     private static final PocScoreTable pocScoreTable = new PocScoreTable();
@@ -277,7 +425,7 @@ public class PocDb  {
                 throw new IllegalStateException("Not in transaction");
             }
             try (Connection con = Db.db.getConnection();
-                 PreparedStatement pstmtDelete = con.prepareStatement("DELETE FROM certified_peer WHERE height > ?")) {
+                PreparedStatement pstmtDelete = con.prepareStatement("DELETE FROM certified_peer WHERE height > ?")) {
                 pstmtDelete.setInt(1, height);
                 return pstmtDelete.executeUpdate();
             } catch (SQLException e) {
@@ -286,15 +434,17 @@ public class PocDb  {
         }
 
         public Map<Long, CertifiedPeer> listAll() {
-            Map<Long,CertifiedPeer> peerMap = Maps.newHashMap();
+            Map<Long, CertifiedPeer> peerMap = Maps.newHashMap();
+
+            boolean isInTx = Db.db.isInTransaction();
             Connection con = null;
             try {
                 con = Db.db.getConnection();
                 PreparedStatement pstmt = con.prepareStatement("SELECT * FROM certified_peer ORDER BY height DESC");
 
                 ResultSet rs = pstmt.executeQuery();
-                while(rs.next()){
-                    try{
+                while (rs.next()) {
+                    try {
                         CertifiedPeer certifiedPeer = _parse(rs);
                         // compare the height
                         if(peerMap.containsKey(certifiedPeer.getBoundAccountId())){
@@ -313,7 +463,9 @@ public class PocDb  {
             } catch (SQLException e) {
                 throw new RuntimeException(e.toString(), e);
             }finally {
-                DbUtils.close(con);
+                if (!isInTx) {
+                    DbUtils.close(con);
+                }
             }
             return peerMap;
         }
@@ -343,6 +495,7 @@ public class PocDb  {
                 // close the start height in query
                 int appointStart = -1;
 
+                boolean isInTx = Db.db.isInTransaction();
                 Connection con = null;
                 try {
                     con = Db.db.getConnection();
@@ -366,7 +519,9 @@ public class PocDb  {
                 } catch (SQLException e) {
                     throw new RuntimeException(e.toString(), e);
                 }finally {
-                    DbUtils.close(con);
+                    if (!isInTx) {
+                        DbUtils.close(con);
+                    }
                 }
             } finally {
                 Conch.getBlockchain().readUnlock();
@@ -382,6 +537,7 @@ public class PocDb  {
                 // close the start height in query
                 int appointStart = -1;
 
+                boolean isInTx = Db.db.isInTransaction();
                 Connection con = null;
                 try {
                     con = Db.db.getConnection();
@@ -405,7 +561,9 @@ public class PocDb  {
                 } catch (SQLException e) {
                     throw new RuntimeException(e.toString(), e);
                 }finally {
-                    DbUtils.close(con);
+                    if (!isInTx) {
+                        DbUtils.close(con);
+                    }
                 }
             } finally {
                 Conch.getBlockchain().readUnlock();
@@ -456,7 +614,9 @@ public class PocDb  {
         }
 
         private int insert(Connection con, CertifiedPeer certifiedPeer) throws SQLException {
-            if(con == null) return 0;
+            if(con == null) {
+                return 0;
+            }
 
             PreparedStatement pstmtInsert = con.prepareStatement("INSERT INTO certified_peer(host, "
                     + " account_id, type, height, last_updated) VALUES(?, ?, ?, ?, ?)");
@@ -511,13 +671,18 @@ public class PocDb  {
          */
         @Override
         public void trim(int height) {
-            _trim("certified_peer", height);
+            if(Constants.SYNC_BUTTON) {
+                return;
+            }
+           // _trim("certified_peer", height);
         }
     }
     private static final CertifiedPeerTable certifiedPeerTable = new CertifiedPeerTable();
 
-    public static int getLastScoreHeight(){
+    public static int getLastScoreHeight() {
         int lastHeight = -1;
+
+        boolean isInTx = Db.db.isInTransaction();
         Connection con = null;
         try {
             con = Db.db.getConnection();
@@ -525,13 +690,15 @@ public class PocDb  {
                     + " ORDER BY height DESC LIMIT 1");
 
             ResultSet rs = pstmt.executeQuery();
-            if(rs !=null && rs.next()){
+            if (rs != null && rs.next()) {
                 lastHeight = rs.getInt("height");
             }
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
         }finally {
-            DbUtils.close(con);
+            if (!isInTx) {
+                DbUtils.close(con);
+            }
         }
         return lastHeight;
     }
@@ -540,7 +707,7 @@ public class PocDb  {
         if (pocScoreList == null || pocScoreList.size() < 0 ) {
             return;
         }
-
+        
         pocScoreList.forEach(pocScore -> {
             try {
                 pocScoreTable.saveOrUpdate(con, pocScore);
@@ -549,11 +716,12 @@ public class PocDb  {
             }
         });
     }
-
+    
     public static void saveOrUpdateScore(PocScore pocScore) {
         if (pocScore == null || pocScore.getAccountId() == -1 || pocScore.getHeight() < 0 ) {
             return;
         }
+        boolean isInTx = Db.db.isInTransaction();
         Connection con = null;
         try {
             con = Db.db.getConnection();
@@ -561,7 +729,9 @@ public class PocDb  {
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
         }finally {
-            DbUtils.close(con);
+            if (!isInTx) {
+                DbUtils.close(con);
+            }
         }
     }
 
@@ -570,7 +740,7 @@ public class PocDb  {
     }
 
     public static int rollbackScore(int height) {
-        return pocScoreTable.countAndRollback(height);
+       return pocScoreTable.countAndRollback(height);
     }
 
     /**
@@ -590,7 +760,7 @@ public class PocDb  {
     }
 
     public static void reGenerateAllScores(){
-        pocScoreTable.reGenerateAllScores();
+         pocScoreTable.reGenerateAllScores();
     }
 
     public static Map<Long,CertifiedPeer> listAllPeers() {
@@ -600,11 +770,12 @@ public class PocDb  {
 
     public static void saveOrUpdatePeer(CertifiedPeer certifiedPeer) {
         if (certifiedPeer == null
-                || certifiedPeer.getBoundAccountId() == -1
-                || certifiedPeer.getHeight() < 0 ) {
+        || certifiedPeer.getBoundAccountId() == -1
+        || certifiedPeer.getHeight() < 0 ) {
             return;
         }
 
+        boolean isInTx = Db.db.isInTransaction();
         Connection con = null;
         try {
             con = Db.db.getConnection();
@@ -612,7 +783,9 @@ public class PocDb  {
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
         }finally {
-            DbUtils.close(con);
+            if (!isInTx) {
+                DbUtils.close(con);
+            }
         }
     }
 
@@ -633,15 +806,17 @@ public class PocDb  {
     }
 
     public static PocTxBody.PocWeightTable findLastWeightTable(){
+
+        boolean isInTx = Db.db.isInTransaction();
         Connection con = null;
         try {
             con = Db.db.getConnection();
-            PreparedStatement pstmt = con.prepareStatement("SELECT * FROM TRANSACTION t WHERE t.TYPE=? AND t.SUBTYPE=? ORDER BY HEIGHT DESC LIMIT 1");
+            PreparedStatement pstmt = con.prepareStatement("SELECT * FROM TRANSACTION t WHERE t.TYPE=? AND t" +
+                    ".SUBTYPE=? ORDER BY HEIGHT DESC LIMIT 1");
             pstmt.setByte(1, TransactionType.TYPE_POC);
-            pstmt.setByte(2,  PocTxWrapper.SUBTYPE_POC_WEIGHT_TABLE);
+            pstmt.setByte(2, PocTxWrapper.SUBTYPE_POC_WEIGHT_TABLE);
 
             DbIterator<TransactionImpl> transactions = null;
-
             try {
                 transactions = BlockchainImpl.getInstance().getTransactions(con, pstmt);
                 while (transactions.hasNext()) {
@@ -649,15 +824,27 @@ public class PocDb  {
                     return (PocTxBody.PocWeightTable) tx.getAttachment();
                 }
             } finally {
-                DbUtils.close(transactions);
+                if (!isInTx) {
+                    DbUtils.close(transactions);
+                }
             }
 
         } catch (SQLException e) {
+            if (!isInTx) {
+                DbUtils.close(con);
+            }
             Logger.logErrorMessage("can't findLastWeightTable", e);
-        } finally {
-            DbUtils.close(con);
         }
+        //        finally {
+        //            if (!isInTx) {
+        //                DbUtils.close(con);
+        //            }
+        //        }
         return null;
+    }
+
+    public static void trimHistoryData(int height){
+        pocScoreTable.trim(height);
     }
 
 }

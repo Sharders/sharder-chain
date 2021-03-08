@@ -63,6 +63,7 @@ public class UrlManager {
     /*=============================================HUB UPGRADE API START========================================*/
 
     private static final String ZIP_SUFFIX = ".zip";
+    private static final String SEVENZIP_SUFFIX = ".7z";
     private static final String LATEST_VERSION_ONLINE_URL = Constants.OSS_PREFIX + "cos/client/release/cos-latest-version";
     private static final String LATEST_VERSION_DEV_URL = Constants.OSS_PREFIX + "cos/client/dev/cos-latest-version";
     private static final String DOWNLOAD_PACKAGE_ONLINE_URL = Constants.OSS_PREFIX + "cos/client/release/cos-";
@@ -72,9 +73,12 @@ public class UrlManager {
     private static final String ARCHIVE_DB_DEV_URL = Constants.OSS_PREFIX + "cos/client/dev/cos-db-archive";
     
     private static final String COS_RELEASE_URL = Constants.OSS_PREFIX + "cos/client/release/";
-    
-   
+
+    /**
+     * 该地址更新，避免文件格式变化后未升级的节点无法正常读取文件 filename = constant-settings
+     */
     public static final String KNOWN_IGNORE_BLOCKS = Constants.OSS_PREFIX + "cos/client/release/ignore-blocks";
+    public static final String CONSTANT_SETTINGS = Constants.OSS_PREFIX + "cos/client/release/constant-settings";
     public static final String CMD_TOOLS = Constants.OSS_PREFIX + "cos/client/release/cmd-tools";
     /*=============================================HUB UPGRADE API END========================================*/
     
@@ -126,20 +130,33 @@ public class UrlManager {
     }
 
     /**
-     * get latest hub version upgrade package download URLs
+     * get latest hub version upgrade package download URLs ZIP
      *
      * @param version latest hub version
      * @return url
      */
-    public static String getPackageDownloadUrl(String version) {
+    public static String getPackageDownloadUrlZip(String version) {
         String prefix = Constants.isDevnet() ?  DOWNLOAD_PACKAGE_DEV_URL : DOWNLOAD_PACKAGE_ONLINE_URL;
+//        String prefix = DOWNLOAD_PACKAGE_DEV_URL;
         return prefix + version + ZIP_SUFFIX;
+    }
+
+    /**
+     * get latest hub version upgrade package download URLs 7Z
+     *
+     * @param version latest hub version
+     * @return url
+     */
+    public static String getPackageDownloadUrlSevenZip(String version) {
+        String prefix = Constants.isDevnet() ?  DOWNLOAD_PACKAGE_DEV_URL : DOWNLOAD_PACKAGE_ONLINE_URL;
+//        String prefix = DOWNLOAD_PACKAGE_DEV_URL;
+        return prefix + version + SEVENZIP_SUFFIX;
     }
     
     public static String getDbArchiveDescriptionFileUrl() {
         return Constants.isDevnet() ?  ARCHIVE_DB_DEV_URL : ARCHIVE_DB_ONLINE_URL;
     }
-
+    
     public static String getDbArchiveUrl(String archivedDbFile) {
         return archivedDbFile.startsWith("http") ? archivedDbFile : (COS_RELEASE_URL + archivedDbFile);
     }
