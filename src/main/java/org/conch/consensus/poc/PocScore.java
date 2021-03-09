@@ -7,8 +7,8 @@ import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.common.Constants;
 import org.conch.consensus.genesis.SharderGenesis;
-import org.conch.consensus.poc.db.PocDb;
 import org.conch.consensus.poc.tx.PocTxBody;
+import org.conch.consensus.reward.RewardCalculator;
 import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.peer.Peer;
 import org.conch.util.LocalDebugTool;
@@ -38,6 +38,7 @@ public class PocScore implements Serializable {
     BigInteger total = null;
 
     // don't use the static parameter (calculate should base on the height)
+//    private static BigInteger SCORE_MULTIPLIER = parseAndGetScoreMagnification(Conch.getHeight());
     private static BigInteger SCORE_MULTIPLIER = parseAndGetScoreMagnification(0);
 
     /**
@@ -45,18 +46,13 @@ public class PocScore implements Serializable {
      * @return
      */
     private static BigInteger parseAndGetScoreMagnification(int height){
-        BigInteger mag = BigInteger.TEN;
+        BigInteger mag = new BigInteger("1000");
         try{
             if(LocalDebugTool.isLocalDebugAndBootNodeMode){
                 return new BigInteger("100000");
             }
-
-            if(height <= (Constants.POC_TX_ALLOW_RECIPIENT + 70)) {
-                mag = new BigInteger("1000");
-            }
-
-            if(height > Constants.POC_MULTIPLIER_CHANGE_HEIGHT){
-                mag = new BigInteger("1000");
+            if(height < RewardCalculator.NETWORK_STABLE_PHASE){
+                mag = new BigInteger("10000");
             }
         }catch(Exception e){
             e.printStackTrace();
@@ -68,7 +64,7 @@ public class PocScore implements Serializable {
     int luck = 0;
 
     public PocScore(){}
-
+    
     /**
      * default poc score that contains the ss score
      * @param accountId
@@ -79,7 +75,7 @@ public class PocScore implements Serializable {
         this.height = height;
         ssCal();
     }
-
+    
     public PocScore(int height, PocScore another) {
         this.accountId = another.accountId;
         this.effectiveBalance = another.effectiveBalance;
@@ -166,84 +162,52 @@ public class PocScore implements Serializable {
         return this;
     }
 
-    /**
-     * temporary to compatible the
-     * @return
-     */
-    public BigInteger reCalTotalForCompatibility(boolean lastTry){
-        BigInteger score = ssScore.add(nodeTypeScore).add(serverScore).add(hardwareScore).add(networkScore).add(performanceScore).add(onlineRateScore)
-                .add(blockMissScore).add(bcScore);
-        if(lastTry){
-            total = score.multiply(BigInteger.valueOf(1000));
-        }else{
-            if(this.height <= Constants.POC_MULTIPLIER_CHANGE_HEIGHT) {
-                total = score.multiply(BigInteger.valueOf(1000));
-            }
-            else{
-                total = score.multiply(parseAndGetScoreMagnification(this.height));
-            }
-        }
-
-        // update with current height
-        PocScore updateScore = new PocScore();
-        updateScore.synFrom(this);
-        updateScore.total = total;
-        updateScore.height = Conch.getHeight();
-        PocDb.saveOrUpdateScore(updateScore);
-
-        return total;
-    }
-
     public BigInteger total() {
-        if(total != null) return total;
+        if(total != null) {
+            return total;
+        }
 
         BigInteger score = ssScore.add(nodeTypeScore).add(serverScore).add(hardwareScore).add(networkScore).add(performanceScore).add(onlineRateScore)
                 .add(blockMissScore).add(bcScore);
-
-        // FIXME- remove after the height 'POC_MULTIPLIER_CHANGE_HEIGHT'
-        if(Conch.versionCompare("0.0.4", "2020-08-04 19:19:19") > 0
-                || this.height > Constants.POC_MULTIPLIER_CHANGE_HEIGHT) {
-            return score.multiply(parseAndGetScoreMagnification(this.height));
-        }
 
         return score.multiply(SCORE_MULTIPLIER);
     }
 
     public PocScore nodeConfCal(PocTxBody.PocNodeConf nodeConf) {
-        PocCalculator.inst.nodeConfCal(this, nodeConf);
+        PocCalculator.nodeConfCal(this, nodeConf);
         return this;
     }
 
     public PocScore nodeTypeCal(PocTxBody.PocNodeType nodeType) {
-        PocCalculator.inst.nodeTypeCal(this, nodeType);
+        PocCalculator.nodeTypeCal(this, nodeType);
         return this;
     }
 
     public PocScore onlineRateCal(Peer.Type nodeType, PocTxBody.PocOnlineRate onlineRate) {
-        PocCalculator.inst.onlineRateCal(this, nodeType, onlineRate);
+        PocCalculator.onlineRateCal(this, nodeType, onlineRate);
         return this;
     }
 
     public PocScore blockMissCal(PocTxBody.PocGenerationMissing pocBlockMissing) {
-        PocCalculator.inst.blockMissCal(this, pocBlockMissing);
+        PocCalculator.blockMissCal(this, pocBlockMissing);
         return this;
     }
 
     /**
      * two conditions:
      * - valid node (has the node type statement tx)
-     * - own the coins
+     * - own the native coins
      */
     public boolean qualifiedMiner(){
         if(this.ssScore.signum() >= 0
-                && this.ssScore.longValue() >= 0L
-                && total().signum() > 0){
+        && this.ssScore.longValue() >= 0L
+        && total().signum() > 0){
             return true;
         }
-
+        
         return false;
     }
-
+    
     public PocScore ssCal(){
         if (accountId != null) {
             Account account = Account.getAccount(accountId, height);
@@ -251,10 +215,10 @@ public class PocScore implements Serializable {
             this.effectiveBalance = BigInteger.valueOf(accountBalanceNQT / Constants.ONE_SS);
             this.ssScore = _calEffectiveSS(account, accountBalanceNQT, height);
         }
-        PocCalculator.inst.ssHoldCal(this);
+        PocCalculator.ssHoldCal(this);
         return this;
     }
-
+    
     public PocScore setHeight(int height) {
         if(LocalDebugTool.isCheckPocAccount(this.accountId)) {
             Logger.logDebugMessage("[LocalDebugMode] " + Account.rsAccount(this.accountId) + " is updated at height " + height);
@@ -264,13 +228,13 @@ public class PocScore implements Serializable {
     }
 
     public void synFrom(PocScore another){
-        combineFrom(another, true);
+        combineFrom(another, true); 
     }
 
     public void synFromExceptSSHold(PocScore another){
         combineFrom(another, false);
     }
-
+    
     /**
      * replace the attributes of poc
      *
@@ -293,8 +257,8 @@ public class PocScore implements Serializable {
      * 0.3 in Testnet
      *
      * Testnet:
-     * 0.5 :  0 < height < 4765
-     * 0.3 : 4765 < height < 12500
+     * 0.5 :  0 < height < 4765      
+     * 0.3 : 4765 < height < 12500 
      * 0.19 : 12500 <= height
      * NOTE: please see the height definition at: Constants.POC_SS_HELD_SCORE_PHASE1_HEIGHT
      * @return
@@ -324,7 +288,7 @@ public class PocScore implements Serializable {
         if (account == null) return effectiveSS;
 
         if(height >= Constants.POC_SCORE_CHANGE_HEIGHT
-                || PocProcessorImpl.FORCE_RE_CALCULATE) {
+            || PocProcessorImpl.FORCE_RE_CALCULATE) {
             // the effective ss of genesis peer's miner force to limit to 100,000
             if(SharderGenesis.isGenesisPeerAccount(account.getId())){
                 if(accountBalanceNQT >  100000L * Constants.ONE_SS) {
@@ -343,22 +307,15 @@ public class PocScore implements Serializable {
 
         // pool not opening and reach the poc algo changed height
         if((Constants.POOL_OPENING_HEIGHT == -1 || height <= Constants.POOL_OPENING_HEIGHT)
-                && height > Constants.POC_CAL_ALGORITHM) {
+            && height > Constants.POC_CAL_ALGORITHM) {
             return effectiveSS;
         }
 
         SharderPoolProcessor poolProcessor = SharderPoolProcessor.getPoolByCreator(account.getId());
-
+        
         if(Constants.isDevnet() && SharderGenesis.isGenesisRecipients(account.getId())){
             // expand the balance to 10x at the dev env
             effectiveSS = BigInteger.valueOf(accountBalanceNQT * 10 / Constants.ONE_SS);
-        }else if(Constants.isTestnet() && height < Constants.POC_NEW_ALGO_HEIGHT){
-            if (poolProcessor != null && SharderPoolProcessor.State.WORKING.equals(poolProcessor.getState())) {
-                effectiveSS = BigInteger.valueOf(Math.max(poolProcessor.getPower() / Constants.ONE_SS, 0))
-                        .add(BigInteger.valueOf(accountBalanceNQT / Constants.ONE_SS));
-            } else {
-                effectiveSS = BigInteger.valueOf(accountBalanceNQT / Constants.ONE_SS);
-            }
         }else{
             /**
              * pool owner: my_pool_power + other_held_ss(limit is pool capacity) * ssHeldRate
@@ -367,16 +324,10 @@ public class PocScore implements Serializable {
             boolean exceedPoolMaxAmount = accountBalanceNQT >  SharderPoolProcessor.POOL_MAX_AMOUNT_NQT;
             long heldAmount = exceedPoolMaxAmount ? SharderPoolProcessor.POOL_MAX_AMOUNT_NQT : accountBalanceNQT;
 
-            // !!NOTE: effective ss calculation method be changed from multiply to divide after phase 2
-            Float ssHeldRate = ssHeldRate(height);
-            if (height < Constants.POC_SS_HELD_SCORE_PHASE2_HEIGHT) {
-                effectiveSS = BigInteger.valueOf( heldAmount / Constants.ONE_SS / ssHeldRate.longValue());
-            }else {
-                Float effectiveSSF = heldAmount / Constants.ONE_SS * ssHeldRate;
-                effectiveSS = BigInteger.valueOf(effectiveSSF.longValue());
-            }
+            Float effectiveSSF = heldAmount / Constants.ONE_SS * ssHeldRate(height);
+            effectiveSS = BigInteger.valueOf(effectiveSSF.longValue());
         }
-
+        
         return effectiveSS;
     }
 
@@ -488,6 +439,10 @@ public class PocScore implements Serializable {
 
     public void setLuck(int luck) {
         this.luck = luck;
+    }
+
+    public BigInteger getTotal() {
+        return total;
     }
 
     @Override

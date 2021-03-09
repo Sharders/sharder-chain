@@ -17,6 +17,7 @@ public class PocTemplate implements Serializable {
   private Long nodeTypeWeight;
   private Long serverOpenWeight;
   private Long ssHoldWeight;
+  // 磁盘容量
   private Long hardwareConfWeight;
   private Long netWorkConfWeight;
   private Long txHandlePerformanceWeight;
@@ -90,38 +91,47 @@ public class PocTemplate implements Serializable {
     this.userPublicKey = userPublicKey;
     this.ip = ip;
     this.port = port;
-    this.nodeTypeWeight = 25L;
-    this.serverOpenWeight = 20L;
-    this.ssHoldWeight = 40L;
-    this.hardwareConfWeight = 5L;
-    this.netWorkConfWeight = 5L;
+
+    // rate definitions
+    this.nodeTypeWeight = 10L;
+    this.ssHoldWeight = 45L;
+    this.hardwareConfWeight = 32L;
+    this.netWorkConfWeight = 8L;
     this.txHandlePerformanceWeight = 5L;
+
     this.foundationNodeScore = 10L;
-    this.communityNodeScore = 8L;
+    this.communityNodeScore = 10L;
+    this.BoxNodeScore = 8L;
     this.hubNodeScore = 6L;
-    BoxNodeScore = 6L;
-    NormalNodeScore = 3L;
+    this.NormalNodeScore = 3L;
+
     this.minerScore = 4L;
     this.bapiScore = 4L;
     this.naterScore = 4L;
     this.storageScore = 4L;
     this.proverScore = 4L;
-    this.badTxScore = 3L;
-    this.middleTxScore = 6L;
+
+    this.badTxScore = 6L;
+    this.middleTxScore = 8L;
     this.goodTxScore = 10L;
+
     this.badHardwareScore = 3L;
     this.middleHardwareScore = 6L;
     this.goodHardwareScore = 10L;
+
     this.poorNetworkScore = 0L;
-    this.badNetworkScore = 3L;
-    this.middleNetworkScore = 6L;
+    this.badNetworkScore = 6L;
+    this.middleNetworkScore = 8L;
     this.goodNetworkScore = 10L;
+
     this.badBlockingMissScore = -10L;
     this.middleBlockingMissScore = -6L;
     this.goodBlockingMissScore = -3L;
+
     this.badBocSpeedScore = -3L;
     this.middleBocSpeedScore = -6L;
     this.poorBocSpeedScore = -10L;
+
     this.foundationFrom9900To9999 = -2L;
     this.foundationFrom9700To9900 = -5L;
     this.foundationFrom0000To9700 = -10L;
@@ -133,6 +143,7 @@ public class PocTemplate implements Serializable {
     this.hbFrom0000To9000 = -5L;
     this.normalFrom9700To100 = 5L;
     this.normalFrom9000To100 = 3L;
+
     this.version = Long.valueOf(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
   }
 

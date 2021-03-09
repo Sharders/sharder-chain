@@ -25,7 +25,7 @@ public class SystemInfo implements Serializable {
     private String address;
 
     /**
-     * 绑定的SS账号SSA-XXX
+     * 绑定的地址CDW-XXX
      */
     private String bindRs;
 
