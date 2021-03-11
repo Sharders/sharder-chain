@@ -81,9 +81,11 @@ public abstract class DerivedDbTable {
     }
 
     protected static void _trim(String tableName, int height, boolean containLatestField) {
+
+        boolean isInTx = db.isInTransaction();
         Connection con = null;
         try {
-            con = Db.db.getConnection();
+            con = db.getConnection();
             // check the deletion count
             PreparedStatement countStatement = con.prepareStatement(
                     "SELECT count(1) as deletion_count FROM " + tableName
@@ -96,7 +98,9 @@ public abstract class DerivedDbTable {
             boolean cycleDelMode = false;
             if(rs != null && rs.next()) {
                 int deletionCount = rs.getInt("deletion_count");
-                if(deletionCount > 100000) cycleDelMode = true;
+                if(deletionCount > 100000) {
+                    cycleDelMode = true;
+                }
             }
 
             if(cycleDelMode) {
@@ -116,18 +120,20 @@ public abstract class DerivedDbTable {
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
         }finally {
-            DbUtils.close(con);
+            if (!isInTx) {
+                DbUtils.close(con);
+            }
         }
     }
 
-    private static int delCountOneTurn = 10000;
+    private static int delCountPerTurn = 144;
     private static void cycleDeleteByDbId(Connection con, String tableName, int height, boolean containLatestField) throws SQLException {
         boolean needDeleting = true;
         while(needDeleting) {
             PreparedStatement queryStatement = con.prepareStatement("SELECT db_id FROM " + tableName
                     + " WHERE height < ?"
                     + (containLatestField ? " AND latest <> TRUE" : "")
-                    + " ORDER BY height ASC limit " + delCountOneTurn);
+                    + " ORDER BY height ASC limit " + delCountPerTurn);
             queryStatement.setInt(1, height);
 
             ResultSet rs = queryStatement.executeQuery();
@@ -140,7 +146,7 @@ public abstract class DerivedDbTable {
                     deleteStatement.setLong(1, existDbId);
                     deleteStatement.executeUpdate();
                 }
-                Logger.logInfoMessage("deleted %d %s records in cycle delete in the table trimming", delCountOneTurn, tableName);
+                Logger.logInfoMessage("deleted %d %s records in cycle delete in the table trimming", delCountPerTurn, tableName);
             }else{
                 needDeleting = false;
             }
@@ -152,40 +158,43 @@ public abstract class DerivedDbTable {
         boolean needDeleting = true;
         int startHeight = height;
         while(needDeleting) {
-            int endHeight = startHeight - delCountOneTurn;
-            if(endHeight < 0) endHeight = 0;
+            int endHeight = startHeight - delCountPerTurn;
+            if(endHeight < 0) {
+                endHeight = 0;
+            }
 
-            PreparedStatement countStatement = con.prepareStatement(
-                    "SELECT count(1) as count FROM " + tableName
-                            + " WHERE height < ?"
-                            + " AND height >= ?"
-                            + (containLatestField ? " AND latest <> TRUE" : "")
-            );
-            countStatement.setInt(1, startHeight);
-            countStatement.setInt(2, endHeight);
-
-            ResultSet rs = countStatement.executeQuery();
-            if(rs != null && rs.next()) {
-                int count = rs.getInt("count");
-                if(count > 0 ) {
-                    String trimSql = "DELETE FROM " + tableName
-                            + " WHERE height < ?"
-                            + " AND height >= ?"
-                            + (containLatestField ? " AND latest <> TRUE" : "");
-                    Logger.logDebugMessage("DELETE FROM %s WHERE height < %d AND height >= %d", tableName, startHeight, endHeight);
-                    PreparedStatement deleteStatement = con.prepareStatement(trimSql);
-                    deleteStatement.setInt(1, startHeight);
-                    deleteStatement.setInt(2, endHeight);
-                    con.commit();
-
-                    startHeight = endHeight;
-                }else {
-                    needDeleting = false;
-                }
-            }else{
+            String trimSql = "DELETE FROM " + tableName
+                    + " WHERE height < " + startHeight
+                    + " AND height >= " + endHeight
+                    + (containLatestField ? " AND latest <> TRUE" : "");
+            Logger.logDebugMessage(trimSql);
+            PreparedStatement deleteStatement = con.prepareStatement(trimSql);
+            int count = deleteStatement.executeUpdate();
+            Logger.logDebugMessage("DELETE " + count + " records after execute [" + trimSql + "]" );
+            startHeight = endHeight;
+            if(startHeight == 0) {
                 needDeleting = false;
             }
 
+        }
+    }
+
+    public void _rollback(int height, String... tables) {
+        if (!db.isInTransaction()) {
+            throw new IllegalStateException("Not in transaction");
+        }
+        if(tables == null || tables.length <= 0){
+            return;
+        }
+
+        for(String table : tables){
+            try (Connection con = db.getConnection();
+                 PreparedStatement pstmtDelete = con.prepareStatement("DELETE FROM " + table + " WHERE height > ?")) {
+                pstmtDelete.setInt(1, height);
+                pstmtDelete.executeUpdate();
+            } catch (SQLException e) {
+                throw new RuntimeException(e.toString(), e);
+            }
         }
     }
 
@@ -194,4 +203,86 @@ public abstract class DerivedDbTable {
         return table;
     }
 
+//    protected static void rollbackAndPush(String tableName, int height, boolean push) {
+//        if (!Db.db.isInTransaction()) {
+//            throw new IllegalStateException("Not in transaction");
+//        }
+//        try (Connection con = Db.db.getConnection()) {
+//            String idColumn;
+//            if ("ACCOUNT".equalsIgnoreCase(tableName)
+//            || "ACCOUNT_CACHE".equalsIgnoreCase(tableName)
+//            || "ACCOUNT_HISTORY".equalsIgnoreCase(tableName)) {
+//                idColumn = "ID";
+//            } else {
+//                idColumn = "ACCOUNT_ID";
+//            }
+//            Statement statement = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+//            String idQuerySql = "SELECT distinct " + idColumn + " FROM " + tableName;
+//            ResultSet accountIdRs = statement.executeQuery(idQuerySql);
+//            PreparedStatement pstmtDeleteWork = con.prepareStatement("DELETE FROM " + tableName + " WHERE height > ?");
+//            pstmtDeleteWork.setInt(1, height);
+//            pstmtDeleteWork.executeUpdate();
+//            PreparedStatement pstmtDeleteCache = con.prepareStatement("DELETE FROM " + tableName + "_cache" + " WHERE height > ?");
+//            pstmtDeleteCache.setInt(1, height);
+//            pstmtDeleteCache.executeUpdate();
+//            PreparedStatement pstmtDeleteHistory = con.prepareStatement("DELETE FROM " + tableName + "_history" + " WHERE height > ?");
+//            pstmtDeleteHistory.setInt(1, height);
+//            pstmtDeleteHistory.executeUpdate();
+//
+//            while (accountIdRs.next()) {
+//                long accountId = accountIdRs.getLong(idColumn);
+//
+//                PreparedStatement wordQueryState = con.prepareStatement("select DB_ID from " + tableName + " where " + idColumn + " = ? order by height desc limit 1");
+//                wordQueryState.setLong(1, accountId);
+//                ResultSet resultSet = wordQueryState.executeQuery();
+//                if (resultSet != null && resultSet.next()) {
+//
+//                    PreparedStatement pstmtUpdate = con.prepareStatement("update " + tableName + " set latest = true where DB_ID = ?");
+//                    pstmtUpdate.setLong(1, resultSet.getLong("DB_ID"));
+//                    pstmtUpdate.executeUpdate();
+//                } else {
+//                    PreparedStatement cacheQueryState = con.prepareStatement("select * from " + tableName + "_cache" + " where " + idColumn + " = ? order by height desc limit 1");
+//                    cacheQueryState.setLong(1, accountId);
+//                    ResultSet cacheResult = cacheQueryState.executeQuery();
+//                    if (cacheResult == null || !cacheResult.next()) {
+//                        PreparedStatement historyQueryState = con.prepareStatement("select * from " + tableName + "_history" + " where " + idColumn + " = ? order by height desc limit 1");
+//                        historyQueryState.setLong(1, accountId);
+//                        cacheResult = historyQueryState.executeQuery();
+//                    }
+//                    if (cacheResult != null && cacheResult.next()) {
+//                        do {
+//                            ResultSetMetaData metaData = cacheResult.getMetaData();
+//                            int columnCount = metaData.getColumnCount();
+//                            StringBuilder insert = new StringBuilder();
+//                            StringBuilder values = new StringBuilder();
+//                            for (int i = 1; i <= columnCount; i++) {
+//                                if (i == 1) {
+//                                    insert.append("insert into " + tableName + " (");
+//                                    insert.append(metaData.getColumnName(i)).append(",");
+//                                    values.append("values (").append("?,");
+//                                } else if (1 < i && i < columnCount) {
+//                                    insert.append(metaData.getColumnName(i)).append(",");
+//                                    values.append("?,");
+//                                } else {
+//                                    insert.append(metaData.getColumnName(i)).append(")");
+//                                    values.append("?)");
+//                                }
+//                            }
+//                            PreparedStatement preparedStatement = con.prepareStatement(insert.append(values).toString());
+//                            for (int i = 1; i <= columnCount; i++) {
+//                                if ("latest".equalsIgnoreCase(metaData.getColumnName(i))) {
+//                                    preparedStatement.setObject(i, true);
+//                                } else {
+//                                    preparedStatement.setObject(i, cacheResult.getObject(i));
+//                                }
+//                            }
+//                            preparedStatement.executeUpdate();
+//                        } while (cacheResult.next());
+//                    }
+//                }
+//            }
+//        } catch (SQLException e) {
+//            throw new RuntimeException(e.toString(), e);
+//        }
+//    }
 }

@@ -22,6 +22,7 @@
 package org.conch.db;
 
 import org.conch.Conch;
+import org.conch.util.LocalDebugTool;
 import org.conch.util.Logger;
 
 import java.sql.*;
@@ -73,6 +74,9 @@ public class TransactionalDb extends BasicDb {
         }
         try {
             Connection con = getPooledConnection();
+            if (con == null && LocalDebugTool.isLocalDebug()) {
+                throw new IllegalStateException("Connection pool is overflowed");
+            }
             con.setAutoCommit(false);
             con = new DbConnection(con);
             ((DbConnection)con).txStart = System.currentTimeMillis();
@@ -133,7 +137,7 @@ public class TransactionalDb extends BasicDb {
             long elapsed = now - ((DbConnection)con).txStart;
             if (elapsed >= txThreshold) {
                 logThreshold(String.format("Database transaction required %.3f seconds at height %d",
-                        (double)elapsed/1000.0, Conch.getBlockchain().getHeight()));
+                        (double)elapsed/1000.0, Conch.getHeight()));
             } else {
                 long count, times;
                 boolean logStats = false;
@@ -147,9 +151,10 @@ public class TransactionalDb extends BasicDb {
                         statsTime = now;
                     }
                 }
-                if (logStats)
+                if (logStats) {
                     Logger.logDebugMessage(String.format("Average database transaction time is %.3f seconds",
-                            (double)times/1000.0/(double)count));
+                            (double) times / 1000.0 / (double) count));
+                }
             }  
         }finally {
             DbUtils.close(con);
@@ -165,7 +170,7 @@ public class TransactionalDb extends BasicDb {
         callbacks.add(callback);
     }
 
-    Map<DbKey,Object> getCache(String tableName) {
+    public Map<DbKey,Object> getCache(String tableName) {
         if (!isInTransaction()) {
             throw new IllegalStateException("Not in transaction");
         }
