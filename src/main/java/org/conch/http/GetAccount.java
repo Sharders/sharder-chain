@@ -28,6 +28,7 @@ import org.conch.consensus.poc.PocScore;
 import org.conch.db.Db;
 import org.conch.db.DbIterator;
 import org.conch.db.DbUtils;
+import org.conch.peer.CertifiedPeer;
 import org.conch.util.Convert;
 import org.conch.util.Logger;
 import org.json.simple.JSONArray;
@@ -35,7 +36,6 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
-import java.math.BigInteger;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -157,11 +157,21 @@ public final class GetAccount extends APIServlet.APIRequestHandler {
         }
 
         // poc score
-        BigInteger pocScore = BigInteger.ZERO;
         try{
             PocScore scoreObj = Conch.getPocProcessor().calPocScore(account, Conch.getHeight());
-            pocScore = scoreObj.total();
-            response.put("pocScore",  pocScore);
+            if (scoreObj.getTotal() == null) {
+                scoreObj.setTotal(0L);
+            }
+            response.put("pocScore", com.alibaba.fastjson.JSONObject.toJSON(scoreObj));
+
+            CertifiedPeer certifiedPeer = Conch.getPocProcessor().getCertifiedPeers().get(account.getId());
+            if(certifiedPeer != null){
+                response.put("nodeType", certifiedPeer.getType());
+                response.put("declaredTime",  certifiedPeer.getUpdateTime());
+            }else{
+                response.put("nodeType", "Unknown");
+                response.put("declaredTime", "");
+            }
         }catch(Exception e){
             Logger.logErrorMessage("can't get the poc score", e);
         }
@@ -187,5 +197,10 @@ public final class GetAccount extends APIServlet.APIRequestHandler {
             DbUtils.close(con);
         }
         return json;
+    }
+
+    @Override
+    protected boolean startDbTransaction() {
+        return true;
     }
 }

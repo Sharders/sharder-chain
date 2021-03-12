@@ -97,6 +97,8 @@ public enum APIEnum {
     GET_BLOCK("getBlock", GetBlock.instance),
     GET_BLOCK_ID("getBlockId", GetBlockId.instance),
     GET_BLOCKS("getBlocks", GetBlocks.instance),
+    GET_COMMAND_LINE_CLIENT_INFO("getCommandLineClientInfo", GetCommandLineClientInfo.instance),
+    GET_SNAPSHOT_ACCOUNTS("getSnapshotAccounts", GetSnapshotAccounts.instance),
     GET_BLOCKCHAIN_STATUS("getBlockchainStatus", GetBlockchainStatus.instance),
     GET_BLOCKCHAIN_TRANSACTIONS("getBlockchainTransactions", GetBlockchainTransactions.instance),
     GET_BLOCKCHAIN_TRANSACTIONS_COUNT("getBlockchainTransactionsCount",GetBlockchainTransactionsCount.instance),
@@ -275,6 +277,7 @@ public enum APIEnum {
     GET_USERCONFIG("getUserConfig", GetUserConfig.INSTANCE),
     GET_LATEST_COS_VERSION("getLatestCosVersion", GetLatestCosVersion.INSTANCE),
     FORCE_CONVERGE("forceConverge", ForceConverge.INSTANCE),
+    HEART_BEAT("heartBeat",HeartBeat.INSTANCE),
 
     TRIM_DERIVED_TABLES("trimDerivedTables", TrimDerivedTables.instance),
     HASH("hash", Hash.instance),
@@ -297,6 +300,10 @@ public enum APIEnum {
     BACKUP_DATABASE("backupDatabase", BackupDataBase.instance),
     ROLLBACK_DATABASE("rollbackDatabase", RollBackDataBase.instance),
     GET_INFO("getInfo",GetInfo.instance),
+    AIRDROP("airdrop",Airdrop.instance),
+    AIRDROP_DETECTION("airdropDetection",AirdropDetection.instance),
+    GET_MINER_STATISTICS("getMinerStatistics",GetMinerStatistics.instance),
+    GET_FORK_DATA("getForkData",GetForkData.instance),
     //sharder_authorization_login
     AUTHORIZATION_LOGIN("authorizationLogin",AuthorizationLogin.instance),
     // sharder pool
@@ -311,6 +318,7 @@ public enum APIEnum {
     START_STORING("startStoring", StartStoring.instance),
     STOP_STORING("stopStoring", StopStoring.instance),
     STORE_DATA("storeData", StoreData.instance),
+    ON_CHAIN("onChain",OnChain.instance),
     GET_STORED_DATA("getStoredData", GetStoredData.instance), // get off-chain file content
     DOWNLOAD_STORED_DATA("downloadStoredData", DownloadStoredData.instance), // download off-chain file
     // poc

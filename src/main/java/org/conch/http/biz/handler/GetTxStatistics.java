@@ -21,22 +21,25 @@
 
 package org.conch.http.biz.handler;
 
+import java.sql.*;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import javax.servlet.http.HttpServletRequest;
+
+import com.google.common.collect.Lists;
+import org.conch.Conch;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
+import org.conch.consensus.reward.RewardCalculator;
 import org.conch.db.Db;
 import org.conch.db.DbUtils;
 import org.conch.http.APIServlet;
 import org.conch.http.APITag;
+import org.conch.mint.Generator;
+import org.conch.tx.TransactionType;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
-
-import javax.servlet.http.HttpServletRequest;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 
 
 public final class GetTxStatistics extends APIServlet.APIRequestHandler {
@@ -47,8 +50,16 @@ public final class GetTxStatistics extends APIServlet.APIRequestHandler {
         super(new APITag[]{APITag.BIZ});
     }
 
+    private static JSONObject jsonObject = new JSONObject();
+    private static int height = 0;
+
     @Override
     protected JSONStreamAware processRequest(HttpServletRequest req) throws ConchException {
+        // if curTime > lastBlockTime + gapTime => update jsonObject , else return
+        if (height == Conch.getHeight() && Constants.GAP_SECONDS > Conch.getEpochTime() - Conch.getBlockchain().getLastBlockTimestamp()) {
+            return jsonObject;
+        }
+        height = Conch.getHeight();
         Long transferCount = 0L;
         Long transferAmount = 0L;
         Long transferCount24H = 0L;
@@ -57,14 +68,21 @@ public final class GetTxStatistics extends APIServlet.APIRequestHandler {
         Long storageDataLength = 0L;
         Long storageCount24H = 0L;
         Long storageDataLength24H = 0L;
-        JSONObject jsonObject = new JSONObject();
+        Long declaredPeerSize24H = 0L;
+        String capacity24H;
+        String capacity;
+        String capacityActive;
+        List<Long> boundAccountList = Lists.newArrayList();
 
         Connection con = null;
         PreparedStatement pstmt = null;
         String sqlTransfer = "SELECT COUNT(*),SUM(AMOUNT)/100000000 FROM TRANSACTION WHERE VERSION>=3 AND TYPE=0 AND SUBTYPE=0 AND HEIGHT>0 AND TIMESTAMP > ?";
+        String sqlDeclaredPeer = "SELECT COUNT(*) FROM TRANSACTION WHERE VERSION>=3 AND TYPE=12 AND SUBTYPE=0 AND HEIGHT>0 AND TIMESTAMP > ?";
+        String sqlDeclaredPeerAccounts = "SELECT ACCOUNT_ID FROM certified_peer WHERE LATEST=true AND LAST_UPDATED > ?";
         String sqlStorage = "SELECT COUNT(*),SUM(LENGTH (t2.DATA)) FROM TRANSACTION t1 , TAGGED_DATA t2 WHERE t1.ID = t2.ID AND t1.VERSION>=3 AND t1.TYPE=6 AND t1.SUBTYPE=0 AND t1.HEIGHT>0 AND TIMESTAMP > ?";
         try {
             con = Db.db.getConnection();
+            // transfer statistics
             pstmt = con.prepareStatement(sqlTransfer);
             pstmt.setInt(1, 0);
             try (ResultSet rs = pstmt.executeQuery()) {
@@ -84,6 +102,15 @@ public final class GetTxStatistics extends APIServlet.APIRequestHandler {
                     transferAmount24H = rs.getLong(2);
                 }
             }
+            // declaredPeer statistics
+            pstmt = con.prepareStatement(sqlDeclaredPeer);
+            pstmt.setLong(1, timestamp);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    declaredPeerSize24H = rs.getLong(1);
+                }
+            }
+            // storage statistics
             pstmt = con.prepareStatement(sqlStorage);
             pstmt.setLong(1, 0);
             try (ResultSet rs = pstmt.executeQuery()) {
@@ -100,41 +127,46 @@ public final class GetTxStatistics extends APIServlet.APIRequestHandler {
                     storageDataLength24H = rs.getLong(2);
                 }
             }
+            // capacity statistics
+            pstmt = con.prepareStatement(sqlDeclaredPeerAccounts);
+            pstmt.setLong(1, timestamp);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    try {
+                        boundAccountList.add(rs.getLong("account_id"));
+                    } catch (Exception e) {
+                        // continue to fetch next
+                        System.err.println(e);
+                    }
+                }
+                capacity24H = RewardCalculator.crowdMinerHardwareCapacity(Conch.getHeight(), boundAccountList);
+            }
+            capacity = RewardCalculator.crowdMinerHardwareCapacity(Conch.getHeight(), null);
+            capacityActive = Generator.hardwareCapacityActive();
+
             jsonObject.put("transferCount", transferCount);
             jsonObject.put("transferAmount", transferAmount);
             jsonObject.put("transferCount24H", transferCount24H);
             jsonObject.put("transferAmount24H", transferAmount24H);
             jsonObject.put("storageCount", storageCount);
-            jsonObject.put("poolCount", getTransactionCountByType(con, 8));
-            jsonObject.put("coinBaseCount", getTransactionCountByType(con, 9));
+            jsonObject.put("poolCount", Conch.getBlockchain().getTransactionCountByType(TransactionType.TYPE_SHARDER_POOL, con));
+            jsonObject.put("coinBaseCount", Conch.getBlockchain().getTransactionCountByType(TransactionType.TYPE_COIN_BASE, con));
             jsonObject.put("storageDataLength", storageDataLength);
             jsonObject.put("storageCount24H", storageCount24H);
             jsonObject.put("storageDataLength24H", storageDataLength24H);
+            jsonObject.put("declaredPeerSize", Conch.getPocProcessor().getCertifiedPeers().size());
+            jsonObject.put("declaredPeerSize24H", declaredPeerSize24H);
+
+            jsonObject.put("capacityActive", capacityActive);
+            jsonObject.put("capacityTotal", capacity);
+            jsonObject.put("capacity24H", capacity24H);
+
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
         } finally {
             DbUtils.close(con, pstmt);
             return jsonObject;
         }
-    }
-
-
-    /**
-     * 更具交易类型获得交易总数
-     *
-     * @param con
-     * @param type
-     * @return
-     * @throws SQLException
-     */
-    private long getTransactionCountByType(Connection con, int type) throws SQLException {
-        PreparedStatement ps = con.prepareStatement("SELECT COUNT(*) FROM TRANSACTION WHERE TYPE = ?");
-        ps.setInt(1, type);
-        ResultSet rs = ps.executeQuery();
-        if (rs.next()) {
-            return rs.getLong(1);
-        }
-        return 0L;
     }
 
     @Override

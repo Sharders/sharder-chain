@@ -21,24 +21,39 @@
 
 package org.conch.http.biz;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
+import com.alibaba.fastjson.JSON;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Vector;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequestWrapper;
 
 public class BizParameterRequestWrapper extends HttpServletRequestWrapper {
     private Map<String, String[]> params;
 
     private static final String UPLOAD_TEXTDATA = "uploadTextData";
     private static final String CREATE_CLIENT_ACCOUNT = "createClientAccount";
+
     public BizParameterRequestWrapper(HttpServletRequest request,
-                                   Map<String, String[]> newParams) {
+                                      Map<String, String[]> newParams) {
         super(request);
         this.params = newParams;
         // RequestDispatcher.forward parameter
         renewParameterMap(request);
     }
+
+    /**
+     * 重载构造方法
+     */
+
+    public BizParameterRequestWrapper(HttpServletRequest request, Map<String, String[]> oldParams, Map<String, String[]> extendParams) {
+        super(request);
+        this.params = oldParams;
+        //这里将扩展参数写入参数表
+        addAllParameters(extendParams);
+
+    }
+
 
     @Override
     public String getParameter(String name) {
@@ -50,14 +65,14 @@ public class BizParameterRequestWrapper extends HttpServletRequestWrapper {
         } else if (v instanceof String[]) {
             String[] strArr = (String[]) v;
             if (strArr.length > 0) {
-                result =  strArr[0];
+                result = strArr[0];
             } else {
                 result = null;
             }
         } else if (v instanceof String) {
             result = (String) v;
         } else {
-            result =  v.toString();
+            result = v.toString();
         }
 
         return result;
@@ -79,13 +94,13 @@ public class BizParameterRequestWrapper extends HttpServletRequestWrapper {
 
         Object v = params.get(name);
         if (v == null) {
-            result =  null;
+            result = null;
         } else if (v instanceof String[]) {
-            result =  (String[]) v;
+            result = (String[]) v;
         } else if (v instanceof String) {
-            result =  new String[] { (String) v };
+            result = new String[]{(String) v};
         } else {
-            result =  new String[] { v.toString() };
+            result = new String[]{v.toString()};
         }
 
         return result;
@@ -94,23 +109,57 @@ public class BizParameterRequestWrapper extends HttpServletRequestWrapper {
     private void renewParameterMap(HttpServletRequest req) {
 
         String requestType = req.getParameter("requestType");
-        switch (requestType){
-            case UPLOAD_TEXTDATA :
-                if (req.getParameter("deadline") == null)
+        switch (requestType) {
+            case UPLOAD_TEXTDATA:
+                if (req.getParameter("deadline") == null) {
                     this.params.put("deadline", new String[]{"3600"});
-                if (req.getParameter("feeNQT") == null)
+                }
+                if (req.getParameter("feeNQT") == null) {
                     this.params.put("feeNQT", new String[]{"0"});
+                }
                 this.params.put("channel", new String[]{req.getParameter("clientAccount")});
                 this.params.put("secretPhrase", new String[]{req.getParameter("passPhrase")});
                 this.params.put("name", new String[]{req.getParameter("fileName")});
                 this.params.put("type", new String[]{req.getParameter("fileType")});
                 break;
-            case CREATE_CLIENT_ACCOUNT :
+            case CREATE_CLIENT_ACCOUNT:
                 this.params.put("secretPhrase", new String[]{req.getParameter("passPhrase")});
                 this.params.put("deadline", new String[]{"3600"});
                 this.params.put("message", new String[]{"account created and broadcast to the network"});
-                this.params.put("feeNQT",new String[]{"0"});
+                this.params.put("feeNQT", new String[]{"0"});
                 break;
         }
+    }
+
+    /**
+     * 增加多个参数
+     *
+     * @param otherParams 增加的多个参数
+     */
+    public void addAllParameters(Map<String, String[]> otherParams) {
+        for (Map.Entry<String, String[]> entry : otherParams.entrySet()) {
+            addParameter(entry.getKey(), entry.getValue());
+        }
+    }
+
+    /**
+     * 增加参数
+     *
+     * @param name  参数名
+     * @param value 参数值
+     */
+    public void addParameter(String name, String[] value) {
+        if (value != null) {
+            if (value instanceof String[]) {
+                params.put(name, value);
+            } else {
+                params.put(name, new String[]{String.valueOf(value)});
+            }
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "[DEBUG] BizParameterRequestWrapper: " + JSON.toJSONString(params);
     }
 }

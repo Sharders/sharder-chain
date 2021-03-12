@@ -188,19 +188,19 @@ public abstract class PocTxApi {
                             accountId
                     );
                 }
-                
+
                 if(pocNodeType == null) {
                     String errorMsg = "can't create node type tx from input data " + nodeTypeJson.toString();
                     Logger.logErrorMessage(errorMsg);
                     throw new ConchException.NotValidException(errorMsg);
                 }
 
+                // v3 need disk capacity
+                pocNodeType = new PocTxBody.PocNodeTypeV3(pocNodeType, nodeTypeJson.getLong("diskCapacity"));
+
                 Logger.logInfoMessage("creating node type tx %s", pocNodeType.toString());
 
-                long recipientId = 0;
-                if(Conch.getHeight() > Constants.POC_TX_ALLOW_RECIPIENT) {
-                    recipientId = (accountId == -1) ? 0 : accountId;
-                }
+                long recipientId = (accountId == -1) ? 0 : accountId;
 
                 JSONStreamAware txJson = createTransaction(request, account, recipientId, 0, pocNodeType);
                 Logger.logInfoMessage("success to create node type tx " + txJson.toString());

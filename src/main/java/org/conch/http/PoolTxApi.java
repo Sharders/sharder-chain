@@ -34,7 +34,7 @@ public abstract class PoolTxApi {
             throw new ConchException.NotValidException("Please wait until the blockchain has finished downloading");
         }
         if(Constants.POOL_OPENING_HEIGHT == -1
-                || Conch.getHeight() <= Constants.POOL_OPENING_HEIGHT){
+        || Conch.getHeight() <= Constants.POOL_OPENING_HEIGHT){
             throw new ConchException.NotValidException("Pool function not opening now, please wait Client to upgrade");
         }
     }

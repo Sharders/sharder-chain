@@ -35,7 +35,7 @@ import javax.servlet.http.HttpServletRequest;
 /**
  * Issue a currency on the Conch blockchain
  * <p>
- * A currency is the basic block of the Conch Monetary System it can be exchanged with SS, transferred between accounts,
+ * A currency is the basic block of the Conch Monetary System it can be exchanged with native coin, transferred between accounts,
  * minted using proof of work methods, reserved and claimed as a crowd funding tool.
  * <p>
  * Pass the following parameters in order to issue a currency
@@ -51,7 +51,7 @@ import javax.servlet.http.HttpServletRequest;
  * <li>decimals - currency units are divisible to this number of decimals
  * <li>issuanceHeight - the blockchain height at which the currency would become active
  * For {@link CurrencyType#RESERVABLE} currency
- * <li>minReservePerUnitNQT - the minimum SS value per unit to allow the currency to become active
+ * <li>minReservePerUnitNQT - the minimum coin value per unit to allow the currency to become active
  * For {@link CurrencyType#RESERVABLE} currency
  * <li>reserveSupply - the number of units that will be distributed to founders when currency becomes active (less initialSupply)
  * For {@link CurrencyType#RESERVABLE} currency
@@ -70,9 +70,9 @@ import javax.servlet.http.HttpServletRequest;
  * At this time, if the minReservePerUnitNQT has not been reached the currency issuance is cancelled and
  * funds are returned to the founders.<br>
  * Otherwise the currency becomes active and remains active until deleted, provided deletion is possible.
- * When a {@link CurrencyType#RESERVABLE} becomes active, in case it is {@link CurrencyType#CLAIMABLE} the SS used for
+ * When a {@link CurrencyType#RESERVABLE} becomes active, in case it is {@link CurrencyType#CLAIMABLE} the native coin used for
  * reserving the currency are locked until they are claimed back.
- * When a {@link CurrencyType#RESERVABLE} becomes active, in case it is non {@link CurrencyType#CLAIMABLE} the SS used for
+ * When a {@link CurrencyType#RESERVABLE} becomes active, in case it is non {@link CurrencyType#CLAIMABLE} the native coin used for
  * reserving the currency are sent to the issuer account as crowd funding.
  * <li>When issuing a {@link CurrencyType#MINTABLE} currency, the number of units per {@link CurrencyMint} cannot exceed 0.01% of the
  * total supply. Therefore make sure totalSupply &gt; 10000 or otherwise the currency cannot be minted

@@ -63,8 +63,8 @@ import static org.conch.http.JSONResponses.*;
 
 public final class API {
 
-    public static final int TESTNET_API_PORT = 8216;
-    public static final int TESTNET_API_SSLPORT = 8219;
+    public static final int TESTNET_API_PORT = 8215;
+    public static final int TESTNET_API_SSLPORT = 8218;
     private static final String[] DISABLED_HTTP_METHODS = {"TRACE", "OPTIONS", "HEAD"};
 
     public static final int openAPIPort;
@@ -253,7 +253,7 @@ public final class API {
                 filterHolder.setAsyncSupported(true);
             }
 
-            if (Conch.getBooleanProperty("sharder.apiFrameOptionsSameOrigin")) {
+            if (Conch.getBooleanProperty("sharder.apiFrameOptionsSameOrigin") && !Constants.isLightClient) {
                 FilterHolder filterHolder = apiHandler.addFilter(XFrameOptionsFilter.class, "/*", null);
                 filterHolder.setAsyncSupported(true);
             }

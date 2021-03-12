@@ -122,8 +122,11 @@ public final class AuthorizationLogin extends APIServlet.APIRequestHandler {
      */
     private boolean allowRequest(String serverName) {
         ArrayList<String> serverNameList = new ArrayList<>();
-        serverNameList.add("sharder.org");
-        serverNameList.add("test.sharder.org");
+        serverNameList.add("mw.run");
+        serverNameList.add("test.mw.run");
+        serverNameList.add("testboot.mw.run");
+        serverNameList.add("mwfs.io");
+        serverNameList.add("test.mwfs.io");
         serverNameList.add("devboot.sharder.io");
         serverNameList.add("testboot.sharder.io");
         serverNameList.add("testna.sharder.io");

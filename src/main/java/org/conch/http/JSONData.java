@@ -29,12 +29,14 @@ import org.conch.asset.token.*;
 import org.conch.chain.Block;
 import org.conch.common.Constants;
 import org.conch.common.Token;
+import org.conch.consensus.poc.PocScore;
 import org.conch.consensus.reward.RewardCalculator;
 import org.conch.crypto.Crypto;
 import org.conch.crypto.EncryptedData;
 import org.conch.db.DbIterator;
 import org.conch.db.DbUtils;
 import org.conch.market.*;
+import org.conch.mint.MintStatisticsData;
 import org.conch.peer.Hallmark;
 import org.conch.peer.Peer;
 import org.conch.shuffle.Shuffler;
@@ -49,9 +51,11 @@ import org.conch.util.Filter;
 import org.conch.vote.*;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.JSONStreamAware;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -391,6 +395,30 @@ public final class JSONData {
         return json;
     }
 
+    /**
+     * Compatibility method for the block explorer using:
+     * - convert the specified tx list to json format
+     * - append the json format specified txs before the current block's tx collection
+     * - use the new json format tx collection to replace the old one in the block json object
+     * @param txList
+     * @param blockJson
+     * @return
+     */
+    public static JSONObject appendSpecifiedTxsBefore(List<Transaction> txList, JSONObject blockJson){
+        // prepare the pre tx list
+        JSONArray transactions = new JSONArray();
+        txList.forEach(transaction -> transactions.add(JSONData.transaction(transaction, false)));
+
+        // append the pre tx list and remove the old tx list from block json object
+        if(blockJson.containsKey("transactions")) {
+            transactions.addAll((JSONArray)blockJson.get("transactions"));
+            blockJson.remove("transactions");
+        }
+        blockJson.put("transactions", transactions);
+
+        return blockJson;
+    }
+
     public static JSONObject block(Block block, boolean includeTransactions, boolean includeExecutedPhased) {
         JSONObject json = new JSONObject();
         json.put("block", block.getStringId());
@@ -405,6 +433,7 @@ public final class JSONData {
         json.put("version", block.getVersion());
         json.put("baseTarget", Long.toUnsignedString(block.getBaseTarget()));
         json.put("cumulativeDifficulty", block.getCumulativeDifficulty().toString());
+        json.put("hasRewardDistribution", block.getRewardDistributionHeight()>0);
         if (block.getPreviousBlockId() != 0) {
             json.put("previousBlock", Long.toUnsignedString(block.getPreviousBlockId()));
         }
@@ -443,6 +472,36 @@ public final class JSONData {
             }
             json.put("executedPhasedTransactions", phasedTransactions);
         }
+        return json;
+    }
+
+    public static JSONObject forkBlock(Block block) {
+        JSONObject json = new JSONObject();
+        json.put("block", block.getStringId());
+        json.put("height", block.getHeight());
+        putAccount(json, "generator", block.getGeneratorId());
+//        json.put("generatorPublicKey", Convert.toHexString(block.getGeneratorPublicKey()));
+        json.put("timestamp", block.getTimestamp());
+//        json.put("numberOfTransactions", block.getTransactions().size());
+//        json.put("totalAmountNQT", String.valueOf(block.getTotalAmountNQT()));
+//        json.put("totalFeeNQT", String.valueOf(block.getTotalFeeNQT()));
+//        json.put("payloadLength", block.getPayloadLength());
+        json.put("version", block.getVersion());
+//        json.put("baseTarget", Long.toUnsignedString(block.getBaseTarget()));
+        json.put("cumulativeDifficulty", block.getCumulativeDifficulty().toString());
+//        json.put("hasRewardDistribution", block.getRewardDistributionHeight()>0);
+        if (block.getPreviousBlockId() != 0) {
+            json.put("previousBlock", Long.toUnsignedString(block.getPreviousBlockId()));
+        }
+        if (block.getNextBlockId() != 0) {
+            json.put("nextBlock", Long.toUnsignedString(block.getNextBlockId()));
+        }
+//        json.put("payloadHash", Convert.toHexString(block.getPayloadHash()));
+//        json.put("generationSignature", Convert.toHexString(block.getGenerationSignature()));
+        if (block.getVersion() > 1) {
+//            json.put("previousBlockHash", Convert.toHexString(block.getPreviousBlockHash()));
+        }
+//        json.put("blockSignature", Convert.toHexString(block.getBlockSignature()));
         return json;
     }
 
@@ -545,6 +604,7 @@ public final class JSONData {
         json.put("blockchainState", peer.getBlockchainState());
         json.put("peerLoad", peer.getPeerLoad().toJson());
         json.putAll(peer.getBlockSummary());
+        json.put("cosUpdateTime", peer.getCosUpdateTime());
         return json;
     }
 
@@ -603,6 +663,46 @@ public final class JSONData {
         }
         json.put("results", resultsJson);
         return json;
+    }
+
+    public static JSONStreamAware minerStatistics(Map<Long, MintStatisticsData> data) {
+        JSONObject json = new JSONObject();
+        Map<String, String> jsonData = new HashMap<>();
+        for (Long key : data.keySet()) {
+            jsonData.put(key.toString(), phasingMinerStatisticsData(data.get(key)));
+        }
+        json.put("data", JSONObject.toJSONString(jsonData));
+        return json;
+    }
+
+    private static String phasingMinerStatisticsData(MintStatisticsData mintStatisticsData) {
+        JSONObject json = new JSONObject();
+        json.put("avgMiningTime", mintStatisticsData.getAvgMiningTime());
+        json.put("generateCount", mintStatisticsData.getGenerateCount());
+        json.put("generateRate", mintStatisticsData.getGenerateRate());
+        json.put("latestMiningTime", mintStatisticsData.getLatestMiningTime());
+        json.put("minerId", mintStatisticsData.getMinerId());
+        json.put("miningMachineIP", mintStatisticsData.getMiningMachineIP());
+        json.put("pocScore", phasingPocScore(mintStatisticsData.getPocScore()));
+        return json.toJSONString();
+    }
+
+    public static String phasingPocScore(PocScore pocScore) {
+        JSONObject json = new JSONObject();
+        json.put("accountId", pocScore.getAccountId());
+        json.put("height", pocScore.getHeight());
+        json.put("total", pocScore.total());
+        json.put("effectiveBalance", pocScore.getEffectiveBalance());
+        json.put("bcScore", pocScore.getBcScore());
+        json.put("blockMissScore", pocScore.getBlockMissScore());
+        json.put("hardwareScore", pocScore.getHardwareScore());
+        json.put("networkScore", pocScore.getNetworkScore());
+        json.put("nodeTypeScore", pocScore.getNodeTypeScore());
+        json.put("onlineRateScore", pocScore.getOnlineRateScore());
+        json.put("performanceScore", pocScore.getPerformanceScore());
+        json.put("serverScore", pocScore.getServerScore());
+        json.put("ssScore", pocScore.getSsScore());
+        return json.toJSONString();
     }
 
     interface VoteWeighter {
@@ -975,7 +1075,7 @@ public final class JSONData {
             // quit pool tx
             if(tx.getType().isType(TransactionType.TYPE_SHARDER_POOL)
                     && tx.getType().isSubType(TransactionType.SUBTYPE_SHARDER_POOL_QUIT)
-                    && attachmentJSON.containsKey("txId")){
+                    && attachmentJSON.containsKey("txId")) {
                 
                 String txId = String.valueOf(attachmentJSON.get("txId"));
                 Transaction joinTx = Conch.getBlockchain().getTransaction(Long.valueOf(txId));
@@ -988,13 +1088,14 @@ public final class JSONData {
 
             // join pool tx or deletion poo tx: convert the pool id
 
+
             // coinbase
             if(tx.getType().isType(TransactionType.TYPE_COIN_BASE)) {
                 Attachment.CoinBase coinBase = (Attachment.CoinBase) tx.getAttachment();
 
                 if(coinBase.isType(Attachment.CoinBase.CoinBaseType.CROWD_BLOCK_REWARD)
-                    && coinBase.getCrowdMiners().size() > 0){
-                    Map<Long, Long> crowdMiners = coinBase.getCrowdMiners();
+                && coinBase.getCrowdMiners().size() > 0){
+                    HashMap<Long, Long> crowdMiners = coinBase.getCrowdMiners();
                     Account minerAccount = Account.getAccount(coinBase.getCreator());
                     attachmentJSON.put("crowdMiners", RewardCalculator.calCrowdMinerReward(minerAccount, tx, crowdMiners));
                 }
@@ -1014,8 +1115,6 @@ public final class JSONData {
             json.put("ecBlockId", Long.toUnsignedString(tx.getECBlockId()));
             json.put("ecBlockHeight", tx.getECBlockHeight());
         }
-        
-      
 
         return json;
     }

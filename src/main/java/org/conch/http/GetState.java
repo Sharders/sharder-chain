@@ -30,6 +30,7 @@ import org.conch.asset.AssetTransfer;
 import org.conch.asset.token.Currency;
 import org.conch.asset.token.CurrencyBuyOffer;
 import org.conch.asset.token.CurrencyTransfer;
+import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.common.UrlManager;
 import org.conch.market.*;
@@ -60,7 +61,7 @@ public final class GetState extends APIServlet.APIRequestHandler {
 
     @Override
     @SuppressWarnings("unchecked")
-    protected JSONStreamAware processRequest(HttpServletRequest req) {
+    protected JSONStreamAware processRequest(HttpServletRequest req) throws ConchException {
 
         JSONObject response = GetBlockchainStatus.instance.processRequest(req);
 

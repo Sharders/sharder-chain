@@ -46,7 +46,7 @@ import java.util.*;
 
 /**
  * @author jiangbubai
- * @date  2019-05-09 updated by Ben
+ * @date  2019-05-09 updated by Ben 
  */
 public final class ReConfig extends APIServlet.APIRequestHandler {
 
@@ -61,11 +61,11 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
     );
 
     private static final String SF_BIND_URL = UrlManager.getFoundationUrl(
-            "",
-            UrlManager.HUB_SETTING_ADDRESS_BIND_LOCAL,
+            "", 
+            UrlManager.HUB_SETTING_ADDRESS_BIND_LOCAL, 
             UrlManager.HUB_SETTING_ADDRESS_BIND_PATH
     );
-
+    
     private ReConfig() {
         super(new APITag[] {APITag.DEBUG}, "restart");
     }
@@ -81,7 +81,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
         Enumeration enu = req.getParameterNames();
 
 //        Conch.getStringProperty("sharder.HubBindAddress");
-
+        
         String accountPR = Conch.getStringProperty("sharder.HubBindPassPhrase");
         String inputLinkedPR = req.getParameter("sharder.HubBindPassPhrase");
         if(StringUtils.isNotEmpty(inputLinkedPR)) {
@@ -89,7 +89,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
         }
         long creatorId = Account.getId(accountPR);
         String bindRs = Account.rsAccount(creatorId);
-
+        
 
         if (SharderPoolProcessor.whetherCreatorHasWorkingMinePool(creatorId)) {
             response.put("reconfiged", false);
@@ -122,7 +122,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
             response.put("failedReason", "Failed to configure settings caused by [" + e.getMessage() + "]");
             return response;
         }
-
+        
 //        // send to foundation to validate and create a node type tx
 //        if (!sendCreateNodeTypeTxRequestToFoundation(req, bindRs)) {
 //            Logger.logErrorMessage("failed to configure settings caused by send create node type tx message to foundation failed!");
@@ -130,10 +130,10 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
 //            response.put("failedReason", "Failed to configure settings caused by node type tx creation failed!");
 //            return response;
 //        }
-
+        
         while(enu.hasMoreElements()) {
             String paraName = (String)enu.nextElement();
-
+            
             if ("sharder.HubBindPassPhrase".equals(paraName)) {
                 String prFromRequest = req.getParameter(paraName);
                 map.put("sharder.HubBindPassPhrase", prFromRequest);
@@ -154,20 +154,20 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
 //                map.put("sharder.HubBindPassPhrase", Conch.getStringProperty("sharder.HubBindPassPhrase"));
 //                continue;
 //            }
-
+            
             // pre-defined exclusion request parameter
             if (EXCLUDE_PARAMS.contains(paraName)) {
                 continue;
             }
             map.put(paraName, req.getParameter(paraName));
         }
-
+        
         Conch.storePropertiesToFile(map);
-
+        
         if (restart) {
             // get the default db file
             if(isInit && Constants.initFromArchivedDbFile) {
-                Logger.logDebugMessage("Fetch and upgrade the default archived db file to local in the Hub initialization phase");
+                Logger.logDebugMessage("Fetch and upgrade the default archived db file to local in the client initialization phase");
                 ClientUpgradeTool.restoreDbToLastArchive(true, true);
             }
         }
@@ -346,5 +346,4 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
     protected boolean requireBlockchain() {
         return false;
     }
-
 }

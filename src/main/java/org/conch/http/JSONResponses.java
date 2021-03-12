@@ -499,6 +499,13 @@ public final class JSONResponses {
         return JSON.prepare(response);
     }
 
+    static JSONStreamAware writeFileFail(String objectName) {
+        JSONObject response = new JSONObject();
+        response.put("errorCode", 10);
+        response.put("errorDescription", "Unable write to file " + objectName);
+        return JSON.prepare(response);
+    }
+
     static JSONStreamAware error(String error) {
         JSONObject response = new JSONObject();
         response.put("errorCode", 11);
@@ -548,6 +555,22 @@ public final class JSONResponses {
         response.put("errorCode", 6);
         response.put("errorDescription", "bizAPIs IO Exception");
         BIZ_JSON_IO_ERROR = JSON.prepare(response);
+    }
+
+    public static final JSONStreamAware ACCESS_CLOSED;
+    static {
+        JSONObject response = new JSONObject();
+        response.put("errorCode", 6);
+        response.put("errorDescription", "The interface access is closed");
+        ACCESS_CLOSED = JSON.prepare(response);
+    }
+
+    public static final JSONStreamAware ACCESS_CLOSED_AT_HEIGHT;
+    static {
+        JSONObject response = new JSONObject();
+        response.put("errorCode", 6);
+        response.put("errorDescription", "The interface access is closed at current height");
+        ACCESS_CLOSED_AT_HEIGHT = JSON.prepare(response);
     }
 
     private JSONResponses() {} // never

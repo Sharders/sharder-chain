@@ -31,7 +31,7 @@ import org.json.simple.JSONStreamAware;
 import javax.servlet.http.HttpServletRequest;
 
 /**
- * Claim currency units and receive back SS invested into this currency before it became active
+ * Claim currency units and receive back coin invested into this currency before it became active
  * <p>
  * Parameters
  * <ul>
