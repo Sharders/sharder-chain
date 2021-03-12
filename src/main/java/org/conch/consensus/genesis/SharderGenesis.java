@@ -1,8 +1,12 @@
 package org.conch.consensus.genesis;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.chain.BlockImpl;
 import org.conch.common.ConchException;
@@ -18,37 +22,35 @@ import org.conch.util.Logger;
 import java.security.MessageDigest;
 import java.util.*;
 
+import static org.conch.util.JSON.readJsonFile;
+
 /**
  * Sharder Genesis 
  * @author  xy@sharder.org 
  * @date 01/19/2019
  */
 public class SharderGenesis {
-
-    public static final long GENESIS_BLOCK_ID = 6840612405442242239L;
-    public static final long CREATOR_ID = 7690917826419382695L;
-    public static final long KEEPER_ID = -4542396882408079631L;
+    public static final long GENESIS_BLOCK_ID = 6840612405442242020L;
+    public static final long CREATOR_ID = 1492434941236553746L;
+    public static final long KEEPER_ID = 1868021154578573726L;
     public static final byte[] CREATOR_PUBLIC_KEY = {
-            -36, 27, -52, -114, -28, 115, -4, -120, 50, -66, -107, 70, -54, -95, 61, -14,
-            79, 123, -18, -57, -99, 10, -34, 75, -48, -72, -25, 96, -53, -63, -1, 43
+            -31, -17, -44, -121, 32, -95, -97, 40, -38, 117, -114, 80, -94, 25, -96,
+            -102, 1, 109, 125, -99, 125, -16, 56, 109, 4, 48, -46, -41, 12, -81, 111, 10
     };
     public static final byte[] CREATOR_SIGNATURES = {
-            -79, 103, -74, -56, -6, 72, -57, -20, 59, 14, 92, 111, -116, 61, 7, -106, 38, 43, -105, 82, -112, -30, 55, -111, 3, 81, -15, 89, 5, -5, 20, 14, 58, -44, 
-            122, 99, 123, 119, 54, 66, -19, -107, 71, -115, -89, -55, -27, 121, -122, 12, 31, -126, -98, -91, 92, -88, 48, 30, 43, 80, 94, 90, 98, -109
+            18, 40, -55, -6, -85, 49, -74, 20, -81, -20, -16, -120, -97, -92, -119,
+            -77, -71, 0, 105, 12, -69, -72, -109, 45, -3, 55, -22, -6, 67, 52, -91, -3
     };
 
-//    public static final byte[] GENESIS_BLOCK_SIGNATURE = new byte[]{
-//            58, 75, 72, 28, -115, 20, 91, 112, 87, 33, -23, 20, -40, -74, -108, 73, 52, 111, 94, 0, 87, 23, 22, 86, -91, 89, -37, 84, 29,
-//            48, 18, 15, -125, 97, -103, 106, -104, -125, -104, -33, 110, 99, -1, -79, -116, 25, 6, 73, 64, 34, 108, -33, 56, 107, -73, -60,
-//            17, 91, 104, -115, 67, -94, 3, -92
-//    };
     public static final byte[] GENESIS_BLOCK_SIGNATURE = new byte[]{
-            -83, 36, -124, -118, 5, 21, -27, -85, 125, 29, -43, 16, -25, -117, 91, 64, -94, 108, -39, -10, -100, 102, -77, 95, -22, -119, -89, -104, -94, -81, 111, 73
+            24, -119, -8, -17, -14, 105, -64, -7, -17, -31, 94, -111, 30, 18, -84, 15, -96, 84, 1, -35, 77, -44, 89,
+            -36, 77, 76, 118, 61, -82, -112, 19, -34
     };
     public static final byte[] GENESIS_PAYLOAD_HASH = new byte[]{
-            -68, 29, 41, -120, -78, -7, -86, -93, -10, -89, -77, -46, 109, -49, 30, 72, -115, 77, 73, -19, -85, 125, -43, -13, -3, -44, -124, -62, 123, -68, 69, -81
+            -80, -59, -99, 2, -10, -128, -43, 20, -70, 55, -55, 63, 15, 33, -26, -50, -90, 77, 104, 109, 6, 57, -99,
+            -3, 111, 84, -5, -78, -10, -5, -84, -11
     };
-    
+
     private static boolean enableGenesisAccount = false;
     public static final void enableGenesisAccount(){
         if(enableGenesisAccount) {
@@ -65,11 +67,19 @@ public class SharderGenesis {
         enableGenesisAccount = true;
     }
 
+    protected static final JSONObject genesisJsonObj = loadGenesisSettings();
+    private static JSONObject loadGenesisSettings() {
+        String pathName = Conch.getStringProperty("sharder.genesis.pathName", "conf/genesis.json");
+        String jsonStr = readJsonFile(pathName);
+        return JSON.parseObject(jsonStr);
+    }
 
     public static class GenesisPeer {
         public String domain;
         public Peer.Type type;
+        public byte typeCode = -1;
         public long accountId;
+        public long diskCapacity;
 
         private GenesisPeer(String domain,Peer.Type type, long accountId){
             this.domain = domain;
@@ -77,26 +87,39 @@ public class SharderGenesis {
             this.accountId = accountId;
         }
 
-        static Map<Constants.Network, List<GenesisPeer>> genesisPeers = new HashMap<>();
-        static {
-            List<GenesisPeer> devnetPeers = Lists.newArrayList(
-                    new GenesisPeer("devboot.sharder.io",Peer.Type.FOUNDATION, 6219247923802955552L),
-                    new GenesisPeer("devna.sharder.io",Peer.Type.FOUNDATION, 3790328149872734783L),
-                    new GenesisPeer("devnb.sharder.io",Peer.Type.FOUNDATION, 90778548339644322L)
-            );
+        private GenesisPeer(String domain, Peer.Type type, long accountId, long diskCapacity){
+            this.domain = domain;
+            this.type = type;
+            this.accountId = accountId;
+            this.diskCapacity = diskCapacity;
+        }
 
-            List<GenesisPeer> testnetPeers = Lists.newArrayList(
-                    new GenesisPeer("testboot.sharder.io",Peer.Type.FOUNDATION, -4542396882408079631L),
-                    new GenesisPeer("testna.sharder.io",Peer.Type.COMMUNITY, -6802345313304048560L),
-                    new GenesisPeer("testnb.sharder.io",Peer.Type.HUB, 6066546424236439063L)
-            );
+        public GenesisPeer(){}
 
-            List<GenesisPeer> mainnetPeers = Lists.newArrayList(
+        private void mappingType(){
+            if(this.typeCode == -1) {
+                return;
+            }
+            this.type = Peer.Type.getByCode(this.typeCode);
+        }
 
-            );
-            genesisPeers.put(Constants.Network.DEVNET,devnetPeers);
-            genesisPeers.put(Constants.Network.TESTNET,testnetPeers);
-            genesisPeers.put(Constants.Network.MAINNET,mainnetPeers);
+        static final Map<Constants.Network, List<GenesisPeer>> genesisPeers = loadGenesisPeers();
+        static Map<Constants.Network, List<GenesisPeer>> loadGenesisPeers() {
+            Map<Constants.Network, List<GenesisPeer>> genesisPeers = Maps.newHashMap();
+            JSONArray jsonArrayDev = SharderGenesis.genesisJsonObj.getJSONArray("devnetPeers");
+            List<GenesisPeer> devnetPeers = JSONObject.parseArray(jsonArrayDev.toJSONString(), GenesisPeer.class);
+            JSONArray jsonArrayTest = SharderGenesis.genesisJsonObj.getJSONArray("testnetPeers");
+            List<GenesisPeer> testnetPeers = JSONObject.parseArray(jsonArrayTest.toJSONString(), GenesisPeer.class);
+            JSONArray jsonArrayMain = SharderGenesis.genesisJsonObj.getJSONArray("mainnetPeers");
+            List<GenesisPeer> mainnetPeers = JSONObject.parseArray(jsonArrayMain.toJSONString(), GenesisPeer.class);
+            devnetPeers.forEach(peer -> peer.mappingType());
+            testnetPeers.forEach(peer -> peer.mappingType());
+            mainnetPeers.forEach(peer -> peer.mappingType());
+            genesisPeers.put(Constants.Network.DEVNET, devnetPeers);
+            genesisPeers.put(Constants.Network.TESTNET, testnetPeers);
+            genesisPeers.put(Constants.Network.MAINNET, mainnetPeers);
+
+            return genesisPeers;
         }
 
         public static List<GenesisPeer> getAll(){
@@ -180,7 +203,7 @@ public class SharderGenesis {
                         SharderGenesis.GENESIS_BLOCK_SIGNATURE,
                         null,
                         transactions);
-        genesisBlock.setPrevious(null);
+        genesisBlock.calAndSetByPreviousBlock(null);
 
         return genesisBlock;
     }
@@ -226,7 +249,8 @@ public class SharderGenesis {
         List<TransactionImpl> transactions = Lists.newArrayList();
 
         GenesisPeer.getAll().forEach(genesisPeer -> {
-            Attachment.AbstractAttachment attachment = new PocTxBody.PocNodeTypeV2(genesisPeer.domain,genesisPeer.type,genesisPeer.accountId);
+//            Attachment.AbstractAttachment attachment = new PocTxBody.PocNodeTypeV2(genesisPeer.domain,genesisPeer.type,genesisPeer.accountId);
+            Attachment.AbstractAttachment attachment = new PocTxBody.PocNodeTypeV3(genesisPeer.domain,genesisPeer.type,genesisPeer.accountId,genesisPeer.diskCapacity);
             try {
                 transactions.add(new TransactionImpl.BuilderImpl(
                         SharderGenesis.CREATOR_PUBLIC_KEY,

@@ -166,7 +166,9 @@ public abstract class CreateTransaction extends APIServlet.APIRequestHandler {
         String publicKeyValue = Convert.emptyToNull(req.getParameter("publicKey"));
         boolean broadcast = !"false".equalsIgnoreCase(req.getParameter("broadcast")) && secretPhrase != null;
         Appendix.EncryptedMessage encryptedMessage = null;
+        Appendix.Message message = null;
         Appendix.PrunableEncryptedMessage prunableEncryptedMessage = null;
+        Attachment.SaveHash saveHash = null;
         if (attachment.getTransactionType().canHaveRecipient() && recipientId != 0) {
             Account recipient = Account.getAccount(recipientId);
             if ("true".equalsIgnoreCase(req.getParameter("encryptedMessageIsPrunable"))) {
@@ -176,7 +178,6 @@ public abstract class CreateTransaction extends APIServlet.APIRequestHandler {
             }
         }
         Appendix.EncryptToSelfMessage encryptToSelfMessage = ParameterParser.getEncryptToSelfMessage(req);
-        Appendix.Message message = null;
         Appendix.PrunablePlainMessage prunablePlainMessage = null;
         if ("true".equalsIgnoreCase(req.getParameter("messageIsPrunable"))) {
             prunablePlainMessage = (Appendix.PrunablePlainMessage) ParameterParser.getPlainMessage(req, true);
@@ -222,7 +223,6 @@ public abstract class CreateTransaction extends APIServlet.APIRequestHandler {
         }
 
         JSONObject response = new JSONObject();
-
         // shouldn't try to get publicKey from senderAccount as it may have not been set yet
         byte[] publicKey = secretPhrase != null ? Crypto.getPublicKey(secretPhrase) : Convert.parseHexString(publicKeyValue);
 

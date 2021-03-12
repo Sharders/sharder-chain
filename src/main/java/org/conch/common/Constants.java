@@ -24,12 +24,9 @@ package org.conch.common;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
-import org.conch.chain.BlockchainProcessorImpl;
-import org.conch.consensus.poc.hardware.GetNodeHardware;
+import org.conch.consensus.reward.RewardCalculator;
 import org.conch.env.RuntimeEnvironment;
-import org.conch.mint.Generator;
 import org.conch.peer.Peer;
-import org.conch.util.LocalDebugTool;
 
 import java.util.*;
 
@@ -39,19 +36,12 @@ public final class Constants {
      * Network definition
      */
     public enum Network {
-        /**
-         * online
-         */
         MAINNET("Mainnet"),
-        /**
-         * test environment
-         */
         TESTNET("Testnet"),
         DEVNET("Devnet");
 
         private final String name;
 
-        /** Private constructor so it cannot be instantiated */
         Network(String name) {
             this.name = name;
         }
@@ -88,17 +78,19 @@ public final class Constants {
 
     private static final String networkInProperties = Conch.getStringProperty("sharder.network");
     public static final String NetworkDef = loadNetworkDefinition();
+
     public static final boolean isOffline = Conch.getBooleanProperty("sharder.isOffline");
     public static final boolean isLightClient = Conch.getBooleanProperty("sharder.isLightClient");
     public static final boolean isStorageClient = Conch.getBooleanProperty("sharder.storage.enable");
+    public static final boolean isOpenLessorMode = Conch.getBooleanProperty("sharder.lessorMode.enable", false);
+
     public static final List<String> bootNodesHost = parseBootNodesHost();
     public static final String bootNodeHost = parseBootNodeHost();
 
     public static final Long BURN_OPENING_HEIGHT = isTestnetOrDevnet() ? (-1L) : 10L;
     public static final Long BURN_ADDRESS_ID = -1L;
 
-//    public static final int MAX_NUMBER_OF_TRANSACTIONS = 255;
-    public static final int MAX_NUMBER_OF_TRANSACTIONS = 5000;
+    public static final int MAX_NUMBER_OF_TRANSACTIONS = 20000;
     public static final int MIN_TRANSACTION_SIZE = 176;
     public static final int MAX_PAYLOAD_LENGTH = MAX_NUMBER_OF_TRANSACTIONS * MIN_TRANSACTION_SIZE * 244;
     public static final long MAX_BALANCE_SS = 1000000000;
@@ -106,20 +98,20 @@ public final class Constants {
     public static final long MAX_BALANCE_NQT = MAX_BALANCE_SS * ONE_SS;
     
     /** another initial env => target: 6000, min-limit: 17, max-limit=22, base-gamma: 21 */
-    public static final long INITIAL_BASE_TARGET = isTestnetOrDevnet() ? (153722867 * 67) : (153722867 * 8);
+    public static final long INITIAL_BASE_TARGET = isTestnetOrDevnet() ? (153777867 * 67) : (153722867 * 8);
     public static final int MIN_BLOCKTIME_LIMIT = 53;
     public static final int MAX_BLOCKTIME_LIMIT = 67;
     public static final int BASE_TARGET_GAMMA = 64;
 
-    public static final int MAX_ROLLBACK = Math.max(Conch.getIntProperty("sharder.maxRollback"), isTestnetOrDevnet() ? 144 : 720);
+    public static final int MAX_ROLLBACK = Math.max(Conch.getIntProperty("sharder.maxRollback"), isTestnetOrDevnet() ? 48 : 720);
     public static final long MAX_BASE_TARGET = MAX_BALANCE_SS * INITIAL_BASE_TARGET;
     public static final long MAX_BASE_TARGET_2 = isTestnetOrDevnet() ? MAX_BASE_TARGET : INITIAL_BASE_TARGET * 50;
     public static final long MIN_BASE_TARGET = INITIAL_BASE_TARGET * 9 / 10;
 
     /** for the security, you can set the confirmations = 1440 */
-    public static final int GUARANTEED_BALANCE_CONFIRMATIONS = isDevnet() ? 1 :(isTestnet()? 1 : 12);
+    public static final int GUARANTEED_BALANCE_CONFIRMATIONS = isDevnet() ? 1 :(isTestnet()? 1 : 3);
     public static final int LEASING_DELAY = isTestnetOrDevnet() ? Conch.getIntProperty("sharder.testnetLeasingDelay", 10) : 205;
-    public static final long MINING_HOLDING_LIMIT = isTestnet() ? 1000 * ONE_SS : 1000 * ONE_SS;
+    public static final long MINING_HOLDING_LIMIT = isTestnet() ? (133 * 8 * ONE_SS) : (133 * 8 * ONE_SS);
     public static final long DISK_CAPACITY_MIN_TB = isTestnet() ? 1 : 1;
     public static final long DISK_CAPACITY_MAX_TB = isTestnet() ? 96 : 96;
 
@@ -137,6 +129,7 @@ public final class Constants {
     public static final int MAX_ALIAS_LENGTH = 100;
 
     public static final int MAX_ARBITRARY_MESSAGE_LENGTH = 160;
+
     public static final int MAX_ENCRYPTED_MESSAGE_LENGTH = 160 + 16;
 
     public static final int MAX_PRUNABLE_MESSAGE_LENGTH = 42 * 1024;
@@ -218,31 +211,22 @@ public final class Constants {
     public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK_TIMESTAMP = 0;
 
     public static final int FXT_BLOCK = isTestnetOrDevnet() ? 10000 : 10000; 
-    
-    public static final int LAST_KNOWN_BLOCK = isDevnet() ?  1 : (isTestnet() ? 59 : 500);
-    public static final int POC_LEDGER_RESET_HEIGHT = isTestnet() ? 4500 : 0;
-    public static final int POC_NEW_ALGO_HEIGHT = isTestnet() ? 4751 : 0;
-    public static final int POC_SS_HELD_SCORE_PHASE1_HEIGHT = isTestnet() ? 4765 : 0;
-    public static final int POC_SS_HELD_SCORE_PHASE2_HEIGHT = isTestnet() ? 13777 : 0;
-    public static final int POC_POOL_NEVER_END_HEIGHT = isTestnet() ? 13777 : 0;
-    public static final int POC_BALANCE_CORRECTION_HEIGHT = isTestnet() ? 15777 : 0;
-    public static final int POC_TX_ALLOW_RECIPIENT = isTestnet() ? 0 : 0;
-    // the poc calculate algorithm changed height.
+    public static final int LAST_KNOWN_BLOCK = isTestnetOrDevnet() ? 3 : 2;
+
+    public static final int POC_LEDGER_RESET_HEIGHT = isTestnet() ? -1 : -1;
+    // PoC calculate algorithm changed height.
     // NOTE: set the height to 0 when reset the chain or start a new chain
-    public static final int POC_CAL_ALGORITHM = isTestnet() ? 0 : 0;
-    // holding score algo. changed; re-calculate the hardware and holding score
-    public static final int POC_SCORE_CHANGE_HEIGHT = isTestnet() ? -1 : -1;
-    public static final int POC_REPROCESS_CROWD_MINER_OPEN_HEIGHT = isDevnet() ? 1 : (isTestnet() ? 15455 : 1);
-    public static final int POC_MULTIPLIER_CHANGE_HEIGHT = isDevnet() ? 0 : (isTestnet() ? 15414 : 1);
+    public static final int POC_CAL_ALGORITHM = 0;
+    // Re-calculate the hardware and olding score; -1 means closed force re-calculate.
+    public static final int POC_SCORE_CHANGE_HEIGHT = -1;
 
-
-    //not opened yet
+    // Not opened yet
     public static final int PHASING_BLOCK_HEIGHT = Integer.MAX_VALUE;
     public static final int DIGITAL_GOODS_STORE_BLOCK = Integer.MAX_VALUE;
     public static final int TRANSPARENT_FORGING_BLOCK_HUB_ANNOUNCEMENT = Integer.MAX_VALUE;
     public static final int MONETARY_SYSTEM_BLOCK = Integer.MAX_VALUE;
 
-    public static final int SHUFFLING_BLOCK_HEIGHT = isTestnetOrDevnet() ? 0 : 0;
+    public static final int SHUFFLING_BLOCK_HEIGHT = 0;
   
     public static final int MAX_REFERENCED_TRANSACTION_TIMESPAN = 60 * 1440 * 60;
 
@@ -253,7 +237,7 @@ public final class Constants {
     public static final long SHUFFLING_DEPOSIT_NQT = (isTestnetOrDevnet() ? 7 : 1000) * ONE_SS;
 
     public static final boolean correctInvalidFees = Conch.getBooleanProperty("sharder.correctInvalidFees");
-    public static final String ACCOUNT_PREFIX = "SSA-"; //account prefix，SSA: Sharder Storage Account
+    public static final String ACCOUNT_PREFIX = "CDW-"; //account prefix
 
     //chain begin time
     public static final long EPOCH_BEGINNING = launchedTime(0).getTimeInMillis();
@@ -266,14 +250,50 @@ public final class Constants {
     public static final int SHARDER_REWARD_DELAY = isDevnet() ? 1 : (isTestnet() ? 3 : 7);
     public static final int SHARDER_POOL_JOIN_TX_VALIDATION_HEIGHT = isDevnet() ? 1 : (isTestnet() ? 300 : 1);
 
-
     //Coinbase
-    public static final int MAX_COINBASE_TYPE_LENGTH = 16;
-    public static final int COINBASE_CROWD_MINER_OPEN_HEIGHT = isDevnet() ? 1 : (isTestnet() ? -1 : -1);
+    public static final int COINBASE_CROWD_MINER_OPEN_HEIGHT = isTestnetOrDevnet() ? 0 : 0;
+    private static final int SETTLEMENT_INTERVAL_SIZE = Conch.getIntProperty("sharder.rewards.settlementInterval");
 
     //OSS
     public static final String OSS_PREFIX = "https://ss-cn.oss-cn-zhangjiakou.aliyuncs.com/";
-    
+
+    //syn
+    public static final int SYNC_BLOCK_NUM = Conch.getIntProperty("sharder.sync.blockNum");
+    public static final int SYNC_CACHE_BLOCK_NUM = Conch.getIntProperty("sharder.sync.cacheblocknum");
+    public static final int SYNC_WORK_BLOCK_NUM = Conch.getIntProperty("sharder.sync.workblocknum");
+    public static final Boolean SYNC_BUTTON = Conch.getBooleanProperty("sharder.sync.button", false);
+    public static final String HISTORY_RECORD_MODE = Conch.getStringProperty("sharder.historyRecordMode", "update");
+    public static final Boolean HISTORY_RECORD_CLEAR = Conch.getBooleanProperty("sharder.historyRecordClear", true);
+    public static Boolean MANUAL_SYNC_BUTTON = Conch.getBooleanProperty("sharder.sync.manualButton", false);
+    public static Boolean GENERATE_EXPIRED_FILE_BUTTON = Conch.getBooleanProperty("sharder.generateExpiredFileButton"
+            , true);
+
+    /**
+     * Whether reach crowd reward height
+     *
+     * @param height
+     * @return
+     */
+    public static int getRewardSettlementHeight(int height) {
+        // before 5185 height reward interval is every 432 height
+        int interval = 432;
+        if (height > 5185 && height < 6050) {
+            interval = 432 * 2;
+        } else if (height >= 6050 && height <= RewardCalculator.NETWORK_ROBUST_PHASE) {
+            interval = SETTLEMENT_INTERVAL_SIZE;
+        } else if (height > RewardCalculator.NETWORK_ROBUST_PHASE) {
+            interval = 432 * 10;
+        }
+        return interval;
+    }
+
+    public static boolean updateHistoryRecord() {
+        if ("new".equalsIgnoreCase(HISTORY_RECORD_MODE)) {
+            return false;
+        }
+        return true;
+    }
+
     /**
      * chain begin time
      * @param index 0: conch chain, 1: testnet of sharder, otherwise is mainnet of sharder
@@ -334,6 +354,10 @@ public final class Constants {
         configFee.add(fee == 0 ? configFee.get(configFee.size() - 1) : fee);
         fee = (long)Conch.getIntProperty("sharder.fee.data10M");
         configFee.add(fee == 0 ? configFee.get(configFee.size() - 1) : fee);
+        // TransactionType = 18
+        configFee.add(0L);
+        // TransactionType = 19
+        configFee.add(0L);
     }
 
     // Network
@@ -357,23 +381,22 @@ public final class Constants {
         return Network.valueOfIgnoreCase(Network.class,NetworkDef);
     }
     
-    //default gap of mainnet & testnet is 10 min
-    private static final int blockGapInProperties = isDevnet() ?  Conch.getIntProperty("sharder.devnetBlockGap") : 
-            ( isTestnet() ? Conch.getIntProperty("sharder.testnetBlockGap", 10) : Conch.getIntProperty("sharder.blockGap", 10));
-
+    private static final String gapMinutes = isDevnet() ?  Conch.getStringProperty("sharder.devnetBlockGap") :
+            ( isTestnet() ? Conch.getStringProperty("sharder.testnetBlockGap", "10") : Conch.getStringProperty("sharder.blockGap", "10"));
+    public static final int GAP_SECONDS = getBlockGapSeconds();
     /**
      * interval between two block generation, the min is 1min
      * @return generation gap in seconds
      */
-    public static int getBlockGapSeconds(){
-        int gap = blockGapInProperties > 1 ? blockGapInProperties : 1;
-        
-        // debug in the local offline mode
-        if(LocalDebugTool.isLocalDebugAndBootNodeMode) {
-            return Constants.isOffline ? 10 : (gap*60);
+    private static int getBlockGapSeconds(){
+        Double gapMin = Double.valueOf(gapMinutes);
+        Double gapSeconds = gapMin * 60;
+
+        if(gapSeconds <= 0){
+            gapSeconds = 10d;
         }
 
-        return gap*60; 
+        return gapSeconds.intValue();
     }
 
     /**
@@ -383,37 +406,29 @@ public final class Constants {
      * @return network definition
      */
     private static final String loadNetworkDefinition() {
+
         String networkInEnv = System.getProperty(RuntimeEnvironment.NETWORK_ARG);
         if (StringUtils.isNotBlank(networkInEnv)) return networkInEnv;
 
         return networkInProperties;
     }
 
-    /**
-     * used to local debug
-     * @return true： local debug mode
-     */
-    public static boolean isLocalDebug(){
-        String localDebugEnv = System.getProperty(RuntimeEnvironment.LOCALDEBUG_ARG);
-        return StringUtils.isNotEmpty(localDebugEnv) ? Boolean.parseBoolean(localDebugEnv) : false;
-    }
-
     private static final String parseBootNodeHost() {
         if(isMainnet()){
-            return "boot.sharder.io";
+            return "boot.mw.run";
         }else if(isTestnet()){
-            return "testboot.sharder.io";
+            return "testboot.mw.run";
         }
-        return "devboot.sharder.io";
+        return "192.168.0.239";
     }
     
     private static final List<String> parseBootNodesHost() {
        if(isMainnet()){
-           return Lists.newArrayList("boot.sharder.io");
+           return Lists.newArrayList("boot.mw.run");
        }else if(isTestnet()){
-           return Lists.newArrayList("testboot.sharder.io","testna.sharder.io","testnb.sharder.io");
+           return Lists.newArrayList("testboot.mw.run","testna.mw.run","testnb.mw.run");
        }
-       return Lists.newArrayList("devboot.sharder.io");
+       return Lists.newArrayList("192.168.0.239");
     }
     
     
@@ -434,17 +449,10 @@ public final class Constants {
 
     public static final String DATA = "data";
 
-    public static final String STATUS = "status";
-
     public static final String HTTP = "http://";
 
-    public static final String CURLY_BRACES = "{";
-
-    public static final String BRACKET = "[";
-
-    public static final String HOST_FILTER_INFO = "Not valid host! ONLY {} can do this operation!";
-    
     public static final boolean hubLinked = Conch.getBooleanProperty("sharder.HubBind");
     public static final boolean initFromArchivedDbFile = Conch.getBooleanProperty("sharder.initFromArchivedDbFile");
 
+    public static final int HeartBeat_Time = Conch.getIntProperty("sharder.heartBeatTime",5*60*1000);
 }

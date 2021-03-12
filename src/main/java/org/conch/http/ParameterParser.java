@@ -548,7 +548,7 @@ public final class ParameterParser {
     public static long getHoldingId(HttpServletRequest req, HoldingType holdingType) throws ParameterException {
         long holdingId = ParameterParser.getUnsignedLong(req, "holding", holdingType != HoldingType.SS);
         if (holdingType == HoldingType.SS && holdingId != 0) {
-            throw new ParameterException(JSONResponses.incorrect("holding", "holding id should not be specified if holdingType is SS"));
+            throw new ParameterException(JSONResponses.incorrect("holding", "holding id should not be specified if holdingType is native coin"));
         }
         return holdingId;
     }
@@ -609,6 +609,12 @@ public final class ParameterParser {
                 throw new ParameterException(response);
             }
         }
+    }
+
+    public static Appendix getFileHash(HttpServletRequest req) {
+        //TODO 通过上传的文件计算文件hash
+        String hash = "dddddddffffffffffff";
+        return new Appendix.SaveHash(hash);
     }
 
     public static Appendix getPlainMessage(HttpServletRequest req, boolean prunable) throws ParameterException {
@@ -891,7 +897,9 @@ public final class ParameterParser {
         return new Attachment.DataStorageUpload(name, description, type, ssid, channel, existence_height, replicated_number);
     }
 
+
     private ParameterParser() {} // never
+
 
     public static class FileData {
         private final Part part;

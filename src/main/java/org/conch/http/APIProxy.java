@@ -49,10 +49,17 @@ public class APIProxy {
     private final ConcurrentHashMap<String, Integer> blacklistedPeers = new ConcurrentHashMap<>();
 
     static {
+        /**
+         * Add a list of unforwarded requests
+         */
         Set<String> requests = new HashSet<>();
         requests.add("getBlockchainStatus");
         requests.add("getState");
+        requests.add("getUserConfig");
 
+        /**
+         * Categorize requests that are not forwarded by APITag
+         */
         final EnumSet<APITag> notForwardedTags = EnumSet.of(APITag.DEBUG, APITag.NETWORK);
 
         for (APIEnum api : APIEnum.values()) {

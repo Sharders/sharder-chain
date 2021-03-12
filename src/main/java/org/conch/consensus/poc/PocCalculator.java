@@ -1,7 +1,6 @@
 package org.conch.consensus.poc;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.common.Constants;
 import org.conch.consensus.poc.db.PocDb;
@@ -14,16 +13,19 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * PoC calculator instance
+ * PoC calculator instance 
  * @author <a href="mailto:xy@sharder.org">Ben</a>
  * @since 2019-01-29
  */
 public class PocCalculator implements Serializable {
-
+    
     static PocCalculator inst = new PocCalculator();
-
+    
     // poc score converter
-    private static final BigInteger SCORE_MULTIPLIER = BigInteger.valueOf(125000L);
+    private static final BigInteger SCORE_MULTIPLIER = BigInteger.valueOf(1250L);
+
+    // hardware score converter
+    private static final BigInteger HD_SCORE_MULTIPLIER = BigInteger.valueOf(1388L);
 
     // the final poc score should divide the PERCENT_DIVISOR
     private static final BigInteger PERCENT_DIVISOR = BigInteger.valueOf(100L);
@@ -42,6 +44,7 @@ public class PocCalculator implements Serializable {
         return lastPocWeightTable != null ? lastPocWeightTable : PocTxBody.PocWeightTable.defaultPocWeightTable();
     }
 
+
     public static void setCurWeightTable(PocTxBody.PocWeightTable weightTable, int height) {
         inst.pocWeightTable = weightTable;
         inst.lastHeight = height;
@@ -53,7 +56,7 @@ public class PocCalculator implements Serializable {
         }
         return inst.pocWeightTable;
     }
-
+    
     private static BigInteger getWeight(PocTxBody.WeightTableOptions weightTableOptions){
         return BigInteger.valueOf(inst.pocWeightTable.getWeightMap().get(weightTableOptions.getValue()).longValue());
     }
@@ -62,11 +65,16 @@ public class PocCalculator implements Serializable {
         BigInteger ssHoldWeight = getWeight(PocTxBody.WeightTableOptions.SS_HOLD);
         pocScore.ssScore = ssHoldWeight.multiply(pocScore.ssScore).divide(PERCENT_DIVISOR);
     }
-
-
+    
     private static BigInteger predefineNodeTypeLevel(Peer.Type peerType){
        return BigInteger.valueOf(inst.pocWeightTable.getNodeTypeTemplate().get(peerType.getCode()).longValue());
     }
+
+    /**
+     * node type score and hardware score
+     * @param pocScore
+     * @param nodeType
+     */
     static void nodeTypeCal(PocScore pocScore,PocTxBody.PocNodeType nodeType) {
         BigInteger typeScore = BigInteger.ZERO;
         BigInteger typeWeight = getWeight(PocTxBody.WeightTableOptions.NODE_TYPE);
@@ -74,14 +82,20 @@ public class PocCalculator implements Serializable {
             typeScore = typeWeight.multiply(predefineNodeTypeLevel(Peer.Type.FOUNDATION)).multiply(SCORE_MULTIPLIER).divide(PERCENT_DIVISOR);
         } else if (nodeType.getType().equals(Peer.Type.COMMUNITY)) {
             typeScore = typeWeight.multiply(predefineNodeTypeLevel(Peer.Type.COMMUNITY)).multiply(SCORE_MULTIPLIER).divide(PERCENT_DIVISOR);
-        } else if (nodeType.getType().equals(Peer.Type.HUB)) {
-            typeScore = typeWeight.multiply(predefineNodeTypeLevel(Peer.Type.HUB)).multiply(SCORE_MULTIPLIER).divide(PERCENT_DIVISOR);
-        } else if (nodeType.getType().equals(Peer.Type.BOX)) {
-            typeScore = typeWeight.multiply(predefineNodeTypeLevel(Peer.Type.BOX)).multiply(SCORE_MULTIPLIER).divide(PERCENT_DIVISOR);
+        } else if (nodeType.getType().equals(Peer.Type.SOUL)) {
+            typeScore = typeWeight.multiply(predefineNodeTypeLevel(Peer.Type.SOUL)).multiply(SCORE_MULTIPLIER).divide(PERCENT_DIVISOR);
+        } else if (nodeType.getType().equals(Peer.Type.CENTER)) {
+            typeScore = typeWeight.multiply(predefineNodeTypeLevel(Peer.Type.CENTER)).multiply(SCORE_MULTIPLIER).divide(PERCENT_DIVISOR);
         } else if (nodeType.getType().equals(Peer.Type.NORMAL)) {
             typeScore = typeWeight.multiply(predefineNodeTypeLevel(Peer.Type.NORMAL)).multiply(SCORE_MULTIPLIER).divide(PERCENT_DIVISOR);
         }
         pocScore.nodeTypeScore = typeScore;
+
+        // disk calculate
+        if(nodeType instanceof PocTxBody.PocNodeTypeV3){
+            long diskCapacity = ((PocTxBody.PocNodeTypeV3) nodeType).getDiskCapacity();
+            hardwareCal(pocScore, diskCapacity);
+        }
     }
 
     private static BigInteger predefineHardwareLevel(PocTxBody.DeviceLevels deviceLevels){
@@ -106,7 +120,8 @@ public class PocCalculator implements Serializable {
         BigInteger hardwareScore = BigInteger.valueOf(diskCapacity / 1024 / 1024 / 1024);
 
         // disk capacity limit validation
-        if(Conch.getHeight() > Constants.POC_CAL_ALGORITHM) {
+        if(pocScore.getHeight() > Constants.POC_CAL_ALGORITHM
+        || PocProcessorImpl.FORCE_RE_CALCULATE) {
             Double diskCapacityTBD = new Double(diskCapacity) / new Double(ONE_T_IN_KB_UNIT);
             long diskCapacityTB = 0;
             // valid min disk value is 1T, allow 5% precision lose
@@ -125,9 +140,21 @@ public class PocCalculator implements Serializable {
         pocScore.hardwareScore = hardwareWeight.multiply(hardwareScore.multiply(SCORE_MULTIPLIER)).divide(PERCENT_DIVISOR);
     }
 
+    /**
+     * get hardware Capacity, unit = PB
+     * @param hardwareScore
+     * @return
+     */
+    public static String hardwareCapacity(BigInteger hardwareScore) {
+        BigInteger hardwareWeight = getWeight(PocTxBody.WeightTableOptions.HARDWARE_CONFIG);
+        Long hardwareCapacity = hardwareScore.multiply(PERCENT_DIVISOR).divide(SCORE_MULTIPLIER).divide(hardwareWeight).longValue();
+        String format = String.format("%.3f", hardwareCapacity / 1024.00f);
+        return format + " PB";
+    }
+
     static void nodeConfCal(PocScore pocScore, PocTxBody.PocNodeConf nodeConf) {
 
-        BigInteger serverScore = BigInteger.ZERO, hardwareScore = BigInteger.ZERO , networkScore = BigInteger.ZERO , performanceScore = BigInteger.ZERO;
+        BigInteger serverScore = BigInteger.ZERO, networkScore = BigInteger.ZERO , performanceScore = BigInteger.ZERO;
         BigInteger serverWeight = getWeight(PocTxBody.WeightTableOptions.SERVER_OPEN);
         Long[] openedServices = nodeConf.getSystemInfo().getOpenServices();
         if (openedServices != null && openedServices.length > 0) {
@@ -139,16 +166,6 @@ public class PocCalculator implements Serializable {
             }
             pocScore.serverScore = serverScore.multiply(serverWeight).multiply(SCORE_MULTIPLIER).divide(PERCENT_DIVISOR);
         }
-
-        BigInteger hardwareWeight = getWeight(PocTxBody.WeightTableOptions.HARDWARE_CONFIG);
-        if (nodeConf.getSystemInfo().getCore() >= 8 && nodeConf.getSystemInfo().getAverageMHz() >= 3600 && nodeConf.getSystemInfo().getMemoryTotal() >= 15 && nodeConf.getSystemInfo().getHardDiskSize() >= 10 * 1000) {
-            hardwareScore = predefineHardwareLevel(PocTxBody.DeviceLevels.GOOD);
-        } else if (nodeConf.getSystemInfo().getCore() >= 4 && nodeConf.getSystemInfo().getAverageMHz() >= 3100 && nodeConf.getSystemInfo().getMemoryTotal() >= 7 && nodeConf.getSystemInfo().getHardDiskSize() >= 1000) {
-            hardwareScore = predefineHardwareLevel(PocTxBody.DeviceLevels.MIDDLE);
-        } else if (nodeConf.getSystemInfo().getCore() >= 2 && nodeConf.getSystemInfo().getAverageMHz() >= 2400 && nodeConf.getSystemInfo().getMemoryTotal() >= 3 && nodeConf.getSystemInfo().getHardDiskSize() >= 100) {
-            hardwareScore = predefineHardwareLevel(PocTxBody.DeviceLevels.BAD);
-        }
-        pocScore.hardwareScore = hardwareWeight.multiply(hardwareScore.multiply(SCORE_MULTIPLIER)).divide(PERCENT_DIVISOR);
 
         BigInteger networkWeight = getWeight(PocTxBody.WeightTableOptions.NETWORK_CONFIG);
         if (nodeConf.getSystemInfo().isHadPublicIp()) {
@@ -179,7 +196,7 @@ public class PocCalculator implements Serializable {
     private static BigInteger predefineOnlineRateLevel(Peer.Type peerType,PocTxBody.OnlineStatusDef statusDef){
         return BigInteger.valueOf(inst.pocWeightTable.getOnlineRateTemplate().get(peerType.getCode()).get(statusDef.getValue()));
     }
-
+    
     static void onlineRateCal(PocScore pocScore,Peer.Type nodeType, PocTxBody.PocOnlineRate onlineRate) {
         BigInteger onlineRateScore = BigInteger.ZERO;
 
@@ -199,13 +216,13 @@ public class PocCalculator implements Serializable {
             } else if (onlineRate.getNetworkRate() < 9000) {
                 onlineRateScore = predefineOnlineRateLevel(Peer.Type.COMMUNITY,PocTxBody.OnlineStatusDef.FROM_00_00_TO_90_00);
             }
-        } else if (nodeType.equals(Peer.Type.HUB) || nodeType.equals(Peer.Type.BOX)) {
+        } else if (nodeType.equals(Peer.Type.SOUL) || nodeType.equals(Peer.Type.CENTER)) {
             if (onlineRate.getNetworkRate() >= 9900) {
-                onlineRateScore = predefineOnlineRateLevel(Peer.Type.HUB,PocTxBody.OnlineStatusDef.FROM_99_00_TO_100);
+                onlineRateScore = predefineOnlineRateLevel(Peer.Type.SOUL,PocTxBody.OnlineStatusDef.FROM_99_00_TO_100);
             } else if (onlineRate.getNetworkRate() >= 9700) {
-                onlineRateScore = predefineOnlineRateLevel(Peer.Type.HUB,PocTxBody.OnlineStatusDef.FROM_97_00_TO_100);
+                onlineRateScore = predefineOnlineRateLevel(Peer.Type.SOUL,PocTxBody.OnlineStatusDef.FROM_97_00_TO_100);
             } else if (onlineRate.getNetworkRate() < 9000) {
-                onlineRateScore = predefineOnlineRateLevel(Peer.Type.HUB,PocTxBody.OnlineStatusDef.FROM_00_00_TO_90_00);
+                onlineRateScore = predefineOnlineRateLevel(Peer.Type.SOUL,PocTxBody.OnlineStatusDef.FROM_00_00_TO_90_00);
             }
         } else if (nodeType.equals(Peer.Type.NORMAL)) {
             if (onlineRate.getNetworkRate() >= 9700) {
@@ -218,11 +235,11 @@ public class PocCalculator implements Serializable {
     }
 
     static Map<Long,Integer> missBlockMap = new HashMap<>();
-
+    
     private static BigInteger predefineblockMissLevel(PocTxBody.DeviceLevels deviceLevels){
         return BigInteger.valueOf(inst.pocWeightTable.getGenerationMissingTemplate().get(deviceLevels.getLevel()).longValue());
     }
-
+    
     static void blockMissCal(PocScore pocScore,PocTxBody.PocGenerationMissing blockMiss) {
         Long accountId = pocScore.accountId;
         Integer missCount = 0;

@@ -46,7 +46,7 @@ public final class Db {
     }
 
     public static void shutdown() {
-        db.shutdown();
+        db.shutdown("COMPACT");
     }
 
     private Db() {} // never
@@ -56,7 +56,7 @@ public final class Db {
     }
 
     public static String getName() {
-        return Constants.isTestnetOrDevnet() ? "sharder_test_db" : "sharder_db";
+        return Constants.isTestnetOrDevnet() ? "mw_test_db" : "mw_db";
     }
 
 }

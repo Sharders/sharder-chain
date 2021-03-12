@@ -83,7 +83,7 @@ public final class APIServlet extends HttpServlet {
 
         protected abstract JSONStreamAware processRequest(HttpServletRequest request) throws ConchException;
 
-        protected JSONStreamAware processRequest(HttpServletRequest request, HttpServletResponse response) throws ConchException {
+        protected JSONStreamAware processRequest(HttpServletRequest request, HttpServletResponse response) throws ConchException, IOException {
             return processRequest(request);
         }
 

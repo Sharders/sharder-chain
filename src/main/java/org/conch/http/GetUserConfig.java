@@ -95,7 +95,7 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
             String nodeType = Conch.getNodeType();
             String serialNum = Conch.getSerialNum();
 
-            Logger.logDebugMessage("current os is %s, node type is %s, serial is %s", SystemUtils.OS_NAME, nodeType, (StringUtils.isEmpty(serialNum) ? "null" : serialNum));
+            Logger.logDebugMessage("Current os is %s, node type is %s, serial is %s", SystemUtils.OS_NAME, nodeType, (StringUtils.isEmpty(serialNum) ? "null" : serialNum));
             response.put("sharder.NodeType", nodeType);
             response.put("sharder.phase", Conch.STAGE);
             response.put("sharder.xxx", serialNum);
@@ -128,5 +128,10 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
     @Override
     protected boolean requireBlockchain() {
         return false;
+    }
+
+    @Override
+    protected boolean startDbTransaction() {
+        return true;
     }
 }

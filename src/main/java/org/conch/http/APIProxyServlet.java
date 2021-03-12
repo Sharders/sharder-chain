@@ -70,6 +70,7 @@ public final class APIProxyServlet extends AsyncMiddleManServlet {
                 return;
             }
             MultiMap<String> parameters = getRequestParameters(request);
+
             String requestType = getRequestType(parameters);
             if (APIProxy.isActivated() && isForwardable(requestType)) {
                 if (parameters.containsKey("secretPhrase") || parameters.containsKey("adminPassword") || parameters.containsKey("sharedKey")) {
@@ -174,6 +175,7 @@ public final class APIProxyServlet extends AsyncMiddleManServlet {
         } else {
             Peer servingPeer = APIProxy.getInstance().getServingPeer(requestType);
             if (servingPeer == null) {
+                Logger.logDebugMessage("Get Serving peer fail");
                 return false;
             }
             uri = servingPeer.getPeerApiUri();

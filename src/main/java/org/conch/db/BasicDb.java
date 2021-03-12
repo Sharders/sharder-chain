@@ -23,6 +23,7 @@ package org.conch.db;
 
 import org.conch.Conch;
 import org.conch.common.Constants;
+import org.conch.util.LocalDebugTool;
 import org.conch.util.Logger;
 import org.h2.jdbcx.JdbcConnectionPool;
 
@@ -117,7 +118,8 @@ public class BasicDb {
     public BasicDb(DbProperties dbProperties) {
         long maxCacheSize = dbProperties.maxCacheSize;
         if (maxCacheSize == 0) {
-            maxCacheSize = Math.min(256, Math.max(16, (Runtime.getRuntime().maxMemory() / (1024 * 1024) - 128)/2)) * 1024;
+            maxCacheSize =
+                    Math.min(256, Math.max(16, (Runtime.getRuntime().maxMemory() / (1024 * 1024) - 128) / 2)) * 1024;
         }
         String dbUrl = dbProperties.dbUrl;
         if (dbUrl == null) {
@@ -156,7 +158,14 @@ public class BasicDb {
         initialized = true;
     }
 
-    public void shutdown() {
+    /**
+     * IMMEDIATELY
+     * COMPACT
+     * DEFRAG
+     *
+     * @param mode
+     */
+    public void shutdown(String mode) {
         if (!initialized) {
             return;
         }
@@ -164,7 +173,7 @@ public class BasicDb {
             FullTextTrigger.setActive(false);
             Connection con = cp.getConnection();
             Statement stmt = con.createStatement();
-            stmt.execute("SHUTDOWN COMPACT");
+            stmt.execute("SHUTDOWN " + mode);
             Logger.logShutdownMessage("Database shutdown completed");
         } catch (SQLException e) {
             Logger.logShutdownMessage(e.toString(), e);
@@ -182,56 +191,67 @@ public class BasicDb {
 
     public Connection getConnection() throws SQLException {
         Connection con = getPooledConnection();
+        if (con == null && LocalDebugTool.isLocalDebug()) {
+            throw new IllegalStateException("Connection pool is overflowed");
+        }
         con.setAutoCommit(true);
         return con;
     }
-    
-    public int getActiveCount(){
+
+    public int getActiveCount() {
         return cp.getActiveConnections();
     }
-    
+
     private static int exceedMaxCount = 0;
-    private static final int RESTART_COUNT = Constants.isDevnet() ? 10 : 500;
-    private static int predefinedMaxDbConnections = Conch.getIntProperty("sharder.maxDbConnections");
-    private static boolean debugDetail = false;
-    protected Connection getPooledConnection() throws SQLException {
+    private static final int RESTART_COUNT = Constants.isDevnet() ? 10 : 30;
+    private static final int MAX_DB_CONNECTIONS = Conch.getIntProperty("sharder.maxDbConnections");
+    private static final boolean DEBUG_DETAIL = Conch.getBooleanProperty("sharder.debugStackAtAcquireCon", false);
+
+    protected Connection getPooledConnection() {
         Connection con = null;
         try {
+            if (exceedMaxConnections()) {
+                Logger.logDebugMessage("Current active db connection pool size is %d larger than max size %d",
+                        maxActiveConnections, MAX_DB_CONNECTIONS);
+
+                if(LocalDebugTool.isLocalDebug()){
+                    return null;
+                }
+                checkAndRestart();
+            }
             con = cp.getConnection();
             int activeConnections = cp.getActiveConnections();
             if (activeConnections > maxActiveConnections) {
                 maxActiveConnections = activeConnections;
-                Logger.logDebugMessage("Database connection pool current size " + activeConnections + " is larger than max size " + maxActiveConnections);
-
-                if (Logger.isLevel(Logger.Level.DEBUG)) {
-                    String stacks = String.format("Stacks as following[conn size=%d]\n\r", activeConnections);
-                    String stacksDetails = "";
-                    for (StackTraceElement ele : Thread.currentThread().getStackTrace()) {
-                        stacksDetails += "[DEBUG] stack in getPooledConnection=> " + ele.getClassName() + "$" + ele.getMethodName() + "$" + ele.getFileName() + "#" + ele.getLineNumber() + "\n";
-                    }
-                    Logger.logWarningMessage(stacks);
-                    if(debugDetail) {
-                        Logger.logDebugMessage(stacksDetails);
-                    }
+                Logger.logDebugMessage("Active db connection pool size is %d after acquire a new connection into pool" +
+                                ". You can see stack detail in the 'warn.log'.",
+                        maxActiveConnections);
+                if (Logger.isLevel(Logger.Level.DEBUG)
+                        && DEBUG_DETAIL) {
+                    String stacks = String.format("Acquire stacks(active conn size=%d) \n", activeConnections);
+                    Logger.logWarningMessage(stacks + Logger.callStack());
                 }
             }
 
 
-            if (maxActiveConnections >= predefinedMaxDbConnections) {
-                checkAndRestart();
-            }
-            
-        } catch(Exception e){
+        } catch (Exception e) {
             Logger.logErrorMessage("can't get connection from pool caused by " + e.getMessage());
             checkAndRestart();
         }
-       
+
         return con;
     }
-    
-    private static void checkAndRestart(){
+
+    private boolean exceedMaxConnections() {
+        return maxActiveConnections >= MAX_DB_CONNECTIONS;
+    }
+
+    private static void checkAndRestart() {
         if (exceedMaxCount++ > RESTART_COUNT) {
-            Logger.logErrorMessage(String.format("exceed max connections[%d] %d times, restart the COS to temporary fix this problem", predefinedMaxDbConnections, RESTART_COUNT));
+            String msg = String.format("Exceed max connections[%d] %d times, restart the COS to temporary " +
+                    "fix this problem", MAX_DB_CONNECTIONS, RESTART_COUNT);
+            Logger.logWarningMessage(msg);
+            Logger.logErrorMessage(msg);
             new Thread(() -> Conch.restartApplication(null)).start();
             exceedMaxCount = 0;
         }

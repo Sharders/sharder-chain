@@ -80,11 +80,11 @@ public final class Recovery extends APIServlet.APIRequestHandler {
         try {
             
             if(TYPE_RESET.equalsIgnoreCase(type)){
-                reset(restart);
+                ClientUpgradeTool.restoreDbToLastArchive(true, true);
             }else if(TYPE_FACTORY_RESET.equalsIgnoreCase(type)){
                 factoryReset(restart);
             }else{
-                reset(restart);
+                ClientUpgradeTool.restoreDbToLastArchive(true, true);
             }
 
         } catch (Exception e) {
@@ -95,16 +95,6 @@ public final class Recovery extends APIServlet.APIRequestHandler {
 
         response.put("done", true);
         return response;
-    }
-    
-    /**
-     * - rollback the blockchain to the last db archive
-     */
-    private void reset(boolean reboot) {
-//        HashMap<String, String> paramMap = Maps.newHashMap();
-////        paramMap.put(ForceConverge.PROPERTY_SWITCH_TO_BOOT_FORK, "true");
-//        Conch.resetAndReboot(paramMap, reboot);
-        ClientUpgradeTool.restoreDbToLastArchive(true, true);
     }
 
     /**

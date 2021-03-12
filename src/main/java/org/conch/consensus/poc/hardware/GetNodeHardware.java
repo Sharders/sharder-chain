@@ -39,7 +39,7 @@ public class GetNodeHardware {
      * @param unitType
      * @return
      */
-    private static long convertToUnit(long val, int unitType){
+    public static long convertToUnit(long val, int unitType){
         switch(unitType){
             case DISK_UNIT_TYPE_GB:
                 return val / 1024L / 1024L;
@@ -167,7 +167,7 @@ public class GetNodeHardware {
                 return true;
         }
     }
-
+    
     public static SystemInfo network(SystemInfo systemInfo) throws Exception {
         Sigar sigar = new Sigar();
 
@@ -249,7 +249,7 @@ public class GetNodeHardware {
         int port = Conch.addressPort(myAddress);
         String bindRs = Optional.ofNullable(Generator.getAutoMiningRS())
                 .orElseThrow(() -> new ConchException.NotValidException("Current Hub's linked address is null"));
-
+        
         if (StringUtils.isEmpty(Conch.getNodeType())) {
             //don't report
             return null;
@@ -298,7 +298,7 @@ public class GetNodeHardware {
     public static Boolean report(SystemInfo systemInfo) {
         try{
             if(systemInfo == null) return false;
-
+            
             RestfulHttpClient.HttpResponse response = RestfulHttpClient.getClient(NODE_CONFIG_REPORT_URL)
                     .post()
                     .body(systemInfo)

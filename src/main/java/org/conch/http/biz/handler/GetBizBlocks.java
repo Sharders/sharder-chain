@@ -52,16 +52,16 @@ public final class GetBizBlocks extends APIServlet.APIRequestHandler {
     public static final GetBizBlocks instance = new GetBizBlocks();
 
     private GetBizBlocks() {
-        super(new APITag[] {APITag.BIZ}, "firstIndex", "lastIndex", "includeTypes");
+        super(new APITag[]{APITag.BIZ}, "firstIndex", "lastIndex", "includeTypes");
     }
 
     @Override
     protected JSONStreamAware processRequest(HttpServletRequest req) throws ConchException {
         int firstIndex = ParameterParser.getFirstIndex(req);
         int lastIndex = ParameterParser.getLastIndex(req);
-        String includeType  = Convert.emptyToNull(req.getParameter("includeTypes"));
+        String includeType = Convert.emptyToNull(req.getParameter("includeTypes"));
         Logger.logDebugMessage("GetBizBlocks firstIndex=%d, lastIndex=%d, includeType=%s", firstIndex, lastIndex, includeType);
-        if (includeType == null && lastIndex-firstIndex > 500) {
+        if (includeType == null && lastIndex - firstIndex > 500) {
             throw new ParameterException(BIZ_INCORRECT_INDEX);
         }
         final int timestamp = ParameterParser.getTimestamp(req);
@@ -82,23 +82,31 @@ public final class GetBizBlocks extends APIServlet.APIRequestHandler {
                     if (transactionList.size() <= 0) {
                         continue;
                     }
+
+                    JSONObject blockJson = JSONData.block(block, true, false);
+                    blockJson = JSONData.appendSpecifiedTxsBefore(transactionList, blockJson);
+
+                    blocks.add(blockJson);
+                } else {
+                    JSONObject blockJson = JSONData.block(block, true, false);
+                    blocks.add(blockJson);
                 }
-                JSONObject blockJson = JSONData.block(block, true, false);
-                blocks.add(blockJson);
             }
-        }finally {
+        } finally {
             DbUtils.close(iterator);
         }
         JSONArray response = new JSONArray();
         ObjectMapper mapper = new ObjectMapper();
         try {
-            String dtrJson = mapper.writeValueAsString(mapper.readValue(blocks.toJSONString(),new TypeReference<ArrayList<org.conch.http.biz.domain.Block>>(){}));
-            ArrayList list = mapper.readValue(dtrJson, new TypeReference<List<Map<String, Object>>>(){});
+            String dtrJson = mapper.writeValueAsString(mapper.readValue(blocks.toJSONString(), new TypeReference<ArrayList<org.conch.http.biz.domain.Block>>() {
+            }));
+            ArrayList list = mapper.readValue(dtrJson, new TypeReference<List<Map<String, Object>>>() {
+            });
             response.addAll(list);
         } catch (IOException e) {
-            if(Logger.isLevel(Logger.Level.DEBUG)) {
+            if (Logger.isLevel(Logger.Level.DEBUG)) {
                 Logger.logErrorMessage("can't parse blocks data structure in GetBizBlocks api processing", e);
-            }else{
+            } else {
                 Logger.logErrorMessage("can't parse blocks data structure in GetBizBlocks api processing");
             }
             return JSONResponses.BIZ_JSON_IO_ERROR;

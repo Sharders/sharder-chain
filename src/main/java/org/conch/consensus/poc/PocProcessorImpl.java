@@ -1,5 +1,6 @@
 package org.conch.consensus.poc;
 
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -8,12 +9,10 @@ import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.chain.*;
 import org.conch.common.Constants;
-import org.conch.consensus.genesis.GenesisRecipient;
 import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.consensus.poc.db.PocDb;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.consensus.poc.tx.PocTxWrapper;
-import org.conch.consensus.reward.RewardCalculator;
 import org.conch.db.Db;
 import org.conch.db.DbIterator;
 import org.conch.db.DbUtils;
@@ -24,10 +23,14 @@ import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionImpl;
 import org.conch.tx.TransactionType;
+import org.conch.util.Convert;
 import org.conch.util.LocalDebugTool;
 import org.conch.util.Logger;
 import org.conch.util.ThreadPool;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -50,10 +53,7 @@ public class PocProcessorImpl implements PocProcessor {
      **/
 
     public static PocProcessorImpl instance = getOrCreate();
-    //    private static final int peerSynThreadInterval = 600;
-    private static final int pocTxSynThreadInterval = 60;
-
-    private static final String LOCAL_STORAGE_POC_CALCULATOR = "StoredPocCalculator";
+    private static final int pocTxSynThreadInterval = 4 * 60;
 
     // height : { accountId : account }
     private static Map<Integer, Map<Long, Account>> balanceChangedMap = Maps.newConcurrentMap();
@@ -70,7 +70,7 @@ public class PocProcessorImpl implements PocProcessor {
      * the potential logic is: received Account.Event.BALANCE firstly, then received Event.AFTER_BLOCK_ACCEPT
      * @param height
      */
-    private static synchronized void balanceChangeMapProcessing(int height){
+    private synchronized void balanceChangeMapProcessing(int height){
         boolean someAccountBalanceChanged = balanceChangedMap.containsKey(height) && balanceChangedMap.get(height).size() > 0;
         if (someAccountBalanceChanged) {
             for (Account account : balanceChangedMap.get(height).values()) {
@@ -103,154 +103,127 @@ public class PocProcessorImpl implements PocProcessor {
     /**
      * NOTE: the follow method can be removed after the snapshot function released
      *
-     * re-calculate when height exceed the poc change height 'Constants.POC_MW_POC_SCORE_CHANGE_HEIGHT'
+     * re-calculate when height exceed the poc change height
      * holding score algo. change to use the effective balance as the ; re-calculate the hardware and holding score
      *
      * @param height
      */
     // Force to use the new algo. to calculate: correct the 0 score
-    // and not limited hardware score at Constants.POC_MW_POC_SCORE_CHANGE_HEIGHT
+    // and not limited hardware score at the poc change height
     public static boolean FORCE_RE_CALCULATE = false;
-    private static synchronized void reCalculateWhenExceedPocAlgoChangeHeight(int height){
-        if(height == Constants.POC_SCORE_CHANGE_HEIGHT + 1) {
-            int reCalCount = 0;
-            try{
-                FORCE_RE_CALCULATE = true;
-                Logger.logInfoMessage("Exceed the poc score change height " + (Constants.POC_SCORE_CHANGE_HEIGHT +1)
-                        + ", start to re-calculate the poc score of miners");
-
-                Map<Long,TransactionImpl> pocTxMap = Maps.newConcurrentMap();
-                // load the null recipient poc txs
-                DbIterator<TransactionImpl> oldPocTxsIterator = null;
-                Connection con = null;
-                try {
-                    con = Db.db.getConnection();
-                    PreparedStatement pstmt = con.prepareStatement("SELECT * FROM transaction WHERE height <= " + Constants.POC_TX_ALLOW_RECIPIENT
-                            +  " AND sender_id=" + GenesisRecipient.POC_TX_CREATOR_ID
-                            +  " AND type=" + TransactionType.TYPE_POC
-                            +  " AND subtype=" + PocTxWrapper.SUBTYPE_POC_NODE_TYPE
-                            +  " ORDER BY block_timestamp ASC, transaction_index ASC");
-
-                    oldPocTxsIterator = (DbIterator<TransactionImpl>)Conch.getBlockchain().getTransactions(con, pstmt);
-                    while (oldPocTxsIterator.hasNext()) {
-                        TransactionImpl txImpl = oldPocTxsIterator.next();
-                        Attachment attachment = txImpl.getAttachment();
-                        if(PocTxWrapper.SUBTYPE_POC_NODE_TYPE == attachment.getTransactionType().getSubtype()) {
-                            long accountIdOfAttachment = -1L;
-                            if(attachment instanceof PocTxBody.PocNodeTypeV3){
-                                accountIdOfAttachment = ((PocTxBody.PocNodeTypeV3) attachment).getAccountId();
-                            }else if(attachment instanceof PocTxBody.PocNodeTypeV2){
-                                accountIdOfAttachment = ((PocTxBody.PocNodeTypeV2) attachment).getAccountId();
-                            }
-
-                            if(accountIdOfAttachment != -1L) {
-                                pocTxMap.put(accountIdOfAttachment, txImpl);
-                            }
-                        }
-                    }
-                } finally {
-                    DbUtils.close(oldPocTxsIterator);
-                }
-
-                // genesis txs process
-                SharderGenesis.nodeTypeTxs().forEach(tx -> {
-                    tx.setIndex(0);
-                    // Poc statement(PoC Node Type Tx)
-                    if(TransactionType.TYPE_POC == tx.getType().getType()) {
-                        Attachment attachment = tx.getAttachment();
-                        if(PocTxWrapper.SUBTYPE_POC_NODE_TYPE == attachment.getTransactionType().getSubtype()) {
-                            long accountIdOfAttachment = -1L;
-                            if(attachment instanceof PocTxBody.PocNodeTypeV3){
-                                accountIdOfAttachment = ((PocTxBody.PocNodeTypeV3) attachment).getAccountId();
-                            }else if(attachment instanceof PocTxBody.PocNodeTypeV2){
-                                accountIdOfAttachment = ((PocTxBody.PocNodeTypeV2) attachment).getAccountId();
-                            }
-
-                            if(accountIdOfAttachment != -1L) {
-                                pocTxMap.put(accountIdOfAttachment, tx);
-                            }
-                        }
-                    }
-                });
-
-                // load the old right recipient poc txs
-                DbIterator<TransactionImpl> pocTxsIterator = null;
-                con = null;
-                try {
-                    con = Db.db.getConnection();
-                    PreparedStatement pstmt = con.prepareStatement("SELECT * FROM transaction WHERE height > " + Constants.POC_TX_ALLOW_RECIPIENT
-                            +  " AND type=" + TransactionType.TYPE_POC
-                            +  " AND subtype=" + PocTxWrapper.SUBTYPE_POC_NODE_TYPE
-                            +  " ORDER BY block_timestamp ASC, transaction_index ASC");
-
-                    pocTxsIterator = (DbIterator<TransactionImpl>)Conch.getBlockchain().getTransactions(con, pstmt);
-//                   pocTxsIterator = Conch.getBlockchain().getTransactions(GenesisRecipient.POC_TX_CREATOR_ID, TransactionType.TYPE_POC, false, 0, Integer.MAX_VALUE, Constants.POC_MW_POC_SCORE_CHANGE_HEIGHT);
-                    while (pocTxsIterator.hasNext()) {
-                        TransactionImpl txImpl = pocTxsIterator.next();
-                        Long statementAccountId = txImpl.getRecipientId();
-                        pocTxMap.put(statementAccountId, txImpl);
-                    }
-                } finally {
-                    DbUtils.close(pocTxsIterator);
-                }
-
-                // re-calculate the hardware and holding score
-                Set<Long> accountIds = PocHolder.inst.scoreMap.keySet();
-                for(Long accountId : accountIds){
-                    PocScore scoreToReCalculation = PocHolder.inst.scoreMap.get(accountId);
-                    if(scoreToReCalculation != null) {
-                        scoreToReCalculation.ssCal();
-                    }
-
-                    if(pocTxMap.containsKey(accountId)){
-                        TransactionImpl txImpl = pocTxMap.get(accountId);
-                        PocTxBody.PocNodeTypeV2 nodeTypeV2 = null;
-                        PocTxBody.PocNodeTypeV3 nodeTypeV3 = null;
-                        Attachment attachment = txImpl.getAttachment();
-                        if(attachment instanceof PocTxBody.PocNodeTypeV3){
-                            nodeTypeV3 = (PocTxBody.PocNodeTypeV3) attachment;
-                        }
-                        else if(nodeTypeV3 == null && attachment instanceof PocTxBody.PocNodeTypeV2){
-                            nodeTypeV2 = (PocTxBody.PocNodeTypeV2) attachment;
-                        }
-                        else if(nodeTypeV2 == null && attachment instanceof PocTxBody.PocNodeType) {
-                            PocTxBody.PocNodeType nodeType = (PocTxBody.PocNodeType) attachment;
-                            nodeTypeV2 = CheckSumValidator.isPreAccountsInTestnet(nodeType.getIp(), height);
-                        }
-
-                        scoreToReCalculation.nodeTypeCal(nodeTypeV3 != null ? nodeTypeV3 : nodeTypeV2);
-                    }else{
-                        // change the certified peer type to normal if found the certified peer
-                        scoreToReCalculation.hardwareScore = BigInteger.ZERO;
-                        scoreToReCalculation.nodeTypeScore = BigInteger.ZERO;
-
-                        CertifiedPeer certifiedPeer = PocHolder.getBoundPeer(accountId, height);
-                        if(certifiedPeer != null) {
-                            certifiedPeer.setType(Peer.Type.NORMAL);
-                            PocHolder.addOrUpdateCertifiedPeer(height, Peer.Type.NORMAL, certifiedPeer.getHost(), accountId);
-                        }
-                    }
-
-                    // save the new poc score into db
-                    PocHolder.saveOrUpdate(scoreToReCalculation.setHeight(height));
-                    reCalCount++;
-                }
-            }catch(Exception e){
-                Logger.logErrorMessage("Occur exception in the poc score reprocessing", e);
-            }finally {
-                FORCE_RE_CALCULATE = false;
-            }
-            Logger.logInfoMessage("Finish the " + reCalCount  + " re-calculation of the poc score of miners at height " + (Constants.POC_SCORE_CHANGE_HEIGHT +1));
+    private synchronized void reCalculateWhenExceedPocAlgoChangeHeight(int height){
+        if(Constants.POC_SCORE_CHANGE_HEIGHT == -1){
+//            Logger.logDebugMessage("Constants.POC_SCORE_CHANGE_HEIGHT is -1, don't force to re-calculate the poc score");
+           return;
         }
+
+       if(height == Constants.POC_SCORE_CHANGE_HEIGHT + 1) {
+           int reCalCount = 0;
+           try{
+               FORCE_RE_CALCULATE = true;
+               Logger.logInfoMessage("Exceed the poc score change height " + (Constants.POC_SCORE_CHANGE_HEIGHT +1)
+                               + ", start to re-calculate the poc score of miners");
+
+               Map<Long,TransactionImpl> pocTxMap = Maps.newConcurrentMap();
+
+               // genesis txs process
+               SharderGenesis.nodeTypeTxs().forEach(tx -> {
+                   tx.setIndex(0);
+                   // Poc statement(PoC Node Type Tx)
+                   if(TransactionType.TYPE_POC == tx.getType().getType()) {
+                       Attachment attachment = tx.getAttachment();
+                       if(PocTxWrapper.SUBTYPE_POC_NODE_TYPE == attachment.getTransactionType().getSubtype()) {
+                           long accountIdOfAttachment = -1L;
+                           if(attachment instanceof PocTxBody.PocNodeTypeV3){
+                               accountIdOfAttachment = ((PocTxBody.PocNodeTypeV3) attachment).getAccountId();
+                           }else if(attachment instanceof PocTxBody.PocNodeTypeV2){
+                               accountIdOfAttachment = ((PocTxBody.PocNodeTypeV2) attachment).getAccountId();
+                           }
+
+                           if(accountIdOfAttachment != -1L) {
+                               pocTxMap.put(accountIdOfAttachment, tx);
+                           }
+                       }
+                   }
+               });
+
+               // load the recipient poc txs
+               DbIterator<TransactionImpl> pocTxsIterator = null;
+               Connection con = null;
+               try {
+                   con = Db.db.getConnection();
+                   PreparedStatement pstmt = con.prepareStatement("SELECT * FROM transaction where type=" + TransactionType.TYPE_POC
+                           +  " AND subtype=" + PocTxWrapper.SUBTYPE_POC_NODE_TYPE
+                           +  " ORDER BY block_timestamp ASC, transaction_index ASC");
+
+                   pocTxsIterator = (DbIterator<TransactionImpl>)Conch.getBlockchain().getTransactions(con, pstmt);
+                   while (pocTxsIterator.hasNext()) {
+                       TransactionImpl txImpl = pocTxsIterator.next();
+                       Long statementAccountId = txImpl.getRecipientId();
+                       pocTxMap.put(statementAccountId, txImpl);
+                   }
+               } finally {
+                   DbUtils.close(pocTxsIterator);
+               }
+
+              // re-calculate the hardware and holding score
+              Set<Long> accountIds = PocHolder.inst.scoreMap.keySet();
+              for(Long accountId : accountIds){
+                  PocScore scoreToReCalculation = PocHolder.inst.scoreMap.get(accountId);
+                  if(scoreToReCalculation != null) {
+                      scoreToReCalculation.ssCal();
+                  }
+
+                  if(pocTxMap.containsKey(accountId)){
+                      TransactionImpl txImpl = pocTxMap.get(accountId);
+                      PocTxBody.PocNodeTypeV2 nodeTypeV2 = null;
+                      PocTxBody.PocNodeTypeV3 nodeTypeV3 = null;
+                      Attachment attachment = txImpl.getAttachment();
+                      if(attachment instanceof PocTxBody.PocNodeTypeV3){
+                          nodeTypeV3 = (PocTxBody.PocNodeTypeV3) attachment;
+                      }
+                      else if(nodeTypeV3 == null && attachment instanceof PocTxBody.PocNodeTypeV2){
+                          nodeTypeV2 = (PocTxBody.PocNodeTypeV2) attachment;
+                      }
+                      else if(nodeTypeV2 == null && attachment instanceof PocTxBody.PocNodeType) {
+                          PocTxBody.PocNodeType nodeType = (PocTxBody.PocNodeType) attachment;
+                          nodeTypeV2 = CheckSumValidator.isPreAccountsInTestnet(nodeType.getIp(), height);
+                      }
+
+                      scoreToReCalculation.nodeTypeCal(nodeTypeV3 != null ? nodeTypeV3 : nodeTypeV2);
+                  }else{
+                      // change the certified peer type to normal if found the certified peer
+                      scoreToReCalculation.hardwareScore = BigInteger.ZERO;
+                      scoreToReCalculation.nodeTypeScore = BigInteger.ZERO;
+
+                      CertifiedPeer certifiedPeer = PocHolder.getBoundPeer(accountId, height);
+                      if(certifiedPeer != null) {
+                          certifiedPeer.setType(Peer.Type.NORMAL);
+                          PocHolder.addOrUpdateCertifiedPeer(height, Peer.Type.NORMAL, certifiedPeer.getHost(), accountId);
+                      }
+                  }
+
+                  // save the new poc score into db
+                  PocHolder.saveOrUpdate(scoreToReCalculation.setHeight(height));
+                  reCalCount++;
+              }
+           }catch(Exception e){
+                Logger.logErrorMessage("Occur exception in the poc score reprocessing", e);
+           }finally {
+               FORCE_RE_CALCULATE = false;
+           }
+           Logger.logInfoMessage("Finish the " + reCalCount  + " re-calculation of the poc score of miners at height " + (Constants.POC_SCORE_CHANGE_HEIGHT +1));
+       }
     }
 
     static {
         // new block accepted
         Conch.getBlockchainProcessor().addListener((Block block) -> {
             // balance hold score re-calculate
-            balanceChangeMapProcessing(block.getHeight());
+            instance.balanceChangeMapProcessing(block.getHeight());
             instance.pocSeriesTxProcess(block);
-            reCalculateWhenExceedPocAlgoChangeHeight(block.getHeight());
+            instance.reCalculateWhenExceedPocAlgoChangeHeight(block.getHeight());
+            instance.syncHistoryData(block.getHeight());
         }, BlockchainProcessor.Event.AFTER_BLOCK_ACCEPT);
 
         // balance changed event
@@ -271,6 +244,136 @@ public class PocProcessorImpl implements PocProcessor {
 //        instance.loadFromDisk();
     }
 
+    private void syncHistoryData(int height){
+        if (!Constants.SYNC_BUTTON) {
+            return;
+        }
+
+        boolean reachSyncHeight = height > 0 && height % Constants.SYNC_BLOCK_NUM == 0;
+        if (!reachSyncHeight && !Constants.MANUAL_SYNC_BUTTON) {
+            Logger.logDebugMessage("Dont't sync cache and history tables till height exceed" +
+                    "[current height=%d, sync step=%d]", height, Constants.SYNC_BLOCK_NUM);
+            return;
+        }
+
+        Logger.logInfoMessage("Start to sync cache and history tables at height %d", height);
+        boolean openNewDbTx = false;
+        Connection con = null;
+        try {
+            if (!Db.db.isInTransaction()) {
+                con = Db.db.beginTransaction();
+                openNewDbTx = true;
+            } else {
+                con = Db.db.getConnection();
+            }
+            long t1 = System.currentTimeMillis();
+            Account.syncAccountTable(con, "ACCOUNT", "ACCOUNT_CACHE", Constants.SYNC_WORK_BLOCK_NUM);
+            Account.syncAccountTable(con, "ACCOUNT_CACHE", "ACCOUNT_HISTORY", Constants.SYNC_CACHE_BLOCK_NUM);
+            if (openNewDbTx) {
+                Db.db.commitTransaction();
+            }
+            long t2 = System.currentTimeMillis();
+            Logger.logDebugMessage("Sync ACCOUNT and ACCOUNT_CACHE tables used %d S", (t2 - t1) / 1000);
+        } catch (Exception e) {
+            Logger.logWarningMessage("Sync ACCOUNT and ACCOUNT_CACHE tables occur error %s, rollback and wait for next", e.getMessage());
+            if(openNewDbTx) {
+                Db.db.rollbackTransaction();
+            }
+        }finally {
+            if (openNewDbTx) {
+                Db.db.endTransaction();
+            } else {
+                DbUtils.close(con);
+            }
+        }
+
+        openNewDbTx = false;
+        try {
+            if (!Db.db.isInTransaction()) {
+                con = Db.db.beginTransaction();
+                openNewDbTx = true;
+            } else {
+                con = Db.db.getConnection();
+            }
+            long t1 = System.currentTimeMillis();
+            Account.syncAccountGuaranteedBalanceTable(con, "ACCOUNT_GUARANTEED_BALANCE",
+                    "ACCOUNT_GUARANTEED_BALANCE_CACHE", Constants.SYNC_WORK_BLOCK_NUM);
+            Account.syncAccountGuaranteedBalanceTable(con, "ACCOUNT_GUARANTEED_BALANCE_CACHE",
+                    "ACCOUNT_GUARANTEED_BALANCE_HISTORY", Constants.SYNC_CACHE_BLOCK_NUM);
+            if (openNewDbTx) {
+                Db.db.commitTransaction();
+            }
+            long t2 = System.currentTimeMillis();
+            Logger.logDebugMessage("sync ACCOUNT_GUARANTEED_BALANCE and ACCOUNT_GUARANTEED_BALANCE_CACHE tables used " +
+                    "%d S", (t2 - t1) / 1000);
+        } catch (Exception e) {
+            Logger.logWarningMessage("Sync ACCOUNT_GUARANTEED_BALANCE and ACCOUNT_GUARANTEED_BALANCE_CACHE tables occur error %s, rollback and wait for next", e.getMessage());
+            if(openNewDbTx) {
+                Db.db.rollbackTransaction();
+            }
+        }finally {
+            if (openNewDbTx) {
+                Db.db.endTransaction();
+            } else {
+                DbUtils.close(con);
+            }
+        }
+
+        openNewDbTx = false;
+        try {
+            if (!Db.db.isInTransaction()) {
+                con = Db.db.beginTransaction();
+                openNewDbTx = true;
+            } else {
+                con = Db.db.getConnection();
+            }
+            long t1 = System.currentTimeMillis();
+            Account.syncAccountPocScoreTable(con, "ACCOUNT_POC_SCORE", "ACCOUNT_POC_SCORE_CACHE",
+                    Constants.SYNC_WORK_BLOCK_NUM);
+            Account.syncAccountPocScoreTable(con, "ACCOUNT_POC_SCORE_CACHE", "ACCOUNT_POC_SCORE_HISTORY",
+                    Constants.SYNC_CACHE_BLOCK_NUM);
+            if (openNewDbTx) {
+                Db.db.commitTransaction();
+            }
+            long t2 = System.currentTimeMillis();
+            Logger.logDebugMessage("Sync ACCOUNT_POC_SCORE and ACCOUNT_POC_SCORE_CACHE tables used %d S", (t2 - t1) / 1000);
+        } catch (Exception e) {
+            Logger.logWarningMessage("Sync ACCOUNT_POC_SCORE and ACCOUNT_POC_SCORE_CACHE tables occur error %s, " +
+                    "rollback and wait for next", e.getMessage());
+            if (openNewDbTx) {
+                Db.db.rollbackTransaction();
+            }
+        } finally {
+            if (openNewDbTx) {
+                Db.db.endTransaction();
+            } else {
+                DbUtils.close(con);
+            }
+        }
+        if (Constants.MANUAL_SYNC_BUTTON) {
+            Constants.MANUAL_SYNC_BUTTON = false;
+        }
+
+        //        try {
+        //            Conch.getBlockchain().updateLock();
+        //            long t1 = System.currentTimeMillis();
+        //            Db.db.beginTransaction();
+        //            Account.syncAccountLedgerTable("ACCOUNT_LEDGER","ACCOUNT_LEDGER_CACHE",Constants
+        //            .SYNC_WORK_BLOCK_NUM);
+        //            Account.syncAccountLedgerTable("ACCOUNT_LEDGER_CACHE","ACCOUNT_LEDGER_HISTORY",Constants
+        //            .SYNC_CACHE_BLOCK_NUM);
+        //            Db.db.commitTransaction();
+        //            long t2 = System.currentTimeMillis();
+//            Logger.logDebugMessage("Sync ACCOUNT_LEDGER and ACCOUNT_LEDGER_CACHE tables used %d S", (t2 - t1)/1000);
+//        } catch (Exception e) {
+//            Logger.logWarningMessage("Sync ACCOUNT_LEDGER and ACCOUNT_LEDGER_CACHE tables occur error %s, rollback and wait for next", e.getMessage());
+//            Db.db.rollbackTransaction();
+//        }finally {
+//            Db.db.endTransaction();
+//            Conch.getBlockchain().updateUnlock();
+//        }
+    }
+
     /**
      * put the account balance change event into map
      * @param height
@@ -278,7 +381,9 @@ public class PocProcessorImpl implements PocProcessor {
      * @param event
      */
     static void putInBalanceChangedAccount(int height, Account account, Account.Event event) {
-        if (account == null || account.getId() == -1 || event == null) return;
+        if (account == null || account.getId() == -1 || event == null) {
+            return;
+        }
         long accountId = account.getId();
 
         // check current height when event is BALANCE changed
@@ -329,7 +434,7 @@ public class PocProcessorImpl implements PocProcessor {
         boolean success = false;
         if (PocTxWrapper.SUBTYPE_POC_WEIGHT_TABLE == tx.getType().getSubtype()) {
             PocTxBody.PocWeightTable weightTable = (PocTxBody.PocWeightTable) tx.getAttachment();
-            PocCalculator.inst.setCurWeightTable(weightTable, tx.getHeight());
+            PocCalculator.setCurWeightTable(weightTable, tx.getHeight());
             success = true;
         } else {
             if (PocTxWrapper.SUBTYPE_POC_NODE_TYPE == tx.getType().getSubtype()) {
@@ -342,7 +447,7 @@ public class PocProcessorImpl implements PocProcessor {
                 success = blockMissingTxProcess(tx.getHeight(), (PocTxBody.PocGenerationMissing) tx.getAttachment());
             }
         }
-
+        
         if (success) {
             PocHolder.updateHeight(tx.getHeight());
         }else{
@@ -376,7 +481,7 @@ public class PocProcessorImpl implements PocProcessor {
      */
     @Override
     public boolean isCertifiedPeerBind(long accountId, int height) {
-        boolean hubBindAccount = PocHolder.isBoundPeer(Peer.Type.HUB, accountId);
+        boolean hubBindAccount = PocHolder.isBoundPeer(Peer.Type.SOUL, accountId);
         boolean communityBindAccount = PocHolder.isBoundPeer(Peer.Type.COMMUNITY, accountId);
         boolean foundationBindAccount = PocHolder.isBoundPeer(Peer.Type.FOUNDATION, accountId);
         boolean isGenesisAccount = SharderGenesis.isGenesisCreator(accountId) || SharderGenesis.isGenesisRecipients(accountId);
@@ -409,10 +514,11 @@ public class PocProcessorImpl implements PocProcessor {
 
     @Override
     public boolean processDelayedPocTxs(int height) {
+        if (!Conch.reachLastKnownBlock()) {
+            return false;
+        }
 
-        if (!Conch.reachLastKnownBlock()) return false;
-
-        // delayed poc txs
+        // delayed poc txs 
         List<Long> delayedPocTxs = PocHolder.delayPocTxs(height);
         Logger.logDebugMessage("process delayed poc txs[size=%d]", delayedPocTxs.size());
         Set<Long> processedTxs = Sets.newHashSet();
@@ -439,28 +545,93 @@ public class PocProcessorImpl implements PocProcessor {
         return true;
     }
 
+    private static final String PEER_CONFIG_PATH = "./conf/crowd_miner.json";
+    public static final boolean EXIST_PEER_CONFIG = containPeerConfig();
+
+    private static Map<Long, CertifiedPeer> localConfigPeers = null;
     @Override
     public Map<Long, CertifiedPeer> getCertifiedPeers(){
+        if(EXIST_PEER_CONFIG) {
+            if(localConfigPeers == null || localConfigPeers.size() == 0) {
+                localConfigPeers = readFromConfigFile();
+            }
+            return localConfigPeers;
+        }
         return PocHolder.inst.certifiedPeers;
     }
+
+    private static boolean containPeerConfig(){
+        File file = new File(PEER_CONFIG_PATH);
+        return file.exists();
+    }
+
+    private synchronized static Map<Long,CertifiedPeer> readFromConfigFile() {
+        Map<Long,CertifiedPeer> peerMap = Maps.newHashMap();
+        File file = new File(PEER_CONFIG_PATH);
+        if(!file.exists()) {
+            return peerMap;
+        }
+        Logger.logInfoMessage("Load all certified peers from config file");
+        FileReader fr = null;
+        try {
+            fr = new FileReader(file);
+            char[] data = new char[23];
+            int length = 0;
+            StringBuilder stringBuilder = new StringBuilder();
+            while((length = fr.read(data))>0){
+                stringBuilder.append(new String(data, 0, length));
+            }
+            Map map = JSONObject.parseObject(stringBuilder.toString(), Map.class);
+            for (Object oj : map.keySet()) {
+                JSONObject jsonObject = (JSONObject) map.get(oj);
+                CertifiedPeer certifiedPeer = null;
+                try{
+                    String host = jsonObject.getString("host");
+                    Long linkedAccountId= jsonObject.getLong("boundAccountId");
+                    Peer.Type type = Peer.Type.getByCode(jsonObject.getInteger("typeCode"));
+                    int height = jsonObject.getInteger("height");
+                    int lastUpdateEpochTime = jsonObject.getInteger("updateTimeInEpochFormat");
+                    certifiedPeer = new CertifiedPeer(type, host, linkedAccountId, Convert.fromEpochTime(lastUpdateEpochTime));
+                    certifiedPeer.setHeight(height);
+                }catch (Exception e) {
+                    Logger.logDebugMessage(e.getMessage());
+                    continue;
+                }
+                peerMap.put((Long) oj, certifiedPeer);
+            }
+            fr.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (fr != null) {
+                try {
+                    fr.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return peerMap;
+    }
+
 
     @Override
     public boolean rollbackTo(int height) {
         try {
-            PocDb.rollbackScore(height);
+            //PocDb.rollbackScore(height);
             // reset the score map
             synchronized (PocHolder.inst.scoreMap) {
                 PocHolder.inst.scoreMap.values().removeIf(pocScore -> pocScore.getHeight() > height);
             }
 
-            PocDb.rollbackPeer(height);
+//            PocDb.rollbackPeer(height);
             // reset the certified peers
             synchronized (PocHolder.inst.certifiedPeers) {
                 PocHolder.inst.certifiedPeers.values().removeIf(certifiedPeer -> certifiedPeer.getHeight() > height);
             }
 
             // set the latest certified peer
-            PocHolder.inst.updateHeight(height);
+            PocHolder.updateHeight(height);
 
         } finally {
 
@@ -485,49 +656,6 @@ public class PocProcessorImpl implements PocProcessor {
 //        }
 //    }
 
-    /**
-     * update the recipient id of the old  poc txs
-     */
-    private static void updateRecipientIdIntoOldPocTxs() {
-        if(Conch.getHeight() > Constants.POC_TX_ALLOW_RECIPIENT) {
-            return;
-        }
-        Logger.logInfoMessage("[PocTxCorrect] update the recipient id of the old  poc txs");
-        DbIterator<? extends Transaction> iterator = null;
-        Connection updateConnection = null;
-        try {
-            iterator = Conch.getBlockchain().getTransactions(GenesisRecipient.POC_TX_CREATOR_ID, TransactionType.TYPE_POC, true, 0, Integer.MAX_VALUE);
-            updateConnection = Db.db.getConnection();
-
-            int i = 0;
-            while (iterator.hasNext()) {
-                Transaction transaction = iterator.next();
-                Attachment attachment = transaction.getAttachment();
-                if(PocTxWrapper.SUBTYPE_POC_NODE_TYPE == attachment.getTransactionType().getSubtype()
-                        && (transaction.getRecipientId() == -1 || transaction.getRecipientId() == 0)) {
-                    long accountIdOfAttachment = -1L;
-                    if(attachment instanceof PocTxBody.PocNodeTypeV3){
-                        accountIdOfAttachment = ((PocTxBody.PocNodeTypeV3) attachment).getAccountId();
-                    }else if(attachment instanceof PocTxBody.PocNodeTypeV2){
-                        accountIdOfAttachment = ((PocTxBody.PocNodeTypeV2) attachment).getAccountId();
-                    }
-
-                    try (PreparedStatement pstmt = updateConnection.prepareStatement("UPDATE transaction SET recipient_id = ? WHERE id = ?")) {
-                        pstmt.setLong(1, accountIdOfAttachment);
-                        pstmt.setLong(2, transaction.getId());
-                        pstmt.executeUpdate();
-                        i++;
-                    }
-                }
-            }
-            Logger.logInfoMessage("[PocTxCorrect] update finished. update count is " + i);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            DbUtils.close(iterator);
-            DbUtils.close(updateConnection);
-        }
-    }
 
     public static String PROPERTY_REPROCESS_POC_TXS = "sharder.reprocessPocTxs";
     private static boolean reprocessAllPocTxs = Conch.getBooleanProperty(PROPERTY_REPROCESS_POC_TXS, false);
@@ -538,7 +666,7 @@ public class PocProcessorImpl implements PocProcessor {
     private static void checkAndResetPocDb() {
         BlockImpl lastBlock = BlockDb.findLastBlock();
         if(lastBlock != null
-                && lastBlock.getHeight() > Constants.POC_CAL_ALGORITHM) {
+        && lastBlock.getHeight() > Constants.POC_CAL_ALGORITHM) {
             return;
         }
 
@@ -717,9 +845,6 @@ public class PocProcessorImpl implements PocProcessor {
         //@link: org.conch.chain.BlockchainProcessorImpl.autoExtensionAppend update the ext tag
         List<? extends Transaction> txs = block.getTransactions();
 
-        if(block.getHeight() == 13797) {
-            Logger.logDebugMessage("height 13797 start to processing");
-        }
         //just process poc tx
         for (Transaction tx : txs) {
             if (TransactionType.TYPE_POC  == tx.getType().getType()) {
@@ -738,8 +863,7 @@ public class PocProcessorImpl implements PocProcessor {
 
                 if(openCorwdMinerTxsProcessing) {
                     // crowd miner account
-                    if(coinBase.isType(Attachment.CoinBase.CoinBaseType.CROWD_BLOCK_REWARD)
-                    && RewardCalculator.isOpenCrowdMiners(block.getHeight())) {
+                    if(coinBase.isType(Attachment.CoinBase.CoinBaseType.CROWD_BLOCK_REWARD)) {
                         coinBase.getCrowdMiners().keySet().forEach(accountId -> putInBalanceChangedAccount(block.getHeight(), Account.getAccount(accountId), Account.Event.POC));
                     }
                 }
@@ -789,7 +913,7 @@ public class PocProcessorImpl implements PocProcessor {
         }finally {
             DbUtils.close(con);
         }
-
+        
         int count = 0;
         for (Transaction tx : txList) {
             if (pocTxProcess(tx)) count++;
@@ -818,7 +942,9 @@ public class PocProcessorImpl implements PocProcessor {
      * @return
      */
     private static boolean nodeTypeTxProcess(int height, Transaction tx) {
-        if (tx == null)  return false;
+        if (tx == null) {
+            return false;
+        }
 
         PocTxBody.PocNodeTypeV2 nodeTypeV2 = null;
         PocTxBody.PocNodeTypeV3 nodeTypeV3 = null;
@@ -837,7 +963,7 @@ public class PocProcessorImpl implements PocProcessor {
             summary = "V1 host=" + nodeType.getIp() + ",type=" + nodeType.getType().getName();
             nodeTypeV2 = CheckSumValidator.isPreAccountsInTestnet(nodeType.getIp(), height);
         }
-
+        
         if(nodeTypeV3 == null && nodeTypeV2 == null) {
             Logger.logWarningMessage("NodeType tx[id=%d,height=%d] summary[%s] is v1 that missing the account id, can't process it correctly", tx.getId(), tx.getHeight(), summary);
             return false;
@@ -860,13 +986,9 @@ public class PocProcessorImpl implements PocProcessor {
             Logger.logDebugMessage("[LocalDebugMode] node statement address %s is in the poc tx processing ", Account.rsAccount(accountId));
         }
 
-//        ACCOUNT_ID = -2448817859391213308 and HEIGHT = 13793
-//        if(accountId == -2448817859391213308L){
-//            Logger.logDebugMessage("at account id is -2448817859391213308L");
-//        }
         PocScore pocScoreToUpdate = PocHolder.getPocScore(height, accountId);
         PocHolder.saveOrUpdate(pocScoreToUpdate.setHeight(height).nodeTypeCal(nodeTypeV3 != null ? nodeTypeV3 : nodeTypeV2));
-
+        
         if(StringUtils.isEmpty(ip) || type == null) {
             Logger.logWarningMessage("NodeType tx[id=%d,height=%d,summary=%s] is a bad tx, don't add the certified peer", tx.getId(), tx.getHeight(), summary);
         }else{

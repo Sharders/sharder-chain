@@ -25,7 +25,6 @@ import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.account.AccountLedger;
 import org.conch.common.ConchException;
-import org.conch.common.Constants;
 import org.conch.consensus.poc.PocCalculator;
 import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
@@ -131,26 +130,51 @@ public abstract class PocTxWrapper extends TransactionType {
 
         @Override
         public Attachment.AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion)  {
-            ByteBuffer byteBuffer = buffer.duplicate();
+            ByteBuffer byteBuffer1 = buffer.duplicate();
+            ByteBuffer byteBuffer2 = buffer.duplicate();
+            Attachment.AbstractAttachment attachment = null;
             try{
-                return new PocTxBody.PocNodeTypeV2(buffer, transactionVersion);
+                attachment = new PocTxBody.PocNodeTypeV3(buffer, transactionVersion);
             }catch(Exception e){
-                return new PocTxBody.PocNodeType(byteBuffer, transactionVersion);
+                attachment = null;
             }
+
+            if(attachment == null) {
+                try{
+                    attachment = new PocTxBody.PocNodeTypeV2(byteBuffer1, transactionVersion);
+                }catch(Exception e){
+                    return new PocTxBody.PocNodeType(byteBuffer1, transactionVersion);
+                }
+            }
+
+            if(attachment == null) {
+                try{
+                    attachment = new PocTxBody.PocNodeType(byteBuffer2, transactionVersion);
+                }catch(Exception e){
+                    attachment = null;
+                }
+            }
+            return attachment;
         }
 
         @Override
         public Attachment.AbstractAttachment parseAttachment(JSONObject data) {
-            return data.containsKey("accountId") ? new PocTxBody.PocNodeTypeV2(data) : new PocTxBody.PocNodeType(data);
+            if(data.containsKey("diskCapacity")) return new PocTxBody.PocNodeTypeV3(data);
+            if(data.containsKey("accountId")) return new PocTxBody.PocNodeTypeV2(data);
+            return new PocTxBody.PocNodeType(data);
         }
 
         @Override
         public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
             PocTxBody.PocNodeType nodeType = null;
             Attachment attachment = transaction.getAttachment();
-            if(attachment instanceof PocTxBody.PocNodeTypeV2){
+            if(attachment instanceof PocTxBody.PocNodeTypeV3){
+                nodeType = (PocTxBody.PocNodeTypeV3)attachment;
+            }
+            else if(attachment instanceof PocTxBody.PocNodeTypeV2){
                 nodeType = (PocTxBody.PocNodeTypeV2)attachment;
-            }else if(attachment instanceof PocTxBody.PocNodeType) {
+            }
+            else if(attachment instanceof PocTxBody.PocNodeType) {
                 nodeType = (PocTxBody.PocNodeType) attachment;
             }
             
@@ -359,7 +383,7 @@ public abstract class PocTxWrapper extends TransactionType {
 
     @Override
     final public boolean canHaveRecipient() {
-        return Conch.getHeight() > Constants.POC_TX_ALLOW_RECIPIENT ? true : false;
+        return true;
     }
 
     @Override

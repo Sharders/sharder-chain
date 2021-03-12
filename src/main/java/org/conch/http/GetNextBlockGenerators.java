@@ -27,12 +27,21 @@ import org.conch.chain.Blockchain;
 import org.conch.common.ConchException;
 import org.conch.mint.Generator;
 import org.conch.mint.pool.SharderPoolProcessor;
+import org.conch.peer.CertifiedPeer;
+import org.conch.tx.Attachment;
+import org.conch.tx.Transaction;
+import org.conch.tx.TransactionImpl;
+import org.conch.tx.TransactionType;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import static org.conch.http.JSONResponses.INCORRECT_HEIGHT;
 
 /**
  * <p>
@@ -88,6 +97,19 @@ public final class GetNextBlockGenerators extends APIServlet.APIRequestHandler {
             response.put("timestamp", lastBlock.getTimestamp());
             response.put("height", lastBlock.getHeight());
             response.put("lastBlock", Long.toUnsignedString(lastBlock.getId()));
+            HashMap<Long, Long> crowdMiners = new HashMap<>();
+            for (Transaction transaction : lastBlock.getTransactions()) {
+                if(transaction.getType().isType(TransactionType.TYPE_COIN_BASE)){
+                    Attachment.CoinBase coinBase = (Attachment.CoinBase) transaction.getAttachment();
+                    if((coinBase.isType(Attachment.CoinBase.CoinBaseType.CROWD_BLOCK_REWARD)
+                            ||coinBase.isType(Attachment.CoinBase.CoinBaseType.BLOCK_REWARD))
+                            && coinBase.getCrowdMiners().size() > 0){
+                        crowdMiners = coinBase.getCrowdMiners();
+                        break;
+                    }
+                }
+            }
+            response.put("qualifiedActiveCount", crowdMiners.size() + 1);
             List<Generator.ActiveGenerator> activeGenerators = Generator.getNextGenerators();
             response.put("activeCount", activeGenerators.size());
             JSONArray generators = new JSONArray();
@@ -118,5 +140,10 @@ public final class GetNextBlockGenerators extends APIServlet.APIRequestHandler {
     @Override
     protected boolean allowRequiredBlockParameters() {
         return false;
+    }
+
+    @Override
+    protected boolean startDbTransaction() {
+        return true;
     }
 }

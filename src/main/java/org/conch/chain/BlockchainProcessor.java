@@ -27,7 +27,6 @@ import org.conch.db.DerivedDbTable;
 import org.conch.peer.Peer;
 import org.conch.tx.Transaction;
 import org.conch.tx.TransactionImpl;
-import org.conch.util.Convert;
 import org.conch.util.Observable;
 import org.json.simple.JSONObject;
 
@@ -98,7 +97,7 @@ public interface BlockchainProcessor extends Observable<Block, BlockchainProcess
 
         @Override
         public String getMessage() {
-            return block == null ? super.getMessage() : super.getMessage() + block.toSummary();
+            return block == null ? super.getMessage() : super.getMessage() + block.toSummaryWithSign();
         }
 
     }
@@ -148,7 +147,7 @@ public interface BlockchainProcessor extends Observable<Block, BlockchainProcess
 
         @Override
         public String getMessage() {
-            return super.getMessage() + ", transaction " + transaction.getStringId() + " " + transaction.getJSONObject().toJSONString();
+            return super.getMessage() + ", transaction " + transaction.getStringId() + " " + transaction.toPrintString();
         }
     }
 

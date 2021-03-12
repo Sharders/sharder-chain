@@ -31,15 +31,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 public final class GetPeers extends APIServlet.APIRequestHandler {
     static final GetPeers instance = new GetPeers();
@@ -120,11 +112,22 @@ public final class GetPeers extends APIServlet.APIRequestHandler {
         if (startThis != null) {
             response.put("coordinates", IpUtil.parseAndConvertToCoordinates(peersJSON).toJSONString());
         }
+        response.put("peers", peersJSON);
+        response.put("declaredPeerSize", Conch.getPocProcessor().getCertifiedPeers().size());
         return response;
     }
 
     @Override
     protected boolean allowRequiredBlockParameters() {
         return false;
+    }
+
+    @Override
+    protected boolean startDbTransaction() {
+        return true;
+    }
+
+    public static void main(String[] args){
+
     }
 }

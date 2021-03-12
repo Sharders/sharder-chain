@@ -1,6 +1,7 @@
 package org.conch.consensus.poc.tx;
 
 import com.alibaba.fastjson.JSON;
+import com.google.common.collect.Maps;
 import org.conch.Conch;
 import org.conch.common.ConchException;
 import org.conch.consensus.poc.PocTemplate;
@@ -88,7 +89,7 @@ public interface PocTxBody {
             this.value = value;
         }
     }
-
+    
     class PocNodeTypeV3 extends PocNodeTypeV2 {
         // unit is KB
         private long diskCapacity;
@@ -135,11 +136,11 @@ public interface PocTxBody {
         }
     }
 
-     /**
-      * use the PocNodeTypeV3: org.conch.consensus.poc.tx.PocTxBody.PocNodeTypeV3
+    /**
+     * use the PocNodeTypeV3: org.conch.consensus.poc.tx.PocTxBody.PocNodeTypeV3
      */
-     class PocNodeTypeV2 extends PocNodeType {
-        private long accountId;
+    class PocNodeTypeV2 extends PocNodeType {
+        protected long accountId;
 
         public long getAccountId() {
             return accountId;
@@ -334,7 +335,7 @@ public interface PocTxBody {
         public static PocWeightTable pocWeightTableBuilder(PocTemplate pocTemplate) {
             Map<String, Integer> weightMap = new HashMap<>();
             weightMap.put(WeightTableOptions.NODE_TYPE.value, pocTemplate.getNodeTypeWeight().intValue());
-            weightMap.put(WeightTableOptions.SERVER_OPEN.value, pocTemplate.getServerOpenWeight().intValue());
+            //weightMap.put(WeightTableOptions.SERVER_OPEN.value, pocTemplate.getServerOpenWeight().intValue());
             weightMap.put(WeightTableOptions.SS_HOLD.value, pocTemplate.getSsHoldWeight().intValue());
             weightMap.put(WeightTableOptions.HARDWARE_CONFIG.value, pocTemplate.getHardwareConfWeight().intValue());
             weightMap.put(WeightTableOptions.NETWORK_CONFIG.value, pocTemplate.getNetWorkConfWeight().intValue());
@@ -342,9 +343,9 @@ public interface PocTxBody {
 
             Map<Integer, Integer> nodeTypeTP = new HashMap<>();
             nodeTypeTP.put(Peer.Type.FOUNDATION.getCode(), pocTemplate.getFoundationNodeScore().intValue());
-            nodeTypeTP.put(Peer.Type.COMMUNITY.getCode(), pocTemplate.getCommunityNodeScore().intValue());
-            nodeTypeTP.put(Peer.Type.HUB.getCode(), pocTemplate.getHubNodeScore().intValue());
-            nodeTypeTP.put(Peer.Type.BOX.getCode(), pocTemplate.getBoxNodeScore().intValue());
+            //nodeTypeTP.put(Peer.Type.COMMUNITY.getCode(), pocTemplate.getCommunityNodeScore().intValue());
+            nodeTypeTP.put(Peer.Type.SOUL.getCode(), pocTemplate.getHubNodeScore().intValue());
+            nodeTypeTP.put(Peer.Type.CENTER.getCode(), pocTemplate.getBoxNodeScore().intValue());
             nodeTypeTP.put(Peer.Type.NORMAL.getCode(), pocTemplate.getNormalNodeScore().intValue());
 
             Map<Long, Integer> serverOpenTP = new HashMap<>();
@@ -370,31 +371,36 @@ public interface PocTxBody {
             txPerformanceTP.put(DeviceLevels.MIDDLE.getLevel(), pocTemplate.getMiddleTxScore().intValue());
             txPerformanceTP.put(DeviceLevels.GOOD.getLevel(), pocTemplate.getGoodTxScore().intValue());
 
-            Map<Integer, Integer> onlineRateFoundationTP = new HashMap<>();
-            onlineRateFoundationTP.put(OnlineStatusDef.FROM_99_00_TO_99_99.getValue(), pocTemplate.getFoundationFrom9900To9999().intValue());
-            onlineRateFoundationTP.put(OnlineStatusDef.FROM_97_00_TO_99_00.getValue(), pocTemplate.getFoundationFrom9700To9900().intValue());
-            onlineRateFoundationTP.put(OnlineStatusDef.FROM_00_00_TO_97_00.getValue(), pocTemplate.getFoundationFrom0000To9700().intValue());
+//            Map<Integer, Integer> onlineRateFoundationTP = new HashMap<>();
+//            onlineRateFoundationTP.put(OnlineStatusDef.FROM_99_00_TO_99_99.getValue(), pocTemplate.getFoundationFrom9900To9999().intValue());
+//            onlineRateFoundationTP.put(OnlineStatusDef.FROM_97_00_TO_99_00.getValue(), pocTemplate.getFoundationFrom9700To9900().intValue());
+//            onlineRateFoundationTP.put(OnlineStatusDef.FROM_00_00_TO_97_00.getValue(), pocTemplate.getFoundationFrom0000To9700().intValue());
+//
+//            Map<Integer, Integer> onlineRateCommunityTP = new HashMap<>();
+//            onlineRateCommunityTP.put(OnlineStatusDef.FROM_97_00_TO_99_00.getValue(), pocTemplate.getCommunityFrom9700To9900().intValue());
+//            onlineRateCommunityTP.put(OnlineStatusDef.FROM_90_00_TO_97_00.getValue(), pocTemplate.getCommunityFrom9000To9700().intValue());
+//            onlineRateCommunityTP.put(OnlineStatusDef.FROM_00_00_TO_90_00.getValue(), pocTemplate.getCommunityFrom0000To9000().intValue());
+//
+//            Map<Integer, Integer> onlineRateHubBoxTP = new HashMap<>();
+//            onlineRateHubBoxTP.put(OnlineStatusDef.FROM_99_00_TO_100.getValue(), pocTemplate.getHbFrom9900To100().intValue());
+//            onlineRateHubBoxTP.put(OnlineStatusDef.FROM_97_00_TO_100.getValue(), pocTemplate.getHbFrom9700To100().intValue());
+//            onlineRateHubBoxTP.put(OnlineStatusDef.FROM_00_00_TO_90_00.getValue(), pocTemplate.getHbFrom0000To9000().intValue());
+//
+//            Map<Integer, Integer> onlineRateNormalTP = new HashMap<>();
+//            onlineRateNormalTP.put(OnlineStatusDef.FROM_97_00_TO_100.getValue(), pocTemplate.getNormalFrom9700To100().intValue());
+//            onlineRateNormalTP.put(OnlineStatusDef.FROM_90_00_TO_100.getValue(), pocTemplate.getNormalFrom9000To100().intValue());
 
-            Map<Integer, Integer> onlineRateCommunityTP = new HashMap<>();
-            onlineRateCommunityTP.put(OnlineStatusDef.FROM_97_00_TO_99_00.getValue(), pocTemplate.getCommunityFrom9700To9900().intValue());
-            onlineRateCommunityTP.put(OnlineStatusDef.FROM_90_00_TO_97_00.getValue(), pocTemplate.getCommunityFrom9000To9700().intValue());
-            onlineRateCommunityTP.put(OnlineStatusDef.FROM_00_00_TO_90_00.getValue(), pocTemplate.getCommunityFrom0000To9000().intValue());
-
-            Map<Integer, Integer> onlineRateHubBoxTP = new HashMap<>();
-            onlineRateHubBoxTP.put(OnlineStatusDef.FROM_99_00_TO_100.getValue(), pocTemplate.getHbFrom9900To100().intValue());
-            onlineRateHubBoxTP.put(OnlineStatusDef.FROM_97_00_TO_100.getValue(), pocTemplate.getHbFrom9700To100().intValue());
-            onlineRateHubBoxTP.put(OnlineStatusDef.FROM_00_00_TO_90_00.getValue(), pocTemplate.getHbFrom0000To9000().intValue());
-
-            Map<Integer, Integer> onlineRateNormalTP = new HashMap<>();
-            onlineRateNormalTP.put(OnlineStatusDef.FROM_97_00_TO_100.getValue(), pocTemplate.getNormalFrom9700To100().intValue());
-            onlineRateNormalTP.put(OnlineStatusDef.FROM_90_00_TO_100.getValue(), pocTemplate.getNormalFrom9000To100().intValue());
+            Map<Integer, Integer> onlineRateTP = new HashMap<>();
+            onlineRateTP.put(OnlineStatusDef.FROM_99_00_TO_99_99.getValue(), pocTemplate.getFoundationFrom9900To9999().intValue());
+            onlineRateTP.put(OnlineStatusDef.FROM_97_00_TO_99_00.getValue(), pocTemplate.getFoundationFrom9700To9900().intValue());
+            onlineRateTP.put(OnlineStatusDef.FROM_00_00_TO_97_00.getValue(), pocTemplate.getFoundationFrom0000To9700().intValue());
 
             Map<Peer.Type, Map<Integer, Integer>> onlineRateMap = new HashMap<>();
-            onlineRateMap.put(Peer.Type.FOUNDATION, onlineRateFoundationTP);
-            onlineRateMap.put(Peer.Type.COMMUNITY, onlineRateCommunityTP);
-            onlineRateMap.put(Peer.Type.HUB, onlineRateHubBoxTP);
-            onlineRateMap.put(Peer.Type.BOX, onlineRateHubBoxTP);
-            onlineRateMap.put(Peer.Type.NORMAL, onlineRateNormalTP);
+            onlineRateMap.put(Peer.Type.FOUNDATION, Maps.newHashMap());
+            onlineRateMap.put(Peer.Type.COMMUNITY, Maps.newHashMap());
+            onlineRateMap.put(Peer.Type.SOUL, Maps.newHashMap());
+            onlineRateMap.put(Peer.Type.CENTER, Maps.newHashMap());
+            onlineRateMap.put(Peer.Type.NORMAL, Maps.newHashMap());
 
             Map<Integer, Integer> blockingMissTemplate = new HashMap<>();
             blockingMissTemplate.put(DeviceLevels.BAD.getLevel(), pocTemplate.getBadBlockingMissScore().intValue());
@@ -688,8 +694,9 @@ public interface PocTxBody {
 
         public PocGenerationMissing(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
             super(buffer, transactionVersion);
-            this.missingAccountIds = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer, buffer.getInt(), MAX_POC_ITEM_BYTEBUFFER), List.class);
             this.missingTimeStamp = buffer.getInt();
+            this.missingAccountIds = com.alibaba.fastjson.JSONObject.parseObject(Convert.readString(buffer, buffer.getInt(), MAX_POC_ITEM_BYTEBUFFER), List.class);
+
         }
 
         public PocGenerationMissing(JSONObject attachmentData) {
@@ -705,8 +712,8 @@ public interface PocTxBody {
 
         @Override
         public void putMyBytes(ByteBuffer buffer) {
-            Convert.writeList(buffer, missingAccountIds);
             buffer.putInt(missingTimeStamp);
+            Convert.writeList(buffer, missingAccountIds);
         }
 
         @Override
