@@ -2,7 +2,6 @@ package org.conch.mint.pool;
 
 import com.google.common.collect.Maps;
 import org.conch.Conch;
-import org.conch.common.Constants;
 import org.conch.tx.Attachment;
 import org.conch.util.Logger;
 import org.json.simple.JSONObject;
@@ -383,11 +382,6 @@ public class PoolRule implements Serializable {
     }
     
     public static Map<Long, Long> calRewardMapAccordingToRules(Long creator, Long poolId, Long amount, Map<Long, Long> investmentMap) {
-        // FIXME temporary codes to avoid block sync error
-        if(Constants.isTestnet() && Conch.getHeight() <= Constants.POC_NEW_ALGO_HEIGHT){
-            return oldCalRewardMapAccordingToRules(creator, poolId, amount, investmentMap);
-        }
-        
         Map<Long, Long> result = new HashMap<>();
         if(investmentMap.size() == 0) return result;
         

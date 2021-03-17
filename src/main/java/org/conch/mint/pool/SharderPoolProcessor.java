@@ -9,6 +9,7 @@ import org.conch.account.Account;
 import org.conch.account.AccountLedger;
 import org.conch.chain.Block;
 import org.conch.chain.BlockchainProcessor;
+import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.consensus.poc.db.PoolDb;
 import org.conch.consensus.reward.RewardCalculator;
@@ -27,7 +28,6 @@ import org.json.simple.JSONObject;
 import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -106,33 +106,31 @@ public class SharderPoolProcessor implements Serializable {
     /**
      *  pool is no dead line now - 2020.04.26
      * check the end block to verify the pool life cycle can't exceed the end date
-     * @param
      * @return
 
-     @Deprecated
-     private static int checkAndReturnEndBlockNo(int endBlockNo){
-     try {
-     Date phaseOneEndDate = dateFormat.parse(Constants.TESTNET_PHASE_ONE_TIME);
-     Date now = new Date();
-     // phase one check
-     if(now.before(phaseOneEndDate)){
-     if(endBlockNo > Constants.TESTNET_PHASE_ONE) {
-     return Constants.TESTNET_PHASE_ONE;
-     }
-     }else {
-     // phase two check
-     Date phaseTwoEndDate = dateFormat.parse(Constants.TESTNET_PHASE_TWO_TIME);
-     if(now.before(phaseTwoEndDate) && endBlockNo > Constants.TESTNET_PHASE_TWO) {
-     return Constants.TESTNET_PHASE_TWO;
-     }
-     }
-     } catch (ParseException e) {
-     e.printStackTrace();
-     }
-     return endBlockNo;
-     }
-     */
-    
+    @Deprecated
+    private static int checkAndReturnEndBlockNo(int endBlockNo){
+        try {
+            Date phaseOneEndDate = dateFormat.parse(Constants.TESTNET_PHASE_ONE_TIME);
+            Date now = new Date();
+            // phase one check
+            if(now.before(phaseOneEndDate)){
+                if(endBlockNo > Constants.TESTNET_PHASE_ONE) {
+                    return Constants.TESTNET_PHASE_ONE;
+                }
+            }else {
+            // phase two check
+                Date phaseTwoEndDate = dateFormat.parse(Constants.TESTNET_PHASE_TWO_TIME);
+                if(now.before(phaseTwoEndDate) && endBlockNo > Constants.TESTNET_PHASE_TWO) {
+                    return Constants.TESTNET_PHASE_TWO;
+                }
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+       return endBlockNo;
+    }
+    */
     
     public static boolean addProcessingQuitTx(long relatedJoinTxId, long txId){
         if(processingQuitTxMap.containsKey(relatedJoinTxId) 
@@ -206,7 +204,7 @@ public class SharderPoolProcessor implements Serializable {
             return null;
         }
         
-        // endBlockNo = checkAndReturnEndBlockNo(endBlockNo);
+//        endBlockNo = checkAndReturnEndBlockNo(endBlockNo);
         SharderPoolProcessor pool = new SharderPoolProcessor(creatorId, poolId, startBlockNo, endBlockNo);
         creator.addFrozenSubBalanceSubUnconfirmed(AccountLedger.LedgerEvent.FORGE_POOL_CREATE, pool.getPoolId(), PLEDGE_AMOUNT_NQT);
         pool.power += PLEDGE_AMOUNT_NQT;
@@ -479,20 +477,6 @@ public class SharderPoolProcessor implements Serializable {
             sharderPool.updateHeight = height;
             sharderPool.clearJoiningAmount();
             
-            // never end the pool auto after the Constants.POC_POOL_NEVER_END_HEIGHT
-            if(height < Constants.POC_POOL_NEVER_END_HEIGHT){
-                //pool will be destroyed automatically when it has nobody join
-                if (sharderPool.consignors.size() == 0
-                        && height - sharderPool.startBlockNo > Constants.SHARDER_POOL_DEADLINE) {
-                    sharderPool.destroyAndRecord(height);
-                    continue;
-                }
-                if (sharderPool.endBlockNo <= height) {
-                    sharderPool.destroyAndRecord(sharderPool.endBlockNo);
-                    continue;
-                }  
-            }
-            
             // check the miner whether running before pool started
             if(sharderPool.startBlockNo-height <=3 
                 && sharderPool.startBlockNo > height){
@@ -521,18 +505,25 @@ public class SharderPoolProcessor implements Serializable {
         updateHistoricalFees(id, block.getTotalFeeNQT());
 
         //unfreeze the reward
-        if (height > Constants.SHARDER_REWARD_DELAY) {
-            Block pastBlock = Conch.getBlockchain().getBlockAtHeight(height - Constants.SHARDER_REWARD_DELAY);
+        try {
 
-            for (Transaction tx : pastBlock.getTransactions()) {
-                if(!RewardCalculator.isBlockRewardTx(tx.getAttachment())) continue;
-                
-                long mintReward = RewardCalculator.blockRewardDistribution(tx,true);
-                updateHistoricalRewards(id,mintReward);
+            if (height > Constants.SHARDER_REWARD_DELAY) {
+                Block pastBlock = Conch.getBlockchain().getBlockAtHeight(height - Constants.SHARDER_REWARD_DELAY);
+
+                for (Transaction tx : pastBlock.getTransactions()) {
+                    if (!RewardCalculator.isBlockRewardTx(tx.getAttachment())) {
+                        continue;
+                    }
+
+                    long miningRewards = RewardCalculator.blockRewardDistribution(tx, true);
+                    updateHistoricalRewards(id, miningRewards);
+                }
             }
-        }
 
-        persistence();
+            persistence();
+        } catch (ConchException.StopException e) {
+            Logger.logErrorMessage(e.getMessage());
+        }
     }
 
     /**
@@ -811,8 +802,8 @@ public class SharderPoolProcessor implements Serializable {
         return jsonObject;
     }
 
-    public Map<Long, Long> getConsignorsAmountMap() {
-        Map<Long, Long> map = new HashMap<>();
+    public HashMap<Long, Long> getConsignorsAmountMap() {
+        HashMap<Long, Long> map = Maps.newHashMap();
         for (Consignor consignor : consignors.values()) {
             map.put(consignor.getId(), consignor.getAmount());
         }
