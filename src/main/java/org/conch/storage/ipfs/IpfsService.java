@@ -53,7 +53,12 @@ public class IpfsService {
         daemon.attach(); // Attach the API
         ipfs = daemon.getIPFS(); // Get the API object
         try {
-            configs = ipfs.config.show();
+            if(ipfs != null) {
+                configs = ipfs.config.show();
+            }else{
+                Logger.logWarningMessage("ipfs instance is null, maybe initial failed!");
+            }
+
         } catch (IOException e) {
             e.printStackTrace();
         }

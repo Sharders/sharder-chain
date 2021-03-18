@@ -463,7 +463,7 @@ public class Daemon {
         this.attached = false;
         while (!attached) {
             try {
-                ipfs = new IPFS(accessPath + apiPort);
+                ipfs = new IPFS("/ip4/127.0.0.1/tcp/" + apiPort);
                 //ipfs.refs.local();
                 attached = true;
             } catch (Exception e) {

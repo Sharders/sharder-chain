@@ -21,21 +21,23 @@
 
 package org.conch.peer;
 
-final class Errors {
+public final class Errors {
 
-    final static String BLACKLISTED = "Your peer is blacklisted";
-    final static String END_OF_FILE = "Unexpected token END OF FILE at position 0.";
-    final static String UNKNOWN_PEER = "Your peer address cannot be resolved";
-    final static String UNSUPPORTED_REQUEST_TYPE = "Unsupported request type!";
-    final static String UNSUPPORTED_PROTOCOL = "Unsupported protocol!";
-    final static String INVALID_ANNOUNCED_ADDRESS = "Invalid announced address";
-    final static String SEQUENCE_ERROR = "Peer request received before 'getInfo' request";
-    final static String MAX_INBOUND_CONNECTIONS = "Maximum number of inbound connections exceeded";
-    final static String TOO_MANY_BLOCKS_REQUESTED = "Too many blocks requested";
-    final static String DOWNLOADING = "Blockchain download in progress";
-    final static String LIGHT_CLIENT = "Peer is in light mode";
-    final static String UNAUTHORIZED = "Your peer is unauthorized";
-    final static String CONNECTERROR = "Error with connection";
+    public final static String BLACKLISTED = "Your peer is blacklisted";
+    public final static String BLACKLISTED_BY_THEM = "You've blacklisted by them";
+    public final static String END_OF_FILE = "Unexpected token END OF FILE at position 0.";
+    public final static String UNKNOWN_PEER = "Your peer address cannot be resolved";
+    public final static String UNSUPPORTED_REQUEST_TYPE = "Unsupported request type!";
+    public final static String UNSUPPORTED_PROTOCOL = "Unsupported protocol!";
+    public final static String INVALID_ANNOUNCED_ADDRESS = "Invalid announced address";
+    public final static String SEQUENCE_ERROR = "Peer request received before 'getInfo' request";
+    public final static String MAX_INBOUND_CONNECTIONS = "Maximum number of inbound connections exceeded";
+    public final static String TOO_MANY_BLOCKS_REQUESTED = "Too many blocks requested";
+    public final static String DOWNLOADING = "Blockchain download in progress";
+    public final static String LIGHT_CLIENT = "Peer is in light mode";
+    public final static String UNAUTHORIZED = "Your peer is unauthorized";
+    public final static String CONNECT_ERROR = "Error with connection";
 
-    private Errors() {} // never
+    private Errors() {
+    } // never
 }
