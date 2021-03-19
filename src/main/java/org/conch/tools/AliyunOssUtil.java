@@ -26,9 +26,11 @@ import com.aliyun.oss.OSSClientBuilder;
 import com.aliyun.oss.model.*;
 import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
-import org.conch.mint.Generator;
+
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 
 public class AliyunOssUtil {
@@ -46,8 +48,8 @@ public class AliyunOssUtil {
      */
     protected static boolean openAutoBackDB(){
         if(StringUtils.isEmpty(ACCESS_KEY_ID)
-            || StringUtils.isEmpty(ACCESS_KEY_SECRET)
-            || StringUtils.isEmpty(BUCKET_NAME) ) return false;
+                || StringUtils.isEmpty(ACCESS_KEY_SECRET)
+                || StringUtils.isEmpty(BUCKET_NAME) ) return false;
 
         return true;
     }
@@ -186,7 +188,7 @@ public class AliyunOssUtil {
         if (path != null){
             AliyunOssUtil.getFile(path,files);
         }else {
-           return;
+            return;
         }
         if (files != null && files.size() > 0) {
             AliyunOssUtil.delFile(files);
@@ -227,6 +229,6 @@ public class AliyunOssUtil {
         /*解密并输出压缩文件*/
         //SxqFileUtils.byteToFile(AESCoder.decrypt(SxqFileUtils.fileToByte(s1),"7b03d498836943d3ab0fac2abcf29365"), s1);
         /*把压缩文件进行解压*/
-/*        SxqFileUtils.unZipFiles(s1, s1.substring(0, s1.length() - 7));*/
+        /*        SxqFileUtils.unZipFiles(s1, s1.substring(0, s1.length() - 7));*/
     }
 }

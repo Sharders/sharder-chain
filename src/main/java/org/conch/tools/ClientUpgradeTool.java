@@ -7,16 +7,19 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.conch.Conch;
+import org.conch.chain.BlockDb;
+import org.conch.chain.BlockImpl;
 import org.conch.common.Constants;
 import org.conch.common.UrlManager;
 import org.conch.db.Db;
+import org.conch.http.ForceConverge;
 import org.conch.util.FileUtil;
 import org.conch.util.Logger;
 import org.conch.util.RestfulHttpClient;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
+import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Date;
@@ -47,17 +50,17 @@ public class ClientUpgradeTool {
     }
 
     public static void upgradeCos(boolean restart) throws IOException {
-        upgradePackageThread(fetchLastCosVersion(),restart);  
+        upgradePackageThread(fetchLastCosVersion(),restart);
     }
-    
+
     public static Thread upgradePackageThread(com.alibaba.fastjson.JSONObject cosVerObj, Boolean restart) {
         Thread upgradePackageThread = new Thread(() -> {
             try {
                 Conch.pause();
                 fetchAndInstallUpgradePackage(cosVerObj);
-                if (restart) {
-                    Conch.restartApplication(null);
-                }
+//                if (restart) {
+//                    Conch.restartApplication(null);
+//                }
             } catch (IOException e) {
                 Logger.logErrorMessage("Can't fetch and install the latest version " + cosVerObj.getString("version") + ", ABORT the upgrade thread",e);
                 Thread.currentThread().interrupt();
@@ -70,15 +73,21 @@ public class ClientUpgradeTool {
         upgradePackageThread.start();
         return upgradePackageThread;
     }
-
-    private static final long FETCH_INTERVAL_MS = 60*60*1000L;  // 60 minutes
+    
+    private static final long FETCH_INTERVAL_MS = ForceConverge.forcePause ? 10*60*1000L : 60*60*1000L;  // 60 minutes
     private static volatile JSONObject lastCosVerObj = null;
     private static long lastFetchTime = -1;
     
     private static boolean fetchLastPackageNow(){
-        if(lastCosVerObj == null) return true;
-        if(lastFetchTime == -1) return true;
-        if(System.currentTimeMillis() - lastFetchTime > FETCH_INTERVAL_MS) return true;
+        if(lastCosVerObj == null) {
+            return true;
+        }
+        if(lastFetchTime == -1) {
+            return true;
+        }
+        if(System.currentTimeMillis() - lastFetchTime > FETCH_INTERVAL_MS) {
+            return true;
+        }
         
         return false;
     }
@@ -116,7 +125,7 @@ public class ClientUpgradeTool {
 
     public static volatile boolean forceDownloadFromOSS = false;
     private static volatile boolean restoring = false;
-    private static final long FETCH_DB_ARCHIVE_INTERVAL_MS = 30*60*1000L;
+    private static final long FETCH_DB_ARCHIVE_INTERVAL_MS = 1*60*60*1000L;
     // default value is 5 days
     private static final long DOWNLOAD_DB_ARCHIVE_INTERVAL_MS = 5*(24*60*60*1000L);
     private static volatile JSONObject lastDbArchiveObj = null;
@@ -124,9 +133,15 @@ public class ClientUpgradeTool {
     private static long lastDownloadDbArchiveTime = -1;
 
     private static boolean fetchLastDbArchiveNow(){
-        if(lastDbArchive == null) return true;
-        if(lastDbArchiveObj == null) return true;
-        if(lastDbArchiveFetchTime == -1) return true;
+        if(lastDbArchive == null) {
+            return true;
+        }
+        if(lastDbArchiveObj == null) {
+            return true;
+        }
+        if(lastDbArchiveFetchTime == -1) {
+            return true;
+        }
        
         if(System.currentTimeMillis() - lastDbArchiveFetchTime > FETCH_DB_ARCHIVE_INTERVAL_MS) return true;
 
@@ -152,7 +167,6 @@ public class ClientUpgradeTool {
     }
 
 
-
     private static JSONObject fetchAndParseTheDbArchiveMemo(){
         JSONObject archiveMemoKV = new JSONObject();
         String url = UrlManager.getDbArchiveDescriptionFileUrl();
@@ -169,7 +183,7 @@ public class ClientUpgradeTool {
         // parse the description file
         String[] settingArray = null;
         if(StringUtils.isNotEmpty(content)
-                && content.contains("\n")){
+        && content.contains("\n")){
             settingArray = content.split("\n");
             for(String keyPair : settingArray){
                 if(keyPair == null || !keyPair.contains("=")) continue;
@@ -194,7 +208,7 @@ public class ClientUpgradeTool {
         if(lastDbArchive.containsKey(ENV_PREFIX + KEY_DB_LAST_ARCHIVE)){
             String lastDbArchiveName = lastDbArchive.getString(ENV_PREFIX + KEY_DB_LAST_ARCHIVE);
             try {
-                arry[0] = lastDbArchiveName + ".zip";
+                arry[0] = lastDbArchiveName ;
                 arry[1] = lastDbArchiveName.replace(Db.getName() + "_", "");
             } catch (Exception e) {
                 Logger.logErrorMessage("Can't parse the lastDbArchive attribute caused by ", e.getMessage());
@@ -204,14 +218,14 @@ public class ClientUpgradeTool {
     }
 
     /**
-     * testLastArchive=test_db_12118
-     * testKnownArchive=test_db_268
+     * testLastArchive=mw_test_db_12118
+     * testKnownArchive=mw_test_db_268
      * @return latest db archive
      * @throws IOException
      */
     public static String fetchLastDbArchive()  {
         if(!fetchLastDbArchiveNow()) return lastDbArchive;
-
+        
         lastDbArchiveObj = fetchAndParseTheDbArchiveMemo();
         lastDbArchiveFetchTime = System.currentTimeMillis();
         if(lastDbArchiveObj == null || lastDbArchiveObj.size() == 0) {
@@ -221,7 +235,7 @@ public class ClientUpgradeTool {
         String[] dbArchiveKV = parseDbArchiveFileName(lastDbArchiveObj);
         lastDbArchive = dbArchiveKV[0];
         lastDbArchiveHeight = Integer.valueOf(dbArchiveKV[1]);
-
+        
         // known archive height
         if(lastDbArchiveObj.containsKey(ENV_PREFIX + KEY_DB_ARCHIVE_KNOWN_HEIGHT)){
             String knownHeightStr = lastDbArchiveObj.getString(ENV_PREFIX + KEY_DB_ARCHIVE_KNOWN_HEIGHT);
@@ -248,19 +262,37 @@ public class ClientUpgradeTool {
         String updateTime = cosVerObj.getString("updateTime");
 
         File tempPath = new File("temp/");
-        File archive = new File(tempPath, "cos-" + version + ".zip");
+        File archive = null;
+
+        try{
+            archive = new File(tempPath, "cos-" + version + ".7z");
+            Logger.logInfoMessage("[ UPGRADE CLIENT ] Downloading upgrade package:" + archive.getName());
+            if(archive.exists()) {
+                archive.delete();
+            }
+            FileUtils.copyURLToFile(new URL(UrlManager.getPackageDownloadUrlSevenZip(version)), archive);
+        }catch (IOException e){
+            Logger.logInfoMessage("[ UPGRADE CLIENT ] package:" + archive.getName() + "isn't exists,try zip package.");
+            try{
+                archive = new File(tempPath, "cos-" + version + ".zip");
+                if(archive.exists()) {
+                    archive.delete();
+                }
+                FileUtils.copyURLToFile(new URL(UrlManager.getPackageDownloadUrlZip(version)), archive);
+            }catch (IOException ioException){
+                Logger.logErrorMessage("[ UPGRADE CLIENT ] Failed to download upgrade "+version+"package", e);
+                throw ioException;
+            }
+        }
+
         boolean delete = true;
         if(StringUtils.isNotEmpty(bakMode) && BAK_MODE_BACKUP.equalsIgnoreCase(bakMode)) {
             delete = false;
         }
-
-        if(archive.exists()) {
-            archive.delete();
+        if(archive != null && archive.exists()){
+            Logger.logInfoMessage("[ UPGRADE CLIENT ] Decompressing upgrade package:" + archive.getName() + ",mode=" + mode + ",delete source=" + delete);
+            FileUtil.unzipAndReplace(archive, mode, delete);
         }
-        Logger.logInfoMessage("[ UPGRADE CLIENT ] Downloading upgrade package:" + archive.getName());
-        FileUtils.copyURLToFile(new URL(UrlManager.getPackageDownloadUrl(version)), archive);
-        Logger.logInfoMessage("[ UPGRADE CLIENT ] Decompressing upgrade package:" + archive.getName() + ",mode=" + mode + ",delete source=" + delete);
-        FileUtil.unzipAndReplace(archive, mode, delete);
         try {
             if (!SystemUtils.IS_OS_WINDOWS) {
                 Runtime.getRuntime().exec("chmod -R +x " + Conch.getUserHomeDir());
@@ -279,7 +311,7 @@ public class ClientUpgradeTool {
      * @param upgradeDbHeight the height of the archived db file
      */
     public static void restoreDbAtHeight(String upgradeDbHeight) {
-        String dbFileName =  Db.getName() + "_" + upgradeDbHeight + ".zip";
+        String dbFileName =  Db.getName() + "_" + upgradeDbHeight;
         restoreDb(dbFileName);
     }
 
@@ -287,27 +319,30 @@ public class ClientUpgradeTool {
      * Update the local db to specified archived db file
      * @param dbFileName target restore db file name
      */
-    private static void restoreDb(String dbFileName){
+    private static boolean restoreDb(String dbFileName){
         try{
 //            if(restoring) return;
 //            restoring = true;
-
+            
             if(StringUtils.isEmpty(dbFileName)
-                    || lastDbArchiveObj == null) {
+            || lastDbArchiveObj == null) {
                 Logger.logDebugMessage("[ UPGRADE DB ] upgrade db file name is null, break.");
-                return;
+                return false;
             }
 
             String urlPrefix = lastDbArchiveObj.getString(ENV_PREFIX + KEY_DB_DOWNLOAD_URL);
             String downloadingUrl = UrlManager.getDbArchiveUrl(urlPrefix + dbFileName);
-            try {
-                if(!RestfulHttpClient.findResource(downloadingUrl)) {
-                    Logger.logWarningMessage("[ UPGRADE DB ] db archive %s dose not exist, break.");
-                    return;
-                }
-            }catch(Exception e){
-                Logger.logWarningMessage("[ UPGRADE DB ] db archive exist judgement occur error: %s, break and wait for next check turn.", e.getMessage());
-                return;
+//            String downloadingUrl ="4615AS465D1XZC3AS13";
+            if(RestfulHttpClient.findResource(downloadingUrl+".7z")){
+                downloadingUrl += ".7z";
+                dbFileName += ".7z";
+            }else if(RestfulHttpClient.findResource(downloadingUrl+".zip")){
+                Logger.logWarningMessage("[ UPGRADE DB ] db archive %s dose not exist, break.", downloadingUrl+".7z");
+                downloadingUrl += ".zip";
+                dbFileName += ".zip";
+            }else{
+                Logger.logWarningMessage("[ UPGRADE DB ] db archive %s dose not exist, break.", downloadingUrl+".zip");
+                return false;
             }
 
             Logger.logDebugMessage("[ UPGRADE DB ] Start to update the local db, pause the mining and blocks sync firstly");
@@ -330,7 +365,7 @@ public class ClientUpgradeTool {
                     downloadFromOSS = false;
                 }
             }
-
+            
             // fetch the specified archived db file
             if(downloadFromOSS) {
                 FileUtil.clearOrDelFiles("temp/", false);
@@ -339,19 +374,30 @@ public class ClientUpgradeTool {
                     FileUtils.copyURLToFile(new URL(downloadingUrl), archivedDbFile);
                 }catch(Exception e){
                     Logger.logWarningMessage("[ UPGRADE DB ] db archive downloading occur error: %s, break and wait for next check turn.", e.getMessage());
-                    return;
+                    return false;
                 }
                 lastDownloadDbArchiveTime = System.currentTimeMillis();
             }
 
+            if(!Conch.isInitialized()) {
+                Logger.logInfoMessage("[ UPGRADE DB ] Give up current db restore, because client is still in the initializing");
+                return false;
+            }
+
+            BlockImpl lastBlock = BlockDb.findLastBlock();
+            int height = (lastBlock != null) ? lastBlock.getHeight() : 0;
+            if(height == 0) {
+                Logger.logInfoMessage("[ UPGRADE DB ] Give up current db restore, because current height is 0");
+                return false;
+            }
+
             // compare archive height with the current height
-            if(lastDbArchiveHeight <= Conch.getHeight()){
+            if(lastDbArchiveHeight <= height){
                 Logger.logInfoMessage("[ UPGRADE DB ] Give up current db restore, because db archive height %d <= current height %d", lastDbArchiveHeight, Conch.getHeight());
-                return;
+                return false;
             }
 
             Conch.pause();
-
             // backup the old db folder
             Logger.logInfoMessage("[ UPGRADE DB ] Delete the bak folder");
             FileUtil.deleteDirectory(Paths.get(".","bak"));
@@ -373,21 +419,32 @@ public class ClientUpgradeTool {
                     }
                 }
             }
-
+           
             Logger.logInfoMessage("[ UPGRADE DB ] Success to update the local db[upgrade db file=%s]", dbFileName);
         }catch(Exception e) {
             Logger.logErrorMessage("[ UPGRADE DB ] Failed to update the local db[upgrade db file=%s] caused by [%s]", dbFileName, e.getMessage());
+            return false;
         }finally{
             Logger.logInfoMessage("[ UPGRADE DB ] Finish the local db upgrade, resume the block mining and blocks sync", dbFileName);
             Conch.unpause();
         }
+        return true;
     }
 
+
     private static void _restoreDbToLastArchive(boolean restartClient){
-        if(lastDbArchive == null || lastDbArchiveHeight == null) fetchLastDbArchive();
-        restoreDb(lastDbArchive);
+        if(lastDbArchive == null || lastDbArchiveHeight == null) {
+            fetchLastDbArchive();
+        }
+        boolean restored = restoreDb(lastDbArchive);
+        if(!restored) {
+            return;
+        }
+
         forceDownloadFromOSS = false;
-        if(restartClient) Conch.restartApplication(null);
+        if(restartClient) {
+            Conch.restartApplication(null);
+        }
     }
 
     public static void restoreDbToLastArchive(boolean newThreadToExecute, boolean restartClient) {
@@ -400,30 +457,4 @@ public class ClientUpgradeTool {
             _restoreDbToLastArchive(restartClient);
         }
     }
-
-    public static void restoreDbToKnownHeight() {
-        if(lastDbArchive == null || lastDbArchiveHeight == null) fetchLastDbArchive();
-        
-        // calculate the restore height
-        if(restoredDbArchiveHeight == 0) {
-            restoredDbArchiveHeight = lastDbArchiveHeight;
-        } else{
-            if(knownDbArchives.size() <= 0) {
-                restoredDbArchiveHeight = lastDbArchiveHeight;
-            } else {
-                int index = knownDbArchives.size() - 1;
-                while(index > 0
-                        && restoredDbArchiveHeight > knownDbArchives.get(index)){
-                    index--;
-                }
-                restoredDbArchiveHeight = knownDbArchives.get(index);  
-            }
-        }
-        
-        if(restoredDbArchiveHeight > 0) {
-            String dbFileName =  Db.getName() + "_" + restoredDbArchiveHeight + ".zip";
-            restoreDb(dbFileName);  
-        }
-    }
-    
 }
