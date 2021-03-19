@@ -23,6 +23,7 @@ package org.conch.peer;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.account.Account;
@@ -31,10 +32,15 @@ import org.conch.common.Constants;
 import org.conch.common.UrlManager;
 import org.conch.consensus.poc.hardware.GetNodeHardware;
 import org.conch.db.Db;
+import org.conch.db.DbIterator;
+import org.conch.db.DbUtils;
 import org.conch.http.API;
 import org.conch.http.APIEnum;
 import org.conch.http.ForceConverge;
+import org.conch.http.JSONData;
+import org.conch.http.biz.domain.ForkObj;
 import org.conch.mint.Generator;
+import org.conch.security.Guard;
 import org.conch.tx.Transaction;
 import org.conch.util.*;
 import org.eclipse.jetty.server.Connector;
@@ -76,9 +82,10 @@ public final class Peers {
 
     static final int connectTimeout;
     static final int readTimeout;
-    static final int blacklistingPeriod;
+    public static final int blacklistingPeriod;
     static final boolean getMorePeers;
-    // change 20 -> 400, because one block include more than 2000 txs at 2018.11.21 
+    static final boolean isOpenForkAnalyze;
+    // change 20 -> 400, because one block include more than 2000 txs at 2018.11.21
     public static final int MAX_REQUEST_SIZE = 400 * 1024 * 1024;
     public static final int MAX_RESPONSE_SIZE = 400 * 1024 * 1024;
     public static final int MAX_MESSAGE_SIZE = 400 * 1024 * 1024;
@@ -93,7 +100,7 @@ public final class Peers {
     public static boolean isUseNATService() {
         return Conch.isUseNAT();
     }
-
+    
     static Map<String,Object> natAndAddrMap = null;
     public static Map<String,Object> getNatAndAddressMap(){
         if(natAndAddrMap == null) {
@@ -175,7 +182,7 @@ public final class Peers {
 //        }
 //       return false;
 //    }
-
+    
     private static List<Peer.Service> checkOpenServices() {
         List<Peer.Service> servicesList = Lists.newArrayList();
         /** basic infos **/
@@ -209,7 +216,7 @@ public final class Peers {
         }
         return servicesList;
     }
-
+    
     /**
      * generate my peer info in static block to ake sure the final params is right
      */
@@ -346,32 +353,34 @@ public final class Peers {
 
         /** apis of my peer **/
         myServices = checkOpenServices();
-
+        
         if(myServices.contains(Peer.Service.HALLMARK)) {
             myPeerInfoJson.put("hallmark", Peers.myHallmark);
         }
-
+        
         if(myServices.contains(Peer.Service.API)) {
             myPeerInfoJson.put("apiPort", API.openAPIPort);
         }
-
+        
         if(myServices.contains(Peer.Service.API_SSL)) {
             myPeerInfoJson.put("apiSSLPort", API.openAPISSLPort);
         }
-
+        
         if(myServices.contains(Peer.Service.BAPI)) {
             myPeerInfoJson.put("enableBizAPIs", true);
         }
-
+        
         if(myServices.contains(Peer.Service.STORAGE)) {
             myPeerInfoJson.put("enableStorage", true);
         }
-
+  
         myPeerInfoJson.put("services", Long.toUnsignedString(getServicesInLong()));
 
         /** mint accounts of my peer **/
         String autoMintRs = Generator.getAutoMiningRS();
-        if (StringUtils.isNotEmpty(autoMintRs)) myPeerInfoJson.put("bindRsAccount", autoMintRs);
+        if (StringUtils.isNotEmpty(autoMintRs)) {
+            myPeerInfoJson.put("bindRsAccount", autoMintRs);
+        }
 
         /** running mode of my peer **/
         myPeerInfoJson.put("runningMode", Conch.runningMode.getName());
@@ -410,6 +419,7 @@ public final class Peers {
         usePeersDb = Conch.getBooleanProperty("sharder.usePeersDb") && !Constants.isOffline;
         savePeers = usePeersDb && Conch.getBooleanProperty("sharder.savePeers");
         getMorePeers = Conch.getBooleanProperty("sharder.getMorePeers");
+        isOpenForkAnalyze = Conch.getBooleanProperty("sharder.isOpenForkAnalyze");
         cjdnsOnly = Conch.getBooleanProperty("sharder.cjdnsOnly");
         ignorePeerAnnouncedAddress = Conch.getBooleanProperty("sharder.ignorePeerAnnouncedAddress");
         if (useWebSockets && useProxy) {
@@ -476,10 +486,10 @@ public final class Peers {
         });
 
     }
-
+    
     private static List<String> parseWellknownPeers(){
         List<String> peers = Constants.isMainnet() ? Conch.getStringListProperty("sharder.wellKnownPeers") : Conch.getStringListProperty("sharder.testnetPeers");
-
+        
         List<String> hosts = Lists.newArrayList();
         for(String peerStr : peers){
             String host = peerStr;
@@ -489,7 +499,7 @@ public final class Peers {
                 host = peerArray[0];
                 type = peerArray[1];
             }
-
+            
             if(StringUtils.isNotEmpty(host)) {
                 hosts.add(host);
                 //TODO[valid-node] consider add these wellknown peers into certified node list
@@ -580,6 +590,7 @@ public final class Peers {
                 int curTime = Conch.getEpochTime();
                 for (PeerImpl peer : peers.values()) {
                     peer.updateBlacklistedStatus(curTime);
+                    Guard.checkAndRemoveSelfClosingPeer(peer.getHost(), curTime);
                 }
 
             } catch (Exception e) {
@@ -708,6 +719,95 @@ public final class Peers {
 
     };
 
+    private static Set<String> EntireNetPeerHosts = Sets.newConcurrentHashSet();
+    private static Map<String, ForkObj> forkObjMap = Maps.newHashMap();
+    private static int latestNum = Conch.getIntProperty("sharder.numForkBlocks") != 0 ? Conch.getIntProperty("sharder.numForkBlocks") : 144;
+
+    public static Map<String, ForkObj> getForkObjMap() {
+        return forkObjMap;
+    }
+
+    private static final Runnable generateForkDataThread = () -> {
+        try {
+            forkObjMap.clear();
+            List<String> bootNodesHost = Constants.bootNodesHost;
+            bootNodesHost.add(Conch.getMyAddress());
+
+            // add custom node
+//            bootNodesHost.add("192.168.0.239");
+//            bootNodesHost.add("192.168.0.232");
+//            bootNodesHost.add("192.168.0.238");
+
+            EntireNetPeerHosts.addAll(bootNodesHost);
+            for (String peerHost : bootNodesHost) {
+                if (Conch.getMyAddress().equals(peerHost)) {
+                    continue;
+                }
+                Peer peer = getPeer(peerHost, true);
+                if (peer == null) {
+                    continue;
+                }
+                //[NAT] inject useNATService property to the request params
+                JSONObject request = new JSONObject();
+                request.put("requestType", "getPeers");
+                request.put("notFilter", "true");
+                request.put("useNATService", Peers.isUseNATService());
+                request.put("announcedAddress", Conch.getMyAddress());
+                JSONObject response = peer.send(JSON.prepareRequest(request), Peers.MAX_RESPONSE_SIZE);
+                if (response == null) {
+                    continue;
+                }
+                JSONArray peers = (JSONArray) response.get("peers");
+                if (peers != null && peers.size() > 0) {
+                    for (int i = 0; i < peers.size(); i++) {
+                        String announcedAddress = (String) peers.get(i);
+                        PeerImpl newPeer = findOrCreatePeer(announcedAddress, Peers.isUseNATService(announcedAddress));
+                        if (newPeer != null && !Guard.internalIp(newPeer.getHost())) {
+//                        if (newPeer != null) {
+                            EntireNetPeerHosts.add(newPeer.getHost());
+                        }
+                    }
+                }
+            }
+            JSONObject request = new JSONObject();
+            DbIterator<? extends Block> iterator = null;
+            List<JSONObject> blocks = new JSONArray();
+            try {
+                iterator = Conch.getBlockchain().getBlocks(0, latestNum-1);
+                while (iterator.hasNext()) {
+                    Block block = iterator.next();
+                    if (block.getTimestamp() < 0) {
+                        break;
+                    }
+                    blocks.add(JSONData.forkBlock(block));
+                }
+            }finally {
+                DbUtils.close(iterator);
+            }
+            processBlocksToForkObj(Peers.getMyAddress(), blocks);
+            for (String peerHost : EntireNetPeerHosts) {
+                if (Conch.getMyAddress().equals(peerHost)) {
+                    continue;
+                }
+                Peer peer = Peers.getPeer(peerHost, true);
+                request.put("requestType", "getBlocks");
+                request.put("latestNum", latestNum);
+                JSONObject response = peer.send(JSON.prepareRequest(request), Peers.MAX_RESPONSE_SIZE);
+                if (response == null) {
+                    continue;
+                }
+                Object blocksObj = response.get("blocks");
+                if (blocksObj == null) {
+                    continue;
+                }
+                processBlocksToForkObj(peer.getAnnouncedAddress(), (List<JSONObject>) blocksObj);
+            }
+            forkAnalyze();
+        } catch (Exception e) {
+            Logger.logDebugMessage("Get fork data process fail");
+        }
+    };
+
     private static final Runnable getMorePeersThread = new Runnable() {
 
         private final JSONStreamAware getPeersRequest;
@@ -802,58 +902,63 @@ public final class Peers {
 
         private void updateSavedPeers() {
             int now = Conch.getEpochTime();
-            //
-            // Load the current database entries and map announced address to database entry
-            //
-            List<PeerDb.Entry> oldPeers = PeerDb.loadPeers();
-            Map<String, PeerDb.Entry> oldMap = new HashMap<>(oldPeers.size());
-            oldPeers.forEach(entry -> oldMap.put(entry.getAddress(), entry));
-            //
-            // Create the current peer map (note that there can be duplicate peer entries with
-            // the same announced address)
-            //
-            Map<String, PeerDb.Entry> currentPeers = new HashMap<>();
-            Peers.peers.values().forEach(peer -> {
-                if (peer.getAnnouncedAddress() != null && !peer.isBlacklisted() && now - peer.getLastUpdated() < 7 * 24 * 3600) {
-                    currentPeers.put(peer.getAnnouncedAddress(),
-                            new PeerDb.Entry(peer.getAnnouncedAddress(), peer.getServices(), peer.getLastUpdated()));
-                }
-            });
-            //
-            // Build toDelete and toUpdate lists
-            //
-            List<PeerDb.Entry> toDelete = new ArrayList<>(oldPeers.size());
-            oldPeers.forEach(entry -> {
-                if (currentPeers.get(entry.getAddress()) == null) {
-                    toDelete.add(entry);
-                }
-            });
-            List<PeerDb.Entry> toUpdate = new ArrayList<>(currentPeers.size());
-            currentPeers.values().forEach(entry -> {
-                PeerDb.Entry oldEntry = oldMap.get(entry.getAddress());
-                if (oldEntry == null || entry.getLastUpdated() - oldEntry.getLastUpdated() > 24 * 3600) {
-                    toUpdate.add(entry);
-                }
-            });
-            //
-            // Nothing to do if all of the lists are empty
-            //
-            if (toDelete.isEmpty() && toUpdate.isEmpty()) {
-                return;
-            }
-            //
-            // Update the peer database
-            //
             try {
-                Db.db.beginTransaction();
-                PeerDb.deletePeers(toDelete);
-                PeerDb.updatePeers(toUpdate);
-                Db.db.commitTransaction();
+                //
+                // Load the current database entries and map announced address to database entry
+                //
+                List<PeerDb.Entry> oldPeers = PeerDb.loadPeers();
+                Map<String, PeerDb.Entry> oldMap = new HashMap<>(oldPeers.size());
+                oldPeers.forEach(entry -> oldMap.put(entry.getAddress(), entry));
+                //
+                // Create the current peer map (note that there can be duplicate peer entries with
+                // the same announced address)
+                //
+                Map<String, PeerDb.Entry> currentPeers = new HashMap<>();
+                Peers.peers.values().forEach(peer -> {
+                    if (peer.getAnnouncedAddress() != null && !peer.isBlacklisted() && now - peer.getLastUpdated() < 7 * 24 * 3600) {
+                        currentPeers.put(peer.getAnnouncedAddress(),
+                                new PeerDb.Entry(peer.getAnnouncedAddress(), peer.getServices(), peer.getLastUpdated()));
+                    }
+                });
+                //
+                // Build toDelete and toUpdate lists
+                //
+                List<PeerDb.Entry> toDelete = new ArrayList<>(oldPeers.size());
+                oldPeers.forEach(entry -> {
+                    if (currentPeers.get(entry.getAddress()) == null) {
+                        toDelete.add(entry);
+                    }
+                });
+                List<PeerDb.Entry> toUpdate = new ArrayList<>(currentPeers.size());
+                currentPeers.values().forEach(entry -> {
+                    PeerDb.Entry oldEntry = oldMap.get(entry.getAddress());
+                    if (oldEntry == null || entry.getLastUpdated() - oldEntry.getLastUpdated() > 24 * 3600) {
+                        toUpdate.add(entry);
+                    }
+                });
+                //
+                // Nothing to do if all of the lists are empty
+                //
+                if (toDelete.isEmpty() && toUpdate.isEmpty()) {
+                    return;
+                }
+                //
+                // Update the peer database
+                //
+                try {
+                    Db.db.beginTransaction();
+                    PeerDb.deletePeers(toDelete);
+                    PeerDb.updatePeers(toUpdate);
+                    Db.db.commitTransaction();
+                } catch (Exception e) {
+                    Db.db.rollbackTransaction();
+                    throw e;
+                } finally {
+                    Db.db.endTransaction();
+                }
             } catch (Exception e) {
-                Db.db.rollbackTransaction();
-                throw e;
-            } finally {
-                Db.db.endTransaction();
+                e.printStackTrace();
+                Logger.logErrorMessage("update saved Peers fail " + e);
             }
         }
 
@@ -865,73 +970,73 @@ public final class Peers {
             UrlManager.PEERS_LIST_PATH
     );
 
-    /** Syn cetified peers from foundation 
+    /** Syn cetified peers from foundation
      *
-     public static boolean synCertifiedPeers() throws Exception {
-     String peersStr = Https.httpRequest(SC_PEERS_API, "GET", null);
-     com.alibaba.fastjson.JSONArray peerArrayJson = new com.alibaba.fastjson.JSONArray();
-     if (StringUtils.isEmpty(peersStr)) {
-     Logger.logInfoMessage("ge peer list from %s is null, no needs to get peer info", SC_PEERS_API);
-     return false;
-     } else {
-     if (peersStr.startsWith(Constants.BRACKET)) {
-     peerArrayJson = com.alibaba.fastjson.JSON.parseArray(peersStr);
-     } else if (peersStr.startsWith(Constants.CURLY_BRACES)) {
-     peerArrayJson.add(com.alibaba.fastjson.JSON.parseObject(peersStr));
-     }
-     }
+    public static boolean synCertifiedPeers() throws Exception {
+        String peersStr = Https.httpRequest(SC_PEERS_API, "GET", null);
+        com.alibaba.fastjson.JSONArray peerArrayJson = new com.alibaba.fastjson.JSONArray();
+        if (StringUtils.isEmpty(peersStr)) {
+            Logger.logInfoMessage("ge peer list from %s is null, no needs to get peer info", SC_PEERS_API);
+            return false;
+        } else {
+            if (peersStr.startsWith(Constants.BRACKET)) {
+                peerArrayJson = com.alibaba.fastjson.JSON.parseArray(peersStr);
+            } else if (peersStr.startsWith(Constants.CURLY_BRACES)) {
+                peerArrayJson.add(com.alibaba.fastjson.JSON.parseObject(peersStr));
+            }
+        }
 
-     String detail = "\n\r==================> syn certified peers from [" + SC_PEERS_API + "] and found size " + peerArrayJson.size() + " peers\n\r";
-     Iterator iterator = peerArrayJson.iterator();
-     while (iterator.hasNext()) {
-     com.alibaba.fastjson.JSONObject peerJson = (com.alibaba.fastjson.JSONObject) iterator.next();
+        String detail = "\n\r==================> syn certified peers from [" + SC_PEERS_API + "] and found size " + peerArrayJson.size() + " peers\n\r";
+        Iterator iterator = peerArrayJson.iterator();
+        while (iterator.hasNext()) {
+            com.alibaba.fastjson.JSONObject peerJson = (com.alibaba.fastjson.JSONObject) iterator.next();
 
-     String host = peerJson.getString("announcedAddress");
-     if (StringUtils.isEmpty(host)) {
-     host = peerJson.getString("address");
-     }
+            String host = peerJson.getString("announcedAddress");
+            if (StringUtils.isEmpty(host)) {
+                host = peerJson.getString("address");
+            }
 
-     String bindAddress = peerJson.getString("bindRs");
-     Peer peer = Peers.getPeer(host, true);
-     if (StringUtils.isEmpty(bindAddress)) {
-     detail += "can't process peer[host=" + host + "] which rs address is null\n\r";
-     continue;
-     }
+            String bindAddress = peerJson.getString("bindRs");
+            Peer peer = Peers.getPeer(host, true);
+            if (StringUtils.isEmpty(bindAddress)) {
+                detail += "can't process peer[host=" + host + "] which rs address is null\n\r";
+                continue;
+            }
 
-     if (peer == null) {
-     peer = findOrCreatePeer(host, Peers.isUseNATService(host), true);
-     if (peer != null) {
-     Peers.addPeer(peer, host);
-     Peers.connectPeer(peer);
-     }
-     peer = Peers.getPeer(host, true);
-     detail += "create a new certified peer[host=" + host + ",linked rs=" + bindAddress + "]\n\r";
-     } else {
-     detail += "update a certified peer[host=" + host + ",linked rs=" + bindAddress + "]\n\r";
-     }
+            if (peer == null) {
+                peer = findOrCreatePeer(host, Peers.isUseNATService(host), true);
+                if (peer != null) {
+                    Peers.addPeer(peer, host);
+                    Peers.connectPeer(peer);
+                }
+                peer = Peers.getPeer(host, true);
+                detail += "create a new certified peer[host=" + host + ",linked rs=" + bindAddress + "]\n\r";
+            } else {
+                detail += "update a certified peer[host=" + host + ",linked rs=" + bindAddress + "]\n\r";
+            }
 
-     //            if(peer != null) {
-     //                peer.setBindRsAccount(bindAddress);
-     //                Conch.getPocProcessor().updateBoundPeer(host, Account.rsAccountToId(bindAddress));
-     //            }
-     }
-     detail += "<================== certified peer info updated";
-     Logger.logDebugMessage(detail);
-     return true;
-     }
+//            if(peer != null) {
+//                peer.setBindRsAccount(bindAddress);
+//                Conch.getPocProcessor().updateBoundPeer(host, Account.rsAccountToId(bindAddress));
+//            }
+        }
+        detail += "<================== certified peer info updated";
+        Logger.logDebugMessage(detail);
+        return true;
+    }
 
 
      // get and update the local bound rs account of certified peer
-     private static final Runnable GET_CERTIFIED_PEER_THREAD = () -> {
-     try {
-     synCertifiedPeers();
-     } catch (Exception e) {
-     Logger.logErrorMessage("syn certified peer thread interrupted, wait for next round", e);
-     } catch (Throwable t) {
-     Logger.logErrorMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
-     System.exit(1);
-     }
-     };
+    private static final Runnable GET_CERTIFIED_PEER_THREAD = () -> {
+        try {
+            synCertifiedPeers();
+        } catch (Exception e) {
+            Logger.logErrorMessage("syn certified peer thread interrupted, wait for next round", e);
+        } catch (Throwable t) {
+            Logger.logErrorMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString(), t);
+            System.exit(1);
+        }
+    };
      */
 
     public static volatile boolean hardwareTested = false;
@@ -955,6 +1060,7 @@ public final class Peers {
 
         hardwareTested = GetNodeHardware.readAndReport(DEFAULT_TX_CHECKING_COUNT);
     };
+
 
     static {
         // listener and thread run
@@ -984,6 +1090,9 @@ public final class Peers {
             ThreadPool.scheduleThread("PeerUnBlacklisting", Peers.peerUnBlacklistingThread, 60);
             if (Peers.getMorePeers) {
                 ThreadPool.scheduleThread("GetMorePeers", Peers.getMorePeersThread, 20);
+            }
+            if (Peers.isOpenForkAnalyze) {
+                ThreadPool.scheduleThread("GenerateForkData", Peers.generateForkDataThread, 10, TimeUnit.MINUTES);
             }
         }
     }
@@ -1077,9 +1186,11 @@ public final class Peers {
         if(!checkAnnouncedAddr) {
             return peers.get(host);
         }
-
-        if(peers.containsKey(host)) return peers.get(host);
-
+        
+        if(peers.containsKey(host)) {
+            return peers.get(host);
+        }
+        
         // check by announced address
         for(PeerImpl peer : peers.values()){
             if(host.equals(peer.getAnnouncedAddress())){
@@ -1088,7 +1199,7 @@ public final class Peers {
         }
         return null;
     }
-
+    
     public static List<Peer> getInboundPeers() {
         return getPeers(Peer::isInbound);
     }
@@ -1115,7 +1226,7 @@ public final class Peers {
         if (host != null && (peer = peers.get(host)) != null) {
             return peer;
         }
-
+        
         try {
             URI uri = new URI("http://" + announcedAddress);
             host = uri.getHost();
@@ -1190,6 +1301,7 @@ public final class Peers {
     }
 
     static void checkNetworkWhetherRight(String host, int port) {
+//        Logger.logDebugMessage("Check the format of the peer's address [ host is " + host + ", port is " + port + ", network is" + Constants.getNetwork().getName() + " ]");
         host = StringUtils.isEmpty(host) ? "null" : host;
         String networkDetail = "";
         boolean badNetwork = false;
@@ -1213,34 +1325,40 @@ public final class Peers {
             Logger.logDebugMessage(networkDetail, "ignoring");
         }
     }
-
+    
     private static boolean hostSameAsAddress(Peer peer){
-        if(peer == null) return false;
-        if(StringUtils.isEmpty(peer.getAnnouncedAddress())) return false;
-        if(StringUtils.isEmpty(peer.getHost())) return false;
-
+        if(peer == null) {
+            return false;
+        }
+        if(StringUtils.isEmpty(peer.getAnnouncedAddress())) {
+            return false;
+        }
+        if(StringUtils.isEmpty(peer.getHost())) {
+            return false;
+        }
+        
         return StringUtils.equalsIgnoreCase(peer.getAnnouncedAddress(), peer.getHost());
     }
-
+    
     static void setAnnouncedAddress(PeerImpl peer, String newAnnouncedAddress) {
+        if(StringUtils.isEmpty(newAnnouncedAddress)) {
+            return;
+        }
+
         Peer oldPeer = peers.get(peer.getHost());
         if (oldPeer != null) {
             String oldAnnouncedAddress = oldPeer.getAnnouncedAddress();
             if (oldAnnouncedAddress != null && !oldAnnouncedAddress.equals(newAnnouncedAddress)) {
-                if(Logger.printNow(Peers.class.getName())) {
-                    Logger.logDebugMessage("Removing old announced address " + oldAnnouncedAddress + " for peer " + oldPeer.getHost());
-                }
+                Logger.logDebugMessage("Removing old announced address " + oldAnnouncedAddress + " for peer " + oldPeer.getHost());
                 selfAnnouncedAddresses.remove(oldAnnouncedAddress);
             }
         }
-
-        if (newAnnouncedAddress != null) {
+        
+        if (StringUtils.isNotEmpty(newAnnouncedAddress)) {
             String oldHost = selfAnnouncedAddresses.put(newAnnouncedAddress, peer.getHost());
             if (oldHost != null && !peer.getHost().equals(oldHost)) {
-                if(Logger.printNow(Peers.class.getName(), 200)){
-                    Logger.logDebugMessage("Announced address " + newAnnouncedAddress + " now maps to peer " + peer.getHost()
-                            + ", removing old peer " + oldHost);
-                }
+                Logger.logDebugMessage("Announced address " + newAnnouncedAddress + " now maps to peer " + peer.getHost()
+                        + ", removing old peer " + oldHost);
                 oldPeer = peers.remove(oldHost);
                 if (oldPeer != null) {
                     Peers.notifyListeners(oldPeer, Event.REMOVE);
@@ -1249,7 +1367,7 @@ public final class Peers {
         }
         peer.setAnnouncedAddress(newAnnouncedAddress);
     }
-
+    
     public static boolean addPeer(Peer peer, String newAnnouncedAddress) {
         setAnnouncedAddress((PeerImpl) peer, newAnnouncedAddress.toLowerCase());
         return addPeer(peer);
@@ -1366,7 +1484,7 @@ public final class Peers {
             weightedPeerCountMap.put(peer.getHost(), 0);
         }
         int connectCount = weightedPeerCountMap.get(peer.getHost());
-
+    
         if(connectCount >= 3 && connectCount < MAX_CONNECT_CHECK_COUNT) {
             weightedPeerCountMap.put(peer.getHost(), connectCount+1);
             return false;
@@ -1389,29 +1507,42 @@ public final class Peers {
      * @return
      */
     public static Peer getWeightedPeer(List<Peer> selectedPeers) {
-        if (selectedPeers.isEmpty()) return null;
+        if (selectedPeers.isEmpty()) {
+            return null;
+        }
 
         long totalWeight = 0;
         for (Peer peer : selectedPeers) {
             long weight = (peer.getWeight() == 0) ? 1 : peer.getWeight();
             totalWeight += weight;
             // return boot node directly
-            if(Constants.isValidBootNode(peer)
-                    && countAndCheck(peer)) {
+//            if(Constants.isValidBootNode(peer)
+//             && countAndCheck(peer)) {
+//                return peer;
+//            }
+            if(countAndCheck(peer)) {
                 return peer;
             }
         }
 
         if (!Peers.enableHallmarkProtection || ThreadLocalRandom.current().nextInt(3) == 0) {
             Peer randomPeer = selectedPeers.get(ThreadLocalRandom.current().nextInt(selectedPeers.size()));
-            if(countAndCheck(randomPeer)) return randomPeer;
+            if(countAndCheck(randomPeer)) {
+                return randomPeer;
+            }
         }
-
+        
         long hit = ThreadLocalRandom.current().nextLong(totalWeight);
         for (Peer peer : selectedPeers) {
             long weight = (peer.getWeight() == 0) ? 1 : peer.getWeight();
-            if ((hit -= weight) < 0) {
-                if(countAndCheck(peer)) return peer;
+            boolean rightVersion = Conch.versionCompare(peer.getVersion()) <= 0;
+            if ((hit -= weight) < 0
+            && rightVersion) {
+//                if(countAndCheck(peer)) {
+//                    return peer;
+//                }
+
+                return peer;
             }
         }
         return null;
@@ -1588,7 +1719,7 @@ public final class Peers {
         }
         return services;
     }
-
+    
     public static JSONObject getBlockchainSummary(){
         JSONObject json = new JSONObject();
         Block lastBlock = Conch.getBlockchain().getLastBlock();
@@ -1603,7 +1734,7 @@ public final class Peers {
         }
         return json;
     }
-
+    
     private static void generateMyPeerInfoRequest(Peer.BlockchainState state){
         // generate my peer details and update state
         // generate the request and response api
@@ -1618,7 +1749,7 @@ public final class Peers {
             currentBlockchainState = state;
         }
     }
-
+    
     public static JSONObject generateMyPeerJson(){
         JSONObject json = new JSONObject(myPeerInfo);
         json.put("peerLoad", getBestPeerLoad().toJson());
@@ -1634,27 +1765,27 @@ public final class Peers {
     private static void checkBlockchainStateAndGenerateMyPeerInfoRequest(Boolean setToUpToDate) {
         Peer.BlockchainState state = Peer.BlockchainState.LIGHT_CLIENT;
         if(!Constants.isLightClient) {
-
-            boolean isObsoleteTime = Conch.getBlockchain().getLastBlockTimestamp() < Conch.getEpochTime() - 600;
+            
+            boolean isObsoleted = Conch.getBlockchain().getLastBlockTimestamp() < Conch.getEpochTime() - Constants.GAP_SECONDS;
             boolean isBiggerTarget = (Conch.getBlockchain().getLastBlock().getBaseTarget() / Constants.INITIAL_BASE_TARGET) > 10;
-
+            
             if(Conch.getBlockchainProcessor().isDownloading()){
                 state = Peer.BlockchainState.DOWNLOADING;
-            }else if(isObsoleteTime){
+            }else if(isObsoleted){
                 state = Peer.BlockchainState.OBSOLETE;
             }else if(isBiggerTarget && Constants.isMainnet()){
                 state = Peer.BlockchainState.FORK;
             }else{
                 state = Peer.BlockchainState.UP_TO_DATE;
             }
-
-            // if current height reach the boot node height and state is fork, change its state to UP_TO_DATE
-            if(setToUpToDate != null
-                    && setToUpToDate == true){
+            
+            // force change state
+            if(setToUpToDate != null 
+            && setToUpToDate == true){
                 state = Peer.BlockchainState.UP_TO_DATE;
             }
         }
-
+        
         generateMyPeerInfoRequest(state);
     }
 
@@ -1672,8 +1803,13 @@ public final class Peers {
         return Constants.isOffline ? Peer.BlockchainState.UP_TO_DATE : currentBlockchainState;
     }
 
-    public static Peer.BlockchainState checkAndUpdateBlockchainState(Boolean reachBootNodeHeight) {
-        checkBlockchainStateAndGenerateMyPeerInfoRequest(reachBootNodeHeight);
+    public static String getMyBlockchainStateName() {
+        Peer.BlockchainState state = getMyBlockchainState();
+        return state != null ? state.name() : "None";
+    }
+
+    public static Peer.BlockchainState checkAndUpdateBlockchainState(Boolean forceSetToUpToDate) {
+        checkBlockchainStateAndGenerateMyPeerInfoRequest(forceSetToUpToDate);
         return currentBlockchainState;
     }
 
@@ -1709,12 +1845,112 @@ public final class Peers {
         return myServices.contains(service);
     }
 
-    public static Peer checkOrConnectBootNode(){
-        Peer bootNode = Peers.getPeer(Constants.getBootNodeRandom(), true);
-        if(bootNode != null && Peer.State.CONNECTED != bootNode.getState()) {
-            connectPeer(bootNode);
+    public static Peer checkOrConnectBootNodeRandom(boolean needConnectNow) {
+        return _connectToPeer(Constants.getBootNodeRandom(), needConnectNow);
+    }
+
+    public static List<Peer> checkOrConnectAllGuideNodes(boolean needConnectNow) {
+        List<Peer> connectedNodes = Lists.newArrayList();
+
+        boolean connectedBootNodes = false;
+        List<String> needConnectNodes = Lists.newArrayList();
+        for (String nodeHost : Constants.bootNodesHost) {
+            if (Conch.matchMyAddress(nodeHost)) {
+                continue;
+            }
+            if (!Guard.forceConnectToBootNode() && nodeHost.contains("boot")) {
+                continue;
+            }
+
+            // reconnect to all boot nodes
+            if (needConnectNow) {
+                needConnectNodes.add(nodeHost);
+                continue;
+            }
+
+            // check whether connect one of boot nodes
+            Peer peer = Peers.getPeer(nodeHost, true);
+            if (peer != null
+                    && Peer.State.CONNECTED == peer.getState()) {
+                connectedBootNodes = true;
+                connectedNodes.add(peer);
+            } else {
+                needConnectNodes.add(nodeHost);
+            }
         }
-        return bootNode;
+
+        // connect to none-connected boot nodes
+        if(!connectedBootNodes) {
+            needConnectNodes.forEach(nodeHost -> {
+                Peer peer = _connectToPeer(nodeHost, needConnectNow);
+                if(peer != null) {
+                    connectedNodes.add(peer);
+                }
+            });
+        }
+
+        return connectedNodes;
+    }
+
+    private static Peer _connectToPeer(String nodeHost, boolean needConnectNow){
+        Peer peer = Peers.getPeer(nodeHost, true);
+        if(peer == null) {
+            peer = Peers.findOrCreatePeer(nodeHost, false, true);
+            if(peer != null) {
+                Peers.addPeer(peer);
+                needConnectNow = true;
+            }
+        }else if(StringUtils.isEmpty(peer.getAnnouncedAddress())
+        || StringUtils.isEmpty(peer.getHost())){
+            needConnectNow = true;
+        }
+
+        if(peer != null) {
+            if(needConnectNow || Peer.State.CONNECTED != peer.getState()){
+                if (Logger.printNow(Logger.PEERS_CHECK_OR_CONNECT_TO_PEER)) {
+                    Logger.logDebugMessage("Re-connect boot node %s[%s] when its state is %s",
+                            peer.getAnnouncedAddress(), peer.getHost(), peer.getState());
+                }
+                connectPeer(peer);
+            }
+        }
+        return peer;
+    }
+
+    public static void checkOrReConnectAllPeers(){
+        for (Peer peer : peers.values()) {
+            if(peer != null && Peer.State.CONNECTED != peer.getState()) {
+                connectPeer(peer);
+            }
+        }
+        checkOrConnectAllGuideNodes(true);
+    }
+
+    private static void forkAnalyze() {
+        // todo loop all forks, confirm commonBlock, base on commonBlock to analyze fork length
+    }
+    /**
+     * Label different forks based on key
+     * @param announcedAddress
+     * @param blocks
+     */
+    public static void processBlocksToForkObj(String announcedAddress, List<JSONObject> blocks) {
+        if (blocks.isEmpty()) {
+            return;
+        }
+        JSONObject lastBlock = blocks.get(0);
+        String blockId =(String) lastBlock.get("block");
+        // new fork
+        if (!forkObjMap.containsKey(blockId)) {
+            forkObjMap.put(blockId, new ForkObj(blockId, blocks, announcedAddress));
+            return;
+        }
+        // process old fork
+        forkObjMap.get(blockId).addPeer(announcedAddress);
+        /**
+         * UI： xy axis height，difficulty， forkName（blockId + Miner）
+         * click detail => blockDetail + nodeList
+         */
     }
 
 }

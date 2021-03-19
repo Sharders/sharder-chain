@@ -63,24 +63,39 @@ final class PeerDb {
 
         @Override
         public boolean equals(Object obj) {
-            return (obj != null && (obj instanceof Entry) && address.equals(((Entry)obj).address));
+            return (obj != null && (obj instanceof Entry) && address.equals(((Entry) obj).address));
+        }
+    }
+
+    static void truncatePeerTable() throws SQLException {
+        Connection con = null;
+        PreparedStatement pstmt;
+        try {
+            con = Db.db.getConnection();
+            pstmt = con.prepareStatement("TRUNCATE TABLE peer");
+            pstmt.executeUpdate();
+        } finally {
+            DbUtils.close(con);
         }
     }
 
     static List<Entry> loadPeers() {
         List<Entry> peers = new ArrayList<>();
         Connection con = null;
+        PreparedStatement pstmt;
         try {
             con = Db.db.getConnection();
-            PreparedStatement pstmt = con.prepareStatement("SELECT * FROM peer");
-            ResultSet rs = pstmt.executeQuery();
-            
-            while (rs.next()) {
-                peers.add(new Entry(rs.getString("address"), rs.getLong("services"), rs.getInt("last_updated")));
+            pstmt = con.prepareStatement("SELECT * FROM peer");
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    peers.add(new Entry(rs.getString("address"), rs.getLong("services"), rs.getInt("last_updated")));
+                }
+            } catch (SQLException e) {
+                truncatePeerTable();
             }
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
-        }finally {
+        } finally {
             DbUtils.close(con);
         }
         return peers;
@@ -89,38 +104,64 @@ final class PeerDb {
     static void deletePeers(Collection<Entry> peers) {
         try (Connection con = Db.db.getConnection();
              PreparedStatement pstmt = con.prepareStatement("DELETE FROM peer WHERE address = ?")) {
-            for (Entry peer : peers) {
-                pstmt.setString(1, peer.getAddress());
-                pstmt.executeUpdate();
+            try {
+                for (Entry peer : peers) {
+                    pstmt.setString(1, peer.getAddress());
+                    pstmt.executeUpdate();
+                }
+            } catch (SQLException throwables) {
+                truncatePeerTable();
             }
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
         }
     }
+
+    private static volatile int updatePeersCount = 0;
 
     static void updatePeers(Collection<Entry> peers) {
         try (Connection con = Db.db.getConnection();
-                PreparedStatement pstmt = con.prepareStatement("MERGE INTO peer "
-                        + "(address, services, last_updated) KEY(address) VALUES(?, ?, ?)")) {
-            for (Entry peer : peers) {
-                pstmt.setString(1, peer.getAddress());
-                pstmt.setLong(2, peer.getServices());
-                pstmt.setInt(3, peer.getLastUpdated());
-                pstmt.executeUpdate();
+             PreparedStatement pstmt = con.prepareStatement("MERGE INTO peer "
+                     + "(address, services, last_updated) KEY(address) VALUES(?, ?, ?)")) {
+            try {
+                for (Entry peer : peers) {
+                    pstmt.setString(1, peer.getAddress());
+                    pstmt.setLong(2, peer.getServices());
+                    pstmt.setInt(3, peer.getLastUpdated());
+                    pstmt.executeUpdate();
+                }
+            } catch (SQLException throwables) {
+                truncatePeerTable();
+                if (updatePeersCount == 0) {
+                    updatePeersCount++;
+                    updatePeers(peers);
+                }
             }
+            updatePeersCount = 0;
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
         }
     }
 
+    private static volatile int updatePeerCount = 0;
+
     static void updatePeer(PeerImpl peer) {
         try (Connection con = Db.db.getConnection();
-                PreparedStatement pstmt = con.prepareStatement("MERGE INTO peer "
-                        + "(address, services, last_updated) KEY(address) VALUES(?, ?, ?)")) {
+             PreparedStatement pstmt = con.prepareStatement("MERGE INTO peer "
+                     + "(address, services, last_updated) KEY(address) VALUES(?, ?, ?)")) {
             pstmt.setString(1, peer.getAnnouncedAddress());
             pstmt.setLong(2, peer.getServices());
             pstmt.setInt(3, peer.getLastUpdated());
-            pstmt.executeUpdate();
+            try {
+                pstmt.executeUpdate();
+            } catch (SQLException e) {
+                truncatePeerTable();
+                if (updatePeerCount == 0) {
+                    updatePeerCount++;
+                    updatePeer(peer);
+                }
+            }
+            updatePeerCount = 0;
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
         }

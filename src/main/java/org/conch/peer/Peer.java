@@ -42,11 +42,13 @@ public interface Peer extends Comparable<Peer> {
      */
     @JSONType(deserializer = PeerTypeEnumDeserializer.class)
     enum Type {
-        BOX(5, "Sharder Box", 1, "Box"),
-        HUB(4, "Sharder Hub", 0,"Hub"),
+        BOX(7, "Box Node", 1, "Center"),
+        HUB(6, "Hub Node", 0,"Soul"),
+        CENTER(5, "Center Node", 1, "Center"),
+        SOUL(4, "Soul Node", 0,"Soul"),
         NORMAL(3, "Normal Node", 2,"Normal"),
         COMMUNITY(2, "Community Node", 3, "Community"),
-        FOUNDATION(1, "Sharder Node",4, "Foundation");
+        FOUNDATION(1, "Community Node",4, "Foundation");
         private final int code;
         private final String name;
         private final int simpleCode;
@@ -181,7 +183,9 @@ public interface Peer extends Comparable<Peer> {
         //分叉
         FORK,
         //过期
-        OBSOLETE
+        OBSOLETE,
+        //无状态
+        NONE,
     }
 
     enum RunningMode {
@@ -217,6 +221,8 @@ public interface Peer extends Comparable<Peer> {
     boolean providesService(Service service);
 
     boolean providesServices(long services);
+
+    String getCosUpdateTime();
 
     boolean isUseNATService();
 

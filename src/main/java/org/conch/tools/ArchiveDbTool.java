@@ -58,7 +58,7 @@ public class ArchiveDbTool {
 
     private static long calArchiveIntervalHeight(){
         // default is 15days to archive once
-        return 60L*60L*24L*ARCHIVE_INTERVAL_DAYS / (long)Constants.getBlockGapSeconds();
+        return 60L*60L*24L*ARCHIVE_INTERVAL_DAYS / (long)Constants.GAP_SECONDS;
     }
     /**
      * current height whether match the backup condition
