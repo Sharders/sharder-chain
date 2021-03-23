@@ -41,7 +41,7 @@ public class LocalDebugTool {
      * @return true： local debug mode
      */
     public static boolean isLocalDebug(){
-        String localDebugEnv = System.getProperty(RuntimeEnvironment.LOCALDEBUG_ARG);
+        String localDebugEnv = System.getProperty(RuntimeEnvironment.LOCAL_DEBUG_ARG);
         return StringUtils.isNotEmpty(localDebugEnv) ? Boolean.parseBoolean(localDebugEnv) : false;
     }
 
@@ -50,11 +50,11 @@ public class LocalDebugTool {
     private static final List<String> checkPocAccounts = Lists.newArrayList(localDebugConfig.getProperty(DEBUG_PROPERTY_POC_ACCOUNTS,"").split(SEPARATOR));
 
     public static boolean isCheckPocAccount(String rsAccount){
-        return isLocalDebug() && checkPocAccounts.contains(rsAccount);
+       return isLocalDebug() && checkPocAccounts.contains(rsAccount);
     }
 
     public static boolean isCheckPocAccount(long accountId){
-        return isLocalDebug() && checkPocAccounts.contains(Account.rsAccount(accountId));
+       return isLocalDebug() && checkPocAccounts.contains(Account.rsAccount(accountId));
     }
 
     /** debug the block generator error **/

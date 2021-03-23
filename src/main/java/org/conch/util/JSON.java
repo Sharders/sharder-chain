@@ -21,13 +21,13 @@
 
 package org.conch.util;
 
+import com.alibaba.fastjson.serializer.SerializerFeature;
+import org.conch.Conch;
 import org.json.simple.JSONAware;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
-import java.io.IOException;
-import java.io.StringWriter;
-import java.io.Writer;
+import java.io.*;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -268,5 +268,60 @@ public final class JSON {
             sb.append(string);
         else if (start < string.length())
             sb.append(string.substring(start));
+    }
+
+    /**
+     * Read Json file,return jsonStr
+     * @param fileName
+     * @return
+     */
+    public static String readJsonFile(String fileName) {
+        String jsonStr = "";
+        try {
+            File jsonFile = new File(fileName);
+            FileReader fileReader = new FileReader(jsonFile);
+
+            Reader reader = new InputStreamReader(new FileInputStream(jsonFile),"utf-8");
+            int ch = 0;
+            StringBuffer sb = new StringBuffer();
+            while ((ch = reader.read()) != -1) {
+                sb.append((char) ch);
+            }
+            fileReader.close();
+            reader.close();
+            jsonStr = sb.toString();
+            return jsonStr;
+        } catch (IOException e) {
+            e.printStackTrace();
+            Logger.logInfoMessage("Cannot read file " + fileName + " error " + e.getMessage());
+
+            throw new IllegalArgumentException(String.format("Error loading file %s", fileName));
+        }
+    }
+
+    /**
+     * JsonObject write to Json file
+     * @param jsonObject
+     * @param fileName
+     */
+    public static void JsonWrite(JSONObject jsonObject, String fileName){
+
+        try {
+            OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(fileName),"UTF-8");
+            // json format output
+            com.alibaba.fastjson.JSONObject object = com.alibaba.fastjson.JSONObject.parseObject(jsonObject.toJSONString());
+            String pretty = com.alibaba.fastjson.JSON.toJSONString(object, SerializerFeature.PrettyFormat, SerializerFeature.WriteMapNullValue,
+                    SerializerFeature.WriteDateUseDateFormat);
+            osw.write(pretty);
+            // clear the buffer, forcing the output of data
+            osw.flush();
+            // close the output stream
+            osw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            Logger.logInfoMessage("Cannot write to file " + fileName + " error " + e.getMessage());
+
+            throw new IllegalArgumentException(String.format("Error write to file %s", fileName));
+        }
     }
 }

@@ -29,6 +29,7 @@ import org.conch.consensus.poc.hardware.GetNodeHardware;
 import org.conch.env.RuntimeEnvironment;
 import org.conch.http.API;
 import org.conch.mint.Generator;
+import org.conch.peer.Peers;
 
 import java.io.*;
 import java.util.Map;
@@ -371,10 +372,6 @@ public final class Logger {
         doLog(Level.INFO, message, exc);
     }
 
-    public static boolean isDebugEnabled() {
-        return log.isDebugEnabled();
-    }
-
     /**
      * Log a debug message
      *
@@ -397,19 +394,39 @@ public final class Logger {
     /**
      * Log a debug exception
      *
-     * @param       message             Message
-     * @param       exc                 Exception
+     * @param message Message
+     * @param exc Exception
      */
     public static void logDebugMessage(String message, Throwable exc) {
         doLog(Level.DEBUG, message, exc);
     }
 
     /**
+     * Call stack
+     *
+     * @return
+     */
+    public static String callStack() {
+        String stacks = String.format("[DEBUG] Call stacks detail(thread name=%s, thread id=%d): \n",
+                Thread.currentThread().getName(), Thread.currentThread().getId());
+        StackTraceElement[] elements = Thread.currentThread().getStackTrace();
+        for (int i = 0; i < elements.length; i++) {
+            if (i <= 1) {
+                continue;
+            }
+            stacks += String.format("[DEBUG] %s#%s($%s:%d)\n", elements[i].getClassName(),
+                    elements[i].getMethodName(), elements[i].getFileName(), elements[i].getLineNumber());
+        }
+        return stacks;
+    }
+
+
+    /**
      * Log the event
      *
-     * @param       level               Level
-     * @param       message             Message
-     * @param       exc                 Exception
+     * @param level Level
+     * @param message Message
+     * @param exc Exception
      */
     private static void doLog(Level level, String message, Throwable exc) {
         String logMessage = message;
@@ -527,7 +544,7 @@ public final class Logger {
     public static final String Generator_getNextGenerators = Generator.class.getName() + "#getNextGenerators";
     public static final String Generator_isMintHeightReached = Generator.class.getName() + "#isMintHeightReached";
     public static final String Generator_checkOrStartAutoMining = Generator.class.getName() + "#checkOrStartAutoMining";
-    public static final String Generator_isBlockStuckOnBootNode = Generator.class.getName() + "#isBlockStuckOnBootNode";
+    public static final String Generator_isBlockStuck = Generator.class.getName() + "#isBlockStuck";
     public static final String Generator_isPocTxsProcessed = Generator.class.getName() + "#isPocTxsProcessed";
     public static final String Generator_startMining = Generator.class.getName() + "#startMining";
     public static final String CONCH_P_reachLastKnownBlock = Conch.class.getName() + "#reachLastKnownBlock";
@@ -539,5 +556,5 @@ public final class Logger {
     public static final String GetNodeHardware_P_report = GetNodeHardware.class.getName() + "#report";
     public static final String IpUtil_geoTransformFailed = IpUtil.class.getName() + "#geoTransformFailed";
     public static final String API_incorrectAdmPwd = API.class.getName() + "#incorrectAdmPwd";
+    public static final String PEERS_CHECK_OR_CONNECT_TO_PEER = Peers.class.getName() + "#_connectToPeer";
 }
-

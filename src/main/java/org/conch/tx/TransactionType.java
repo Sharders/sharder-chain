@@ -21,6 +21,7 @@
 
 package org.conch.tx;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.Tika;
 import org.apache.tika.mime.MediaType;
 import org.conch.Conch;
@@ -75,6 +76,7 @@ public abstract class TransactionType {
     public static final byte TYPE_STORAGE = 11;
     public static final byte TYPE_POC = 12;
     public static final byte TYPE_BURN_DEAL = 18;
+    public static final byte TYPE_SAVE_HASH = 19;
 
     private static final byte SUBTYPE_PAYMENT_ORDINARY_PAYMENT = 0;
 
@@ -208,9 +210,9 @@ public abstract class TransactionType {
             case TYPE_ACCOUNT_CONTROL:
                 switch (subtype) {
                     case SUBTYPE_ACCOUNT_CONTROL_EFFECTIVE_BALANCE_LEASING:
-                        return TransactionType.AccountControl.EFFECTIVE_BALANCE_LEASING;
+                        return AccountControl.EFFECTIVE_BALANCE_LEASING;
                     case SUBTYPE_ACCOUNT_CONTROL_PHASING_ONLY:
-                        return TransactionType.AccountControl.SET_PHASING_ONLY;
+                        return AccountControl.SET_PHASING_ONLY;
                     default:
                         return null;
                 }
@@ -258,6 +260,10 @@ public abstract class TransactionType {
                 return StorageTx.findTxType(subtype);
             case TYPE_POC:
                 return PocTxWrapper.findTxType(subtype);
+            case TYPE_BURN_DEAL:
+                return BurnDeal.ORDINARY;
+            case TYPE_SAVE_HASH:
+                return SaveHash.ORDINARY;
             default:
                 return null;
         }
@@ -282,7 +288,7 @@ public abstract class TransactionType {
 
     public abstract AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException;
 
-    public abstract Attachment.AbstractAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException;
+    public abstract AbstractAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException;
 
     public abstract void validateAttachment(Transaction transaction) throws ConchException.ValidationException;
 
@@ -312,7 +318,7 @@ public abstract class TransactionType {
 
     public abstract boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount);
 
-    public final void apply(TransactionImpl transaction, Account senderAccount, Account recipientAccount) {
+    public final void apply(TransactionImpl transaction, Account senderAccount, Account recipientAccount) throws ConchException.StopException {
         //transfer processing except coinbase tx (org.conch.tx.TransactionType.CoinBase#applyByType)
         if (transaction.getType().getType() != TYPE_COIN_BASE) {
             long amount = transaction.getAmountNQT();
@@ -532,7 +538,7 @@ public abstract class TransactionType {
         public final boolean isPhasingSafe() {
             return true;
         }
-
+        
         public static final TransactionType ORDINARY = new CoinBase() {
 
             @Override
@@ -597,10 +603,9 @@ public abstract class TransactionType {
 //                        throw new ConchException.NotValidException("the Genesis coin base tx is not created by genesis creator");
 //                    }
 //                }
-
             }
 
-            private void applyByType(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            private void applyByType(Transaction transaction, Account senderAccount, Account recipientAccount) throws ConchException.StopException {
                 Attachment.CoinBase coinBase = (Attachment.CoinBase) transaction.getAttachment();
                 if (RewardCalculator.isBlockRewardTx(transaction.getAttachment())) {
                     RewardCalculator.blockRewardDistribution(transaction,false);
@@ -622,7 +627,7 @@ public abstract class TransactionType {
             }
 
             @Override
-            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) {
+            public void applyAttachment(Transaction transaction, Account senderAccount, Account recipientAccount) throws ConchException.StopException {
                 applyByType(transaction, senderAccount, recipientAccount);
             }
         };
@@ -706,6 +711,93 @@ public abstract class TransactionType {
             @Override
             public String getName() {
                 return "BurnDeal";
+            }
+        };
+    }
+
+
+    public static abstract class SaveHash extends TransactionType {
+        private SaveHash() {}
+
+        @Override
+        public byte getType() {
+            return TransactionType.TYPE_SAVE_HASH;
+        }
+
+        @Override
+        public final boolean applyAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {
+            return true;
+        }
+
+        @Override
+        public final void undoAttachmentUnconfirmed(Transaction transaction, Account senderAccount) {}
+
+        @Override
+        public final boolean canHaveRecipient() {
+            return true;
+        }
+
+        @Override
+        public final boolean isPhasingSafe() {
+            return false;
+        }
+
+        @Override
+        public boolean mustHaveRecipient() {
+            return false;
+        }
+
+        public static final TransactionType ORDINARY = new SaveHash() {
+
+            @Override
+            public byte getSubtype() {
+                return 0;
+            }
+
+            @Override
+            public AccountLedger.LedgerEvent getLedgerEvent() {
+                return AccountLedger.LedgerEvent.SAVE_HASH;
+            }
+
+            @Override
+            public AbstractAttachment parseAttachment(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+                return null;
+            }
+
+            @Override
+            public AbstractAttachment parseAttachment(JSONObject attachmentData) throws ConchException.NotValidException {
+                return null;
+            }
+
+            @Override
+            public void validateAttachment(Transaction transaction) throws ConchException.ValidationException {
+                System.out.println("transaction = [" + transaction.toString() + "]");
+
+                /*Attachment attachment = transaction.getAttachment();
+                if (transaction.getAmountNQT() != 0) {
+                    throw new ConchException.NotValidException("Invalid arbitrary message: " + attachment.getJSONObject());
+                }*/
+              /*  System.out.println("saveHash:>>>>>>>>>>>"+transaction.getAttachment());
+                Attachment attachment = transaction.getAttachment();
+                System.out.println(">>>>>>>>>>>>>>>>>>>>>"+attachment.getTransactionType());*/
+                Appendix.SaveHash saveHash = (Appendix.SaveHash) transaction.getAttachment();
+                if (StringUtils.isEmpty(saveHash.getFileHash())) {
+                    throw new ConchException.NotValidException("hash can not be empty");
+                }
+            }
+
+            @Override
+            public boolean isDuplicate(Transaction transaction, Map<TransactionType, Map<String, Integer>> duplicates) {
+                return isDuplicate(SaveHash.ORDINARY, "SaveHash", duplicates, true);
+            }
+
+            @Override
+            public void applyAttachment(Transaction transaction, Account account, Account recipientAccount) {
+            }
+
+            @Override
+            public String getName() {
+                return "SaveHash";
             }
         };
     }
@@ -1651,7 +1743,7 @@ public abstract class TransactionType {
                     throw new ConchException.NotValidException("Invalid account property: " + attachment.getJSONObject());
                 }
                 if (transaction.getAmountNQT() != 0) {
-                    throw new ConchException.NotValidException("Account property transaction cannot be used to send SS");
+                    throw new ConchException.NotValidException("Account property transaction cannot be used to send coin");
                 }
                 if (transaction.getRecipientId() == SharderGenesis.CREATOR_ID) {
                     throw new ConchException.NotValidException("Setting Genesis account properties not allowed");
@@ -1719,7 +1811,7 @@ public abstract class TransactionType {
                             + " does not belong to " + Long.toUnsignedString(transaction.getRecipientId()));
                 }
                 if (transaction.getAmountNQT() != 0) {
-                    throw new ConchException.NotValidException("Account property transaction cannot be used to send SS");
+                    throw new ConchException.NotValidException("Account property transaction cannot be used to send coin");
                 }
                 if (transaction.getRecipientId() == SharderGenesis.CREATOR_ID) {
                     throw new ConchException.NotValidException("Deleting Genesis account properties not allowed");
@@ -2080,7 +2172,7 @@ public abstract class TransactionType {
 
         }
 
-        public static final TransactionType ASK_ORDER_PLACEMENT = new ColoredCoins.ColoredCoinsOrderPlacement() {
+        public static final TransactionType ASK_ORDER_PLACEMENT = new ColoredCoinsOrderPlacement() {
 
             @Override
             public final byte getSubtype() {
@@ -2134,7 +2226,7 @@ public abstract class TransactionType {
 
         };
 
-        public final static TransactionType BID_ORDER_PLACEMENT = new ColoredCoins.ColoredCoinsOrderPlacement() {
+        public final static TransactionType BID_ORDER_PLACEMENT = new ColoredCoinsOrderPlacement() {
 
             @Override
             public final byte getSubtype() {
@@ -2216,7 +2308,7 @@ public abstract class TransactionType {
 
         }
 
-        public static final TransactionType ASK_ORDER_CANCELLATION = new ColoredCoins.ColoredCoinsOrderCancellation() {
+        public static final TransactionType ASK_ORDER_CANCELLATION = new ColoredCoinsOrderCancellation() {
 
             @Override
             public final byte getSubtype() {
@@ -2269,7 +2361,7 @@ public abstract class TransactionType {
 
         };
 
-        public static final TransactionType BID_ORDER_CANCELLATION = new ColoredCoins.ColoredCoinsOrderCancellation() {
+        public static final TransactionType BID_ORDER_CANCELLATION = new ColoredCoinsOrderCancellation() {
 
             @Override
             public final byte getSubtype() {
@@ -3230,7 +3322,7 @@ public abstract class TransactionType {
                 long maxFees = attachment.getMaxFees();
                 long maxFeesLimit = (attachment.getPhasingParams().getVoteWeighting().isBalanceIndependent() ? 3 : 22) * Constants.ONE_SS;
                 if (maxFees < 0 || (maxFees > 0 && maxFees < maxFeesLimit) || maxFees > Constants.MAX_BALANCE_NQT) {
-                    throw new ConchException.NotValidException(String.format("Invalid max fees %f SS", ((double) maxFees) / Constants.ONE_SS));
+                    throw new ConchException.NotValidException(String.format("Invalid max fees %f", ((double) maxFees) / Constants.ONE_SS));
                 }
                 short minDuration = attachment.getMinDuration();
                 if (minDuration < 0 || (minDuration > 0 && minDuration < 3) || minDuration >= Constants.MAX_PHASING_DURATION) {

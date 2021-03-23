@@ -21,7 +21,8 @@
 
 package org.conch.tx;
 
-import org.apache.commons.lang3.StringUtils;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.conch.Conch;
 import org.conch.account.Account;
@@ -30,7 +31,7 @@ import org.conch.chain.*;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.consensus.genesis.SharderGenesis;
-import org.conch.consensus.poc.tx.PocTxBody;
+import org.conch.consensus.reward.RewardCalculator;
 import org.conch.crypto.Crypto;
 import org.conch.db.DbKey;
 import org.conch.util.Convert;
@@ -60,6 +61,7 @@ final public class TransactionImpl implements Transaction {
         private long recipientId;
         private byte[] referencedTransactionFullHash;
         private byte[] signature;
+        private Attachment.SaveHash saveHash;
         private Appendix.Message message;
         private Appendix.EncryptedMessage encryptedMessage;
         private Appendix.EncryptToSelfMessage encryptToSelfMessage;
@@ -250,6 +252,7 @@ final public class TransactionImpl implements Transaction {
     private final byte version;
     private final int timestamp;
     private final byte[] signature;
+    private final Attachment.SaveHash saveHash;
     private final Attachment.AbstractAttachment attachment;
     private final Appendix.Message message;
     private final Appendix.EncryptedMessage encryptedMessage;
@@ -298,6 +301,9 @@ final public class TransactionImpl implements Transaction {
         List<Appendix.AbstractAppendix> list = new ArrayList<>();
         if ((this.attachment = builder.attachment) != null) {
             list.add(this.attachment);
+        }
+        if ((this.saveHash  = builder.saveHash) != null) {
+            list.add(this.saveHash);
         }
         if ((this.message  = builder.message) != null) {
             list.add(this.message);
@@ -354,14 +360,16 @@ final public class TransactionImpl implements Transaction {
     }
     
     public static byte defaultTxVersion(){
-        if(Conch.versionCompare("0.1.6") >=0 ) {
+//        if(Conch.versionCompare("0.1.6") >=0 ) {
+        if(Conch.versionCompare("0.0.1") >=0 ) {
             return 3;
         }
         return 1;
     }
     
     public boolean checkVersion(){
-        if(Conch.versionCompare("0.1.6") >=0 ) {
+//        if(Conch.versionCompare("0.1.6/") >=0 ) {
+        if(Conch.versionCompare("0.0.1") >=0 ) {
             return 3 <= this.version;
         }
         return 1 <= this.version;
@@ -635,6 +643,11 @@ final public class TransactionImpl implements Transaction {
         return prunableEncryptedMessage;
     }
 
+    @Override
+    public Appendix.SaveHash getSaveHash() {
+        return saveHash;
+    }
+
     public boolean hasPrunableEncryptedMessage() {
         return prunableEncryptedMessage != null;
     }
@@ -655,7 +668,6 @@ final public class TransactionImpl implements Transaction {
                 buffer.put(getSenderPublicKey());
                 buffer.putLong(type.canHaveRecipient() ? recipientId : SharderGenesis.CREATOR_ID);
                 
-               
                 buffer.putLong(amountNQT);
                 buffer.putLong(feeNQT);
                 if (referencedTransactionFullHash != null) {
@@ -702,7 +714,7 @@ final public class TransactionImpl implements Transaction {
         return bytes;
     }
 
-    public static TransactionImpl.BuilderImpl newTransactionBuilder(byte[] bytes) throws ConchException.NotValidException {
+    public static BuilderImpl newTransactionBuilder(byte[] bytes) throws ConchException.NotValidException {
         try {
             ByteBuffer buffer = ByteBuffer.wrap(bytes);
             buffer.order(ByteOrder.LITTLE_ENDIAN);
@@ -732,7 +744,7 @@ final public class TransactionImpl implements Transaction {
                 ecBlockId = buffer.getLong();
             }
             TransactionType transactionType = TransactionType.findTransactionType(type, subtype);
-            TransactionImpl.BuilderImpl builder = new BuilderImpl(version, senderPublicKey, amountNQT, feeNQT,
+            BuilderImpl builder = new BuilderImpl(version, senderPublicKey, amountNQT, feeNQT,
                     deadline, transactionType.parseAttachment(buffer, version))
                     .timestamp(timestamp)
                     .referencedTransactionFullHash(referencedTransactionFullHash)
@@ -770,20 +782,8 @@ final public class TransactionImpl implements Transaction {
             if ((flags & position) != 0) {
                 builder.appendix(new Appendix.PrunableEncryptedMessage(buffer, version));
             }
-            // emergency fix for vicious tx at height 12222 of the Testnet
-            // TODO improve following logic
             if (buffer.hasRemaining()) {
-                if(builder.type.isType(TransactionType.TYPE_POC)){
-                    if(builder.attachment instanceof PocTxBody.PocNodeTypeV2) {
-                        PocTxBody.PocNodeTypeV2 nodeTypeV2 = (PocTxBody.PocNodeTypeV2) builder.attachment;
-                        if(StringUtils.isEmpty(nodeTypeV2.getIp()) 
-                        || nodeTypeV2.getType() == null) {
-                            Logger.logWarningMessage("It is a bad or vicious PocNodeType tx, it will be ignored in the execution of the PocProcessor. Don't throw a exception now");
-                        }
-                    }
-                }else{
-                    throw new ConchException.NotValidException("Transaction bytes too long, " + buffer.remaining() + " extra bytes");
-                }
+                throw new ConchException.NotValidException("Transaction bytes too long, " + buffer.remaining() + " extra bytes");
             }
             return builder;
         } catch (ConchException.NotValidException|RuntimeException e) {
@@ -792,7 +792,7 @@ final public class TransactionImpl implements Transaction {
         }
     }
 
-    public static TransactionImpl.BuilderImpl newTransactionBuilder(byte[] bytes, JSONObject prunableAttachments) throws ConchException.NotValidException {
+    public static BuilderImpl newTransactionBuilder(byte[] bytes, JSONObject prunableAttachments) throws ConchException.NotValidException {
         BuilderImpl builder = newTransactionBuilder(bytes);
         if (prunableAttachments != null) {
             Attachment.ShufflingProcessing shufflingProcessing = Attachment.ShufflingProcessing.parse(prunableAttachments);
@@ -857,6 +857,30 @@ final public class TransactionImpl implements Transaction {
         return json;
     }
 
+    public String toPrintString(){
+        JSONObject json =  getJSONObject();
+        // check and remove overlong 'crowdMiners & consignors'
+        if(json.containsKey("attachment")){
+            JSONObject attachmentJson = (JSONObject) json.get("attachment");
+            if(attachmentJson.containsKey("crowdMiners")){
+                HashMap<Long, Long> map = JSON.parseObject((String) attachmentJson.get("crowdMiners"), new TypeReference<HashMap<Long, Long>>() {});
+                if(map != null && map.size() > 50){
+                    attachmentJson.put("crowdMinerSize", map.size());
+                    attachmentJson.remove("crowdMiners");
+                }
+            }
+            if(attachmentJson.containsKey("consignors")){
+                HashMap<Long, Long> map = JSON.parseObject((String) attachmentJson.get("consignors"), new TypeReference<HashMap<Long, Long>>() {});
+                if(map != null && map.size() > 50){
+                    attachmentJson.put("consignorSize", map.size());
+                    attachmentJson.remove("consignors");
+                }
+            }
+            json.put("attachment", attachmentJson);
+        }
+        return json.toJSONString();
+    }
+
     @Override
     public JSONObject getPrunableAttachmentJSON() {
         JSONObject prunableJSON = null;
@@ -881,7 +905,7 @@ final public class TransactionImpl implements Transaction {
         return transaction;
     }
 
-    public static TransactionImpl.BuilderImpl newTransactionBuilder(JSONObject transactionData) throws ConchException.NotValidException {
+    public static BuilderImpl newTransactionBuilder(JSONObject transactionData) throws ConchException.NotValidException {
         try {
             byte type = ((Long) transactionData.get("type")).byteValue();
             byte subtype = ((Long) transactionData.get("subtype")).byteValue();
@@ -906,7 +930,7 @@ final public class TransactionImpl implements Transaction {
             if (transactionType == null) {
                 throw new ConchException.NotValidException("Invalid transaction type: " + type + ", " + subtype);
             }
-            TransactionImpl.BuilderImpl builder = new BuilderImpl(version, senderPublicKey,
+            BuilderImpl builder = new BuilderImpl(version, senderPublicKey,
                     amountNQT, feeNQT, deadline,
                     transactionType.parseAttachment(attachmentData))
                     .timestamp(timestamp)
@@ -962,10 +986,14 @@ final public class TransactionImpl implements Transaction {
     private volatile boolean hasValidSignature = false;
 
     private boolean checkSignature() {
+        if(RewardCalculator.isBlockCrowdRewardTx(getAttachment())){
+            if(RewardCalculator.closeValidationForCrowdCoinbaseTx) {
+                return true;
+            }
+        }
+
         if (!hasValidSignature) {
-            //[NQT]
-//            hasValidSignature = signature != null && Crypto.verify(signature, zeroSignature(getBytes()), getSenderPublicKey(), useNQT());
-            hasValidSignature = signature != null && Crypto.verify(signature, zeroSignature(getBytes()), getSenderPublicKey(),true);
+            hasValidSignature = signature != null && Crypto.verify(signature, zeroSignature(getBytes()), getSenderPublicKey(), true);
         }
         return hasValidSignature;
     }
@@ -987,8 +1015,8 @@ final public class TransactionImpl implements Transaction {
 //    private int signatureOffset() {
 //        return 1 + 1 + 4 + 2 + 32 + 8 + (useNQT() ? 8 + 8 + 32 : 4 + 4 + 8);
 //    }
-    private int signatureOffset() { 
-        return 1 + 1 + 4 + 2 + 32 + 8 + (8 + 8 + 32 );
+    private int signatureOffset() {
+        return 1 + 1 + 4 + 2 + 32 + 8 + (8 + 8 + 32);
     }
 
 //    private boolean useNQT() {
@@ -1038,15 +1066,20 @@ final public class TransactionImpl implements Transaction {
         return flags;
     }
 
+    /**
+     * 交易校验
+     * @throws ConchException.ValidationException
+     */
     @Override
     public void validate() throws ConchException.ValidationException {
+        //
         if(CheckSumValidator.isKnownIgnoreTx(this.id)){
             Logger.logWarningMessage("Known ignore tx[id=%d, height=%d] in %s, skip validation", this.id, Conch.getBlockchain().getHeight(), Constants.getNetwork().getName());
             return;
         }
         
         if (timestamp == 0 ? (deadline != 0 || feeNQT != 0) : (deadline < 1 || ((feeNQT < 0 && type instanceof TransactionType.CoinBase)
-                || feeNQT <= 0 && !(type instanceof TransactionType.CoinBase)))
+                || feeNQT <= 0 && !(type instanceof TransactionType.CoinBase || type instanceof TransactionType.BurnDeal)))
                 || feeNQT > Constants.MAX_BALANCE_NQT
                 || amountNQT < 0
                 || amountNQT > Constants.MAX_BALANCE_NQT
@@ -1100,7 +1133,7 @@ final public class TransactionImpl implements Transaction {
             int blockchainHeight = Conch.getBlockchain().getHeight();
             long minimumFeeNQT = getMinimumFeeNQT(blockchainHeight);
             if (feeNQT < minimumFeeNQT) {
-                throw new ConchException.NotCurrentlyValidException(String.format("Transaction fee %f SS less than minimum fee %f SS at height %d",
+                throw new ConchException.NotCurrentlyValidException(String.format("Transaction fee %f less than minimum fee %f at height %d",
                         ((double) feeNQT) / Constants.ONE_SS, ((double) minimumFeeNQT) / Constants.ONE_SS, blockchainHeight));
             }
             if (blockchainHeight > Constants.FXT_BLOCK && ecBlockId != 0) {
@@ -1124,7 +1157,7 @@ final public class TransactionImpl implements Transaction {
         return senderAccount != null && type.applyUnconfirmed(this, senderAccount);
     }
 
-    public void apply() {
+    public void apply() throws ConchException.StopException {
         if(CheckSumValidator.isKnownIgnoreTx(id)){
             Logger.logWarningMessage("this tx[id=%d, creator=%s, height=%d] is known ignored tx, don't apply and ignore it", id, Account.rsAccount(senderId), height);
             return;
@@ -1198,13 +1231,14 @@ final public class TransactionImpl implements Transaction {
      */
     private static com.alibaba.fastjson.JSONObject isFixedFee(byte transactionType){
         com.alibaba.fastjson.JSONObject feeMap = new com.alibaba.fastjson.JSONObject();
-        if(transactionType == TransactionType.TYPE_COIN_BASE){
+        if(transactionType == TransactionType.TYPE_COIN_BASE ||
+                transactionType == TransactionType.TYPE_BURN_DEAL){
             feeMap.put(IS_FIXED,true);
             feeMap.put(FEE,0L);
         }else if(transactionType == TransactionType.TYPE_POC){
             feeMap.put(IS_FIXED,true);
             feeMap.put(FEE,1L);
-        }else {
+        } else {
             feeMap.put(IS_FIXED,false);
         }
         return feeMap;
@@ -1216,6 +1250,14 @@ final public class TransactionImpl implements Transaction {
         com.alibaba.fastjson.JSONObject feeMap = isFixedFee(transactionType);
         if(feeMap.getBooleanValue(IS_FIXED)){
             return feeMap.getLongValue(FEE);
+        }
+
+        if (transactionType == TransactionType.TYPE_BURN_DEAL) {
+            return Constants.configFee.get(transactionType);
+        }
+
+        if (transactionType == TransactionType.TYPE_SAVE_HASH) {
+            return Constants.configFee.get(transactionType);
         }
         
         if(transactionType != TransactionType.TYPE_DATA && Constants.configFee.get(transactionType) == 0){

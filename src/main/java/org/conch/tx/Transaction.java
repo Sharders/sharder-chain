@@ -130,6 +130,8 @@ public interface Transaction {
 
     Appendix.PrunableEncryptedMessage getPrunableEncryptedMessage();
 
+    Appendix.SaveHash getSaveHash();
+
     List<? extends Appendix> getAppendages();
 
     List<? extends Appendix> getAppendages(boolean includeExpiredPrunable);

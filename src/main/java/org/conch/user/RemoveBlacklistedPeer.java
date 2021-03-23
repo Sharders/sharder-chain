@@ -21,15 +21,11 @@
 
 package org.conch.user;
 
-import org.conch.peer.Peer;
-import org.conch.peer.Peer;
-import org.json.simple.JSONStreamAware;
-
-import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.net.InetAddress;
-
-import static org.conch.user.JSONResponses.LOCAL_USERS_ONLY;
+import javax.servlet.http.HttpServletRequest;
+import org.conch.peer.Peer;
+import org.json.simple.JSONStreamAware;
 
 public final class RemoveBlacklistedPeer extends UserServlet.UserRequestHandler {
 

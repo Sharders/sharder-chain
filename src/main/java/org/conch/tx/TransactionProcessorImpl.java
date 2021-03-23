@@ -265,7 +265,7 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
                     }
                 }
             } catch (Exception e) {
-                Logger.logMessage("Error removing unconfirmed transactions", e);
+                Logger.logErrorMessage("Error removing unconfirmed transactions", e);
             }
         } catch (Throwable t) {
             Logger.logErrorMessage("CRITICAL ERROR. PLEASE REPORT TO THE DEVELOPERS.\n" + t.toString());
@@ -488,6 +488,11 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
     public void broadcast(Transaction transaction) throws ConchException.ValidationException {
         BlockchainImpl.getInstance().writeLock();
         try {
+            if (transaction.getSenderId() == Constants.BURN_ADDRESS_ID) {
+                Logger.logErrorMessage("Transaction can not create, sender can not be BURN_ADDRESS_ID");
+                return;
+            }
+
             if (TransactionDb.hasTransaction(transaction.getId())) {
                 Logger.logMessage("Transaction " + transaction.getStringId() + " already in blockchain, will not broadcast again");
                 return;
@@ -615,7 +620,7 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
                 oldNonBroadcastedTransactions = getAllUnconfirmedTransactions();
                 for (UnconfirmedTransaction unconfirmedTransaction : oldNonBroadcastedTransactions) {
                     if (unconfirmedTransaction.getTransaction().isUnconfirmedDuplicate(unconfirmedDuplicates)) {
-                        Logger.logDebugMessage("Skipping duplicate unconfirmed transaction " + unconfirmedTransaction.getTransaction().getJSONObject().toString());
+                        Logger.logDebugMessage("Skipping duplicate unconfirmed transaction " + unconfirmedTransaction.getTransaction().toPrintString());
                     } else if (enableTransactionRebroadcasting) {
                         broadcastedTransactions.add(unconfirmedTransaction.getTransaction());
                     }
@@ -747,7 +752,8 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
     }
 
     private void processPeerTransactions(JSONArray transactionsData) throws ConchException.NotValidException {
-        if (Conch.getBlockchain().getHeight() <= Constants.LAST_KNOWN_BLOCK && !testUnconfirmedTransactions) {
+        if (Conch.getHeight() <= Constants.LAST_KNOWN_BLOCK
+            && !testUnconfirmedTransactions) {
             return;
         }
         
@@ -833,7 +839,8 @@ public final class TransactionProcessorImpl implements TransactionProcessor {
         try {
             try {
                 Db.db.beginTransaction();
-                if (Conch.getBlockchain().getHeight() < Constants.LAST_KNOWN_BLOCK && !testUnconfirmedTransactions) {
+                if (Conch.getHeight() < Constants.LAST_KNOWN_BLOCK
+                    && !testUnconfirmedTransactions) {
                     throw new ConchException.NotCurrentlyValidException(String.format("Blockchain not ready to accept transactions caused by current height %d is less than %d", Conch.getBlockchain().getHeight() , Constants.LAST_KNOWN_BLOCK));
                 }
 
