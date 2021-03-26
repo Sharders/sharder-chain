@@ -6,6 +6,17 @@ import com.alibaba.fastjson.TypeReference;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.UnknownHostException;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.conch.common.Constants;
 import org.conch.common.UrlManager;
@@ -13,15 +24,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 import sun.net.util.IPAddressUtil;
-
-import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.UnknownHostException;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * @author <a href="mailto:xy@sharder.org">Ben</a>
@@ -35,12 +37,14 @@ public class IpUtil {
      */
     public static String checkOrToIp(String url) {
         try {
-            if(StringUtils.isEmpty(url) 
-            || "undefined".equalsIgnoreCase(url)){
-                return "";    
+            if (StringUtils.isEmpty(url)
+                    || "undefined".equalsIgnoreCase(url)) {
+                return "";
             }
-            
-            if(!isDomain(url)) return url;
+
+            if (!isDomain(url)) {
+                return url;
+            }
             return InetAddress.getByName(url).getHostAddress();
 
         } catch (UnknownHostException e) {
@@ -48,21 +52,27 @@ public class IpUtil {
         }
         return "";
     }
-    
+
     private final static List<String> natServers = Lists.newArrayList(
+            "nat.mw.run",
+            "nat.mwfs.io",
             "nat.sharder.network",
             "nat.sharder.org",
             "nat.sharder.io");
-    
-    private static String checkOrParseNatUrl(String url){
-        if(StringUtils.isEmpty(url)) return "";
-        for(String natServer : natServers) {
-            if(!url.contains(natServer)) continue;
-            
+
+    private static String checkOrParseNatUrl(String url) {
+        if (StringUtils.isEmpty(url)) {
+            return "";
+        }
+        for (String natServer : natServers) {
+            if (!url.contains(natServer)) {
+                continue;
+            }
+
             // get domain
             int portIndex = url.indexOf(":");
-            if(portIndex > 0) {
-               return url.substring(0,portIndex);
+            if (portIndex > 0) {
+                return url.substring(0, portIndex);
             }
         }
         return "";
@@ -71,12 +81,16 @@ public class IpUtil {
     /**
      * @param url can't include the port
      */
-    public static String getHost(String url){
-        if(StringUtils.isEmpty(url)) return "";
-        
+    public static String getHost(String url) {
+        if (StringUtils.isEmpty(url)) {
+            return "";
+        }
+
         String parsedUrl = checkOrParseNatUrl(url);
-        if(StringUtils.isNotBlank(parsedUrl)) return parsedUrl;
-        
+        if (StringUtils.isNotBlank(parsedUrl)) {
+            return parsedUrl;
+        }
+
         try {
             return InetAddress.getByName(url).getHostName();
         } catch (UnknownHostException e) {
@@ -93,30 +107,36 @@ public class IpUtil {
         String senderIp = getSenderIp(req);
         return senderIp.equals(checkOrToIp(host));
     }
-    
+
     public static boolean matchHost(String host, String ip) {
-        if(StringUtils.isEmpty(ip)) return false;
+        if (StringUtils.isEmpty(ip)) {
+            return false;
+        }
         return ip.equals(checkOrToIp(host));
     }
-    
-    public static boolean isFoundationDomain(String host){
-        if(StringUtils.isEmpty(host)) return false;
-        
-        if(host.endsWith("sharder.io") 
-        || host.endsWith("sharder.org")
-        || host.endsWith("sharder.network")){
+
+    public static boolean isFoundationDomain(String host) {
+        if (StringUtils.isEmpty(host)) {
+            return false;
+        }
+
+        if (host.endsWith("sharder.io")
+                || host.endsWith("mwfs.io")
+                || host.endsWith("mw.run")
+                || host.endsWith("sharder.network")) {
             return true;
         }
-        
+
         return false;
     }
 
     /**
      * ip addr whether is the internal ip
+     *
      * @param ipv4Addr
      * @return
      */
-    public static boolean isInternalIp(String ipv4Addr){
+    public static boolean isInternalIp(String ipv4Addr) {
         return _isInternalIp(IPAddressUtil.textToNumericFormatV4(ipv4Addr));
     }
 
@@ -126,6 +146,7 @@ public class IpUtil {
      * 10.0.0.0/8：10.0.0.0～10.255.255.255 
      * 172.16.0.0/12：172.16.0.0～172.31.255.255 
      * 192.168.0.0/16：192.168.0.0～192.168.255.255
+     *
      * @param addr
      * @return
      */
@@ -161,10 +182,11 @@ public class IpUtil {
 
     /**
      * public ip -> internal ip
+     *
      * @return
      */
     public static String getNetworkIp() {
-        try{
+        try {
             String localIp = null;
             String netIp = null;
 
@@ -195,7 +217,7 @@ public class IpUtil {
             } else {
                 return localIp;
             }
-        }catch (Exception e) {
+        } catch (Exception e) {
             Logger.logErrorMessage("can't finish getNetworkIp caused by " + e.getMessage());
             return "";
         }
@@ -208,12 +230,15 @@ public class IpUtil {
 
     /**
      * url whether is domain
-     * @param url 
+     *
+     * @param url
      * @return
      */
-    public static boolean isDomain(String url){
-        if(StringUtils.isEmpty(url)) return false;
-        
+    public static boolean isDomain(String url) {
+        if (StringUtils.isEmpty(url)) {
+            return false;
+        }
+
         Pattern ipPattern = Pattern.compile(PATTERN_IP);
         Matcher matcher = ipPattern.matcher(url);
         return !matcher.find();
@@ -221,17 +246,18 @@ public class IpUtil {
 
     /**
      * get host from url
+     *
      * @param url domain ot url contains port
      * @return host: domain or public ip
      */
     public static String getHostFromUrl(String url) {
-        if(isDomain(url) 
-            && !url.contains(":") 
-            && !url.contains("/") 
-            && !url.contains("http")) {
+        if (isDomain(url)
+                && !url.contains(":")
+                && !url.contains("/")
+                && !url.contains("http")) {
             return url;
         }
-        
+
         // return ip if ip pattern matched
         Pattern ipPattern = Pattern.compile(PATTERN_IP);
         Matcher matcher = ipPattern.matcher(url);
@@ -251,6 +277,7 @@ public class IpUtil {
 
     /**
      * get external ip from url
+     *
      * @param url domain ot url contains port
      * @return public network ip
      */
@@ -259,37 +286,52 @@ public class IpUtil {
         return checkOrToIp(host);
     }
 
-
     /** ip to GEO **/
     private static final int AGING = 1000 * 60 * 60; //60 minutes
     private static final String CACHE_TIME_KEY = "cacheTime";
-    private static Map<String,JSONObject> NAT_ADDR_IP_AND_MAP = Maps.newConcurrentMap();
+    private static Map<String, JSONObject> NAT_ADDR_IP_AND_MAP = Maps.newConcurrentMap();
     private static JSONObject COORDINATES_CACHE = new JSONObject();
 
     private static JSONObject DEFAULT_COORDINATES = new JSONObject();
+
     static {
         // default coordinates
+        DEFAULT_COORDINATES.put("180.149.130.27", JSON.parseObject("{\"X\":\"39.9289\",\"Y\":\"116.3883\"}"));
+        DEFAULT_COORDINATES.put("114.80.68.233", JSON.parseObject("{\"X\":\"31.0456\",\"Y\":\"121.3997\"}"));
+        DEFAULT_COORDINATES.put("223.104.96.113", JSON.parseObject("{\"X\":\"28.1375\",\"Y\":\"106.8200\"}"));
+        DEFAULT_COORDINATES.put("14.215.160.13", JSON.parseObject("{\"X\":\"23.0268\",\"Y\":\"113.1315\"}"));
+        DEFAULT_COORDINATES.put("123.151.77.71", JSON.parseObject("{\"X\":\"39.1422\",\"Y\":\"117.1767\"}"));
+        DEFAULT_COORDINATES.put("112.66.1.203", JSON.parseObject("{\"X\":\"20.0458\",\"Y\":\"110.3417\"}"));
+        DEFAULT_COORDINATES.put("113.116.52.10", JSON.parseObject("{\"X\":\"22.5333\",\"Y\":\"114.1333\"}"));
+        DEFAULT_COORDINATES.put("49.83.135.23", JSON.parseObject("{\"X\":\"32.0617\",\"Y\":\"118.7778\"}"));
+        DEFAULT_COORDINATES.put("36.149.20.90", JSON.parseObject("{\"X\":\"39.9289\",\"Y\":\"116.3883\"}"));
+        DEFAULT_COORDINATES.put("223.240.28.101", JSON.parseObject("{\"X\":\"31.8639\",\"Y\":\"117.2808\"}"));
+        DEFAULT_COORDINATES.put("23.251.52.66", JSON.parseObject("{\"X\":\"22.3310\",\"Y\":\"114.1592\"}"));
+        DEFAULT_COORDINATES.put("113.76.101.170", JSON.parseObject("{\"X\":\"22.2769\",\"Y\":\"113.5678\"}"));
     }
 
     /**
-     *
      * @param hostList
      * @return
      */
     public static JSONObject parseAndConvertToCoordinates(List<String> hostList) {
         JSONObject coordinates = new JSONObject();
         coordinates.putAll(DEFAULT_COORDINATES);
-        if(hostList == null || hostList.size() == 0) return coordinates;
+        if (hostList == null || hostList.size() == 0) {
+            return coordinates;
+        }
 
-//        if (hostList.size() > 1000) {
-//            Logger.logWarningMessage("Quantity is too large than 1000");
-//            return coordinates;
-//        }
+        //        if (hostList.size() > 1000) {
+        //            Logger.logWarningMessage("Quantity is too large than 1000");
+        //            return coordinates;
+        //        }
 
         // convert the ip to the coordinate
         Set<String> natAddrSet = Sets.newHashSet();
         for (String ip : hostList) {
-            if(StringUtils.isEmpty(ip)) continue;
+            if (StringUtils.isEmpty(ip)) {
+                continue;
+            }
 
             if (isIP(ip)) {
                 coordinates.put(ip, queryAndFillCoordinate(ip));
@@ -299,12 +341,13 @@ public class IpUtil {
         }
 
         // nat addr processing: nat addr -> public ip -> coordinate
-        if(natAddrSet.size() > 0) {
-            Map<String,String>  natAddrIpMap = convertNatAddrToIP(natAddrSet);
+        if (natAddrSet.size() > 0) {
+            Map<String, String> natAddrIpMap = convertNatAddrToIP(natAddrSet);
             for (String natAddr : natAddrSet) {
                 String realIp = natAddrIpMap.get(natAddr);
-                if(StringUtils.isEmpty(realIp)) continue;
-
+                if (StringUtils.isEmpty(realIp)) {
+                    continue;
+                }
                 coordinates.put(natAddr, queryAndFillCoordinate(realIp));
             }
         }
@@ -315,16 +358,17 @@ public class IpUtil {
     /**
      * send request to certification to convert
      * and cache to the local
+     *
      * @param natAddrSet
      * @return
      */
-    private static Map<String,String> convertNatAddrToIP(Set<String> natAddrSet){
-        Map<String,String> natAddrAndIpMap = Maps.newHashMap();
+    private static Map<String, String> convertNatAddrToIP(Set<String> natAddrSet) {
+        Map<String, String> natAddrAndIpMap = Maps.newHashMap();
 
         Set<String> wishToUpdateNatAddrSet = Sets.newHashSet();
         // read from local cache in the cache lifecycle firstly
-        for(String natAddr : natAddrSet){
-            if(NAT_ADDR_IP_AND_MAP.containsKey(natAddr)) {
+        for (String natAddr : natAddrSet) {
+            if (NAT_ADDR_IP_AND_MAP.containsKey(natAddr)) {
                 JSONObject cacheObj = NAT_ADDR_IP_AND_MAP.get(natAddr);
                 // judgement for cache time expired
                 if (cacheObj.getLong(CACHE_TIME_KEY) + AGING > System.currentTimeMillis()) {
@@ -332,46 +376,54 @@ public class IpUtil {
                 } else {
                     wishToUpdateNatAddrSet.add(natAddr);
                 }
-            }else{
+            } else {
                 wishToUpdateNatAddrSet.add(natAddr);
             }
         }
 
-        // send request to MW certification to convert nat addr to real ip
-        if(wishToUpdateNatAddrSet.size() > 0){
+        // send request to certification to convert nat addr to real ip
+        if (wishToUpdateNatAddrSet.size() > 0) {
             RestfulHttpClient.HttpResponse verifyResponse = null;
             try {
-                RestfulHttpClient.getClient(UrlManager.getFoundationApiUrl("/sc/natServices/natAddrToIP"))
+                verifyResponse = RestfulHttpClient.getClient(UrlManager.getFoundationApiUrl("/sc/natServices" +
+                        "/natAddrToIP"))
                         .post()
                         .addPostParam("natAddrList", wishToUpdateNatAddrSet.toString())
                         .request();
-            } catch (IOException e) {
-                Logger.logErrorMessage("Send request to convert the nat addr to real ip failed" , e);
+            } catch (Exception e) {
+                Logger.logErrorMessage("Send request to convert the nat addr to real ip failed", e);
             }
 
             // update
-            boolean querySuccess = com.alibaba.fastjson.JSONObject.parseObject(verifyResponse.getContent()).getBooleanValue(Constants.SUCCESS);
-            if (querySuccess) {
-                com.alibaba.fastjson.JSONObject natAddrAndIpObj = (com.alibaba.fastjson.JSONObject) com.alibaba.fastjson.JSON.toJSON(
-                        JSON.parseObject(verifyResponse.getContent()).get(Constants.DATA)
-                );
+            boolean querySuccess = false;
+            if (verifyResponse != null && StringUtils.isNotEmpty(verifyResponse.getContent())) {
+                querySuccess = JSONObject.parseObject(verifyResponse.getContent())
+                        .getBooleanValue(Constants.SUCCESS);
+            }
 
-                if(natAddrAndIpObj != null){
-                    Map<String, String> currentMapping = natAddrAndIpObj.toJavaObject(new TypeReference<Map<String, String>>(){});
+            if (querySuccess) {
+                JSONObject natAddrAndIpObj =
+                        JSON.parseObject(verifyResponse.getContent()).getJSONObject(Constants.DATA);
+
+                if (natAddrAndIpObj != null) {
+                    Map<String, String> currentMapping = natAddrAndIpObj.toJavaObject(new TypeReference<Map<String,
+                            String>>() {});
                     natAddrAndIpMap.putAll(currentMapping);
 
-                    Set<String> currentNatAddrSet  =  currentMapping.keySet();
+                    Set<String> currentNatAddrSet = currentMapping.keySet();
                     // update the current result to cache and update the cache time
-                    for(String natAddr : currentNatAddrSet){
-                        JSONObject cacheObj = NAT_ADDR_IP_AND_MAP.containsKey(natAddr) ? NAT_ADDR_IP_AND_MAP.get(natAddr) : new JSONObject();
+                    for (String natAddr : currentNatAddrSet) {
+                        JSONObject cacheObj = NAT_ADDR_IP_AND_MAP.containsKey(natAddr) ?
+                                NAT_ADDR_IP_AND_MAP.get(natAddr) : new JSONObject();
                         cacheObj.put(CACHE_TIME_KEY, System.currentTimeMillis());
-                        cacheObj.put("natAddr",natAddr);
+                        cacheObj.put("natAddr", natAddr);
                         cacheObj.put("ip", currentMapping.get(natAddr));
                         NAT_ADDR_IP_AND_MAP.put(natAddr, cacheObj);
                     }
                 }
             } else {
-                Logger.logWarningMessage("Can't fetch and convert the nat addr to real ip {}" , wishToUpdateNatAddrSet.toString());
+                Logger.logWarningMessage("Can't fetch and convert the nat addr to real ip {}",
+                        wishToUpdateNatAddrSet.toString());
             }
         }
 
@@ -393,7 +445,7 @@ public class IpUtil {
         }
 
         // query and convert coordinate
-        switch (new Random().nextInt(3)+1) {
+        switch (new Random().nextInt(3) + 1) {
             /*case 0:
                 request882667(json, ip);
                 break;*/
@@ -414,7 +466,7 @@ public class IpUtil {
         if (!"".equals(coordinateObj.getString("X"))
                 && !"".equals(coordinateObj.getString("Y"))) {
             coordinateObj.put(CACHE_TIME_KEY, System.currentTimeMillis());
-        }else {
+        } else {
             // 5 minutes to convert again when convert failed
             long failedAdjustmentMS = AGING - 5 * 60 * 1000;
             coordinateObj.put(CACHE_TIME_KEY, System.currentTimeMillis() - failedAdjustmentMS);
@@ -440,13 +492,14 @@ public class IpUtil {
     }*/
 
     private static boolean geoQueryExceptionSwitch = false;
+
     private static void requestIpLocationTools(JSONObject json, String ip) {
         try {
             Document document = Jsoup.connect("https://www.iplocationtools.com/" + ip).get();
             String ne = document.select(".table tbody tr:nth-child(2) td:nth-child(2)").text();
             json.put("X", ne.substring(ne.indexOf("(") + 1, ne.indexOf(",")));
             json.put("Y", ne.substring(ne.indexOf(",") + 2, ne.indexOf(")")));
-        } catch (IOException e) {
+        } catch (Exception e) {
             if (geoQueryExceptionSwitch
                     && Logger.printNow(Logger.IpUtil_geoTransformFailed)) {
                 Logger.logDebugMessage("requestGeoIpTool failed: " + e.getMessage());
@@ -459,16 +512,16 @@ public class IpUtil {
             Document document = Jsoup.connect("https://www.ipip.net/ip.html")
                     .data("ip", ip).post();
             String el = document.select(".inner table:nth-child(2) tbody tr:last-child td:last-child").text();
-            System.out.println("el:"+el);
-            if (el.equals("局域网 产品详情")){
+            System.out.println("el:" + el);
+            if (el.equals("局域网 产品详情")) {
                 json.put("X", "0");
                 json.put("Y", "0");
-            }else{
+            } else {
                 json.put("X", el.split(", ")[0]);
                 json.put("Y", el.split(", ")[1]);
             }
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             if (geoQueryExceptionSwitch
                     && Logger.printNow(Logger.IpUtil_geoTransformFailed)) {
                 Logger.logDebugMessage("requestGeoIpTool failed: " + e.getMessage());
@@ -478,17 +531,17 @@ public class IpUtil {
 
     private static void requestGeoIpTool(JSONObject json, String ip) {
         try {
-            if (isLanIp(ip)){
+            if (isLanIp(ip)) {
                 json.put("X", "0");
                 json.put("Y", "0");
-            }else{
+            } else {
                 Document document = Jsoup.connect("https://geoiptool.com/zh/?ip=" + ip).get();
                 Elements el = document.select(".sidebar-data.hidden-xs.hidden-sm .data-item");
                 json.put("X", el.eq(8).select("span:nth-child(2)").text());
                 json.put("Y", el.eq(9).select("span:nth-child(2)").text());
             }
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             if (geoQueryExceptionSwitch
                     && Logger.printNow(Logger.IpUtil_geoTransformFailed)) {
                 Logger.logDebugMessage("requestGeoIpTool failed: " + e.getMessage());
@@ -496,7 +549,7 @@ public class IpUtil {
         }
     }
 
-    private static boolean isLanIp(String ip){
+    private static boolean isLanIp(String ip) {
         return ip.substring(0, 3).equals("10.") || ip.substring(0, 4).equals("172.") || ip.substring(0, 4).equals("192.");
     }
 

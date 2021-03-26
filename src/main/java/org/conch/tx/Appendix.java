@@ -309,6 +309,77 @@ public interface Appendix {
 
     }
 
+    class SaveHash extends AbstractAppendix {
+
+        private final String fileHash;
+
+        private static final String appendixName = "SaveHash";
+
+        public SaveHash(ByteBuffer buffer, byte transactionVersion) throws ConchException.NotValidException {
+            super(buffer, transactionVersion);
+            fileHash = Convert.readString(buffer, buffer.get(), Constants.MAX_ALIAS_LENGTH).trim();
+
+        }
+
+        @Override
+        public String getAppendixName() {
+            return appendixName;
+        }
+
+        public SaveHash(JSONObject attachmentData) {
+            super(attachmentData);
+            fileHash = Convert.nullToEmpty((String) attachmentData.get("fileHash")).trim();
+        }
+
+        public SaveHash(String fileHash) {
+            this.fileHash = fileHash;
+        }
+
+        @Override
+        public int getMySize() {
+            return 1  + this.fileHash.length();
+        }
+
+        @Override
+        public void putMyBytes(ByteBuffer buffer) {
+            byte[] fileHash = Convert.toBytes(this.fileHash);
+            buffer.put((byte) fileHash.length);
+            buffer.put(fileHash);
+        }
+
+        @Override
+        public void putMyJSON(JSONObject attachment) {
+            attachment.put("fileHash", fileHash);
+        }
+
+
+        public String getFileHash() {
+            return fileHash;
+        }
+
+        @Override
+        public boolean verifyVersion(byte txVer) {
+            return true;
+        }
+
+        @Override
+        public void validate(Transaction transaction) throws ConchException.ValidationException {
+            if (Conch.getBlockchain().getHeight() > Constants.SHUFFLING_BLOCK_HEIGHT && fileHash.length() > Constants.MAX_ALIAS_LENGTH) {
+                throw new ConchException.NotValidException("Invalid arbitrary message length: " + fileHash.length());
+            }
+        }
+
+        @Override
+        public void apply(Transaction transaction, Account senderAccount, Account recipientAccount) {
+
+        }
+
+        @Override
+        public boolean isPhasable() {
+            return false;
+        }
+
+    }
     class PrunablePlainMessage extends Appendix.AbstractAppendix implements Prunable {
 
         private static final String appendixName = "PrunablePlainMessage";
@@ -1448,7 +1519,7 @@ public interface Appendix {
                 try {
                     release(transaction);
                 } catch (RuntimeException e) {
-                    Logger.logErrorMessage("Failed to release phased transaction " + transaction.getJSONObject().toJSONString(), e);
+                    Logger.logErrorMessage("Failed to release phased transaction " + transaction.toPrintString(), e);
                     reject(transaction);
                 }
             } else {
@@ -1466,7 +1537,7 @@ public interface Appendix {
                         poll.finish(result);
                         Logger.logDebugMessage("Early finish of transaction " + transaction.getStringId() + " at height " + Conch.getBlockchain().getHeight());
                     } catch (RuntimeException e) {
-                        Logger.logErrorMessage("Failed to release phased transaction " + transaction.getJSONObject().toJSONString(), e);
+                        Logger.logErrorMessage("Failed to release phased transaction " + transaction.toPrintString(), e);
                     }
                 } else {
                     Logger.logDebugMessage("At height " + Conch.getBlockchain().getHeight() + " phased transaction " + transaction.getStringId()

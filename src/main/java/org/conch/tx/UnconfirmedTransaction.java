@@ -276,6 +276,11 @@ public class UnconfirmedTransaction implements Transaction {
         return transaction.getPrunableEncryptedMessage();
     }
 
+    @Override
+    public Appendix.SaveHash getSaveHash() {
+        return transaction.getSaveHash();
+    }
+
     public Appendix.EncryptToSelfMessage getEncryptToSelfMessage() {
         return transaction.getEncryptToSelfMessage();
     }

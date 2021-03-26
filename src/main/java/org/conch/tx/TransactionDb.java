@@ -24,8 +24,8 @@ package org.conch.tx;
 import org.conch.chain.BlockDb;
 import org.conch.chain.BlockImpl;
 import org.conch.common.ConchException;
-import org.conch.db.*;
-import org.conch.db.*;
+import org.conch.db.Db;
+import org.conch.db.DbUtils;
 import org.conch.util.Convert;
 
 import java.nio.ByteBuffer;
@@ -33,7 +33,6 @@ import java.nio.ByteOrder;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 public final class TransactionDb {
@@ -257,10 +256,17 @@ public final class TransactionDb {
             }
         }
         // Search the database
-        try (Connection con = Db.db.getConnection()) {
+        Connection con = null;
+        boolean isInTx = Db.db.isInTransaction();
+        try {
+            con = Db.db.getConnection();
             return findBlockTransactions(con, blockId);
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
+        } finally {
+            if (!isInTx) {
+                DbUtils.close(con);
+            }
         }
     }
 
@@ -419,6 +425,32 @@ public final class TransactionDb {
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
         }
+    }
+
+    public static TransactionImpl findTxByType(int height, int type, int subType) {
+
+        boolean isInTx = Db.db.isInTransaction();
+        Connection con = null;
+        try {
+            con = Db.db.getConnection();
+            PreparedStatement pstmt = con.prepareStatement("SELECT * FROM transaction where subtype = ? and type = ? " +
+                    "and height <= ? limit 1");
+            pstmt.setLong(1, subType);
+            pstmt.setLong(2, type);
+            pstmt.setInt(3, height);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return loadTransaction(con, rs);
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e.toString(), e);
+        }finally {
+            if (!isInTx) {
+                DbUtils.close(con);
+            }
+        }
+        return null;
     }
 
     public static class PrunableTransaction {
