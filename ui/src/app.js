@@ -21,6 +21,8 @@ import "echarts-worldmap";
 let passUrls = ["static", "login", "register", "enter"];
 let whiteList = ["/mining", "/mining/binding-account"];
 
+global.defineConf();
+
 //移动端可访问白名单路径
 function passage(path) {
     let platform = navigator.userAgent;
