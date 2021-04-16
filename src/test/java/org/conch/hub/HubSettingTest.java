@@ -19,7 +19,7 @@ public class HubSettingTest extends BaseTest {
     static void linkSSAddress() throws ConchException.NotValidException{
         RestfulHttpClient.HttpResponse verifyResponse = null;
         try {
-            String inputStr = _getFromConsole("Site Account,Account Password,Serial No,SS Address");
+            String inputStr = _getFromConsole("Site Account, Account Password, Serial No, Address");
             String[] strArray = inputStr.split(",");
             String siteAccount = strArray[0];
             String password = strArray[1];

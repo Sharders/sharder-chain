@@ -36,9 +36,10 @@ public class ConchDbTest {
             byte[] payloadHash = rs.getBytes("payload_hash");
             byte[] ext = rs.getBytes("ext");
             long id = rs.getLong("id");
+            int rewardDistributionHeight = rs.getInt("REWARD_DISTRIBUTION_HEIGHT");
             return new BlockImpl(version, timestamp, previousBlockId, totalAmountNQT, totalFeeNQT, payloadLength, payloadHash,
                     generatorId, generationSignature, blockSignature, previousBlockHash,
-                    cumulativeDifficulty, baseTarget, nextBlockId, height, id, ext, loadTransactions ? TransactionDb.findBlockTransactions(con, id) : null);
+                    cumulativeDifficulty, baseTarget, nextBlockId, height, id, ext, loadTransactions ? TransactionDb.findBlockTransactions(con, id) : null,rewardDistributionHeight);
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
         }

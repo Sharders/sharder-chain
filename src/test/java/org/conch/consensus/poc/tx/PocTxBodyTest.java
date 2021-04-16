@@ -1,10 +1,8 @@
 package org.conch.consensus.poc.tx;
 
-import org.conch.Conch;
+import java.nio.ByteBuffer;
 import org.conch.common.ConchException;
 import org.conch.util.Convert;
-
-import java.nio.ByteBuffer;
 
 /**
  * @author <a href="mailto:xy@sharder.org">Ben</a>
