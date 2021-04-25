@@ -47,7 +47,7 @@ import java.util.concurrent.Semaphore;
 /**
  * Monitor account balances based on account properties
  * <p>
- * ASSET and CURRENCY balances can be monitored. If a balance falls below the threshold, a transaction
+ * NATIVE COIN, ASSET and CURRENCY balances can be monitored.  If a balance falls below the threshold, a transaction
  * will be submitted to transfer units from the funding account to the monitored account.  A transfer will
  * remain pending if the number of blocks since the previous transfer transaction is less than the monitor
  * interval.
@@ -635,8 +635,8 @@ public final class FundingMonitor {
             } else {
                 Conch.getTransactionProcessor().broadcast(transaction);
                 monitoredAccount.height = Conch.getBlockchain().getHeight();
-                Logger.logDebugMessage(String.format("Conch funding transaction %s for %f submitted from %s to %s",
-                        transaction.getStringId(), (double)monitoredAccount.amount / Constants.ONE_SS,
+                Logger.logDebugMessage(String.format("Conch funding transaction %s for %f %s submitted from %s to %s",
+                        transaction.getStringId(), (double)monitoredAccount.amount / Constants.ONE_SS, Conch.COIN_UNIT,
                         monitor.accountName, monitoredAccount.accountName));
             }
         }
@@ -831,8 +831,9 @@ public final class FundingMonitor {
                 return;
             }
             long balance = account.getBalanceNQT();
-
+            //
             // Check the balance for monitored accounts
+            //
             synchronized(monitors) {
                 List<MonitoredAccount> accountList = accounts.get(account.getId());
                 if (accountList != null) {

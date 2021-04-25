@@ -21,25 +21,28 @@
 
 package org.conch.account;
 
-import org.conch.Conch;
-import org.conch.account.Account.ControlType;
-import org.conch.common.ConchException;
-import org.conch.common.Constants;
-import org.conch.db.*;
-import org.conch.db.*;
-import org.conch.db.*;
-import org.conch.db.VersionedEntityDbTable;
-import org.conch.tx.*;
-import org.conch.util.Convert;
-import org.conch.util.Logger;
-import org.conch.vote.PhasingPoll;
-import org.conch.vote.VoteWeighting.VotingModel;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
+import org.conch.Conch;
+import org.conch.account.Account.ControlType;
+import org.conch.common.ConchException;
+import org.conch.common.Constants;
+import org.conch.db.DbIterator;
+import org.conch.db.DbKey;
+import org.conch.db.DbUtils;
+import org.conch.db.VersionedEntityDbTable;
+import org.conch.tx.Appendix;
+import org.conch.tx.Attachment;
+import org.conch.tx.PhasingParams;
+import org.conch.tx.Transaction;
+import org.conch.tx.TransactionType;
+import org.conch.util.Convert;
+import org.conch.util.Logger;
+import org.conch.vote.PhasingPoll;
+import org.conch.vote.VoteWeighting.VotingModel;
 
 public final class AccountRestrictions {
 
@@ -133,7 +136,7 @@ public final class AccountRestrictions {
 
         private void checkTransaction(Transaction transaction, boolean validatingAtFinish) throws ConchException.AccountControlException {
             if (!validatingAtFinish && maxFees > 0 && Math.addExact(transaction.getFeeNQT(), PhasingPoll.getSenderPhasedTransactionFees(transaction.getSenderId())) > maxFees) {
-                throw new ConchException.AccountControlException(String.format("Maximum total fees limit of %f balance exceeded", ((double)maxFees)/Constants.ONE_SS));
+                throw new ConchException.AccountControlException(String.format("Maximum total fees limit of %f %s exceeded", ((double)maxFees)/Constants.ONE_SS, Conch.COIN_UNIT));
             }
             if (transaction.getType() == TransactionType.Messaging.PHASING_VOTE_CASTING) {
                 return;

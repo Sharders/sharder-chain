@@ -174,7 +174,7 @@ public final class FxtDistribution implements Listener<Block> {
                             long balance = rs.getLong("balance");
                             if (logAccountId != 0) {
                                 if (accountId == logAccountId) {
-                                    Logger.logMessage("Balance for " + logAccount + " at height " + height + ":\t" + balance);
+                                    Logger.logMessage(Conch.COIN_UNIT + " balance for " + logAccount + " at height " + height + ":\t" + balance);
                                 }
                             }
                             BigInteger accountBalanceTotal = accountBalanceTotals.get(accountId);
@@ -210,7 +210,7 @@ public final class FxtDistribution implements Listener<Block> {
                 }
                 if (logAccountId != 0) {
                     if (accountId == logAccountId) {
-                        Logger.logMessage("Average balance for " + logAccount + " as of height " + currentHeight + ":\t"
+                        Logger.logMessage("Average " + Conch.COIN_UNIT + " balance for " + logAccount + " as of height " + currentHeight + ":\t"
                                 + balanceTotal.divide(BigInteger.valueOf((currentHeight - DISTRIBUTION_START) / DISTRIBUTION_STEP)).longValueExact());
                     }
                 }

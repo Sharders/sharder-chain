@@ -46,7 +46,6 @@ import org.conch.chain.CheckSumValidator;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.consensus.genesis.SharderGenesis;
-import org.conch.consensus.reward.RewardCalculator;
 import org.conch.crypto.Crypto;
 import org.conch.crypto.EncryptedData;
 import org.conch.db.Db;
@@ -71,8 +70,6 @@ import org.conch.util.Logger;
 
 @SuppressWarnings({"UnusedDeclaration", "SuspiciousNameCombination"})
 public final class Account {
-
-    private static final int NONE_PUBLICKEY_ACTIVE_HEIGHT = 12500;
 
     public enum Event {
         BALANCE, UNCONFIRMED_BALANCE, ASSET_BALANCE, UNCONFIRMED_ASSET_BALANCE, CURRENCY_BALANCE, UNCONFIRMED_CURRENCY_BALANCE,
@@ -1643,32 +1640,7 @@ public final class Account {
     public long getCurrentEffectiveBalanceSS() {
         return getEffectiveBalanceSS(Conch.getHeight());
     }
-
-    public long getConfirmedEffectiveBalanceSS(int height) {
-        if (height != Conch.getHeight()) {
-            throw new RuntimeException("argument height " + height + " not equal blockchain height " + Conch.getHeight());
-        }
-        if (this.publicKey == null) {
-            this.publicKey = publicKeyTable.get(accountDbKeyFactory.newKey(this));
-        }
-
-        // adding height judgment logic, not check the account publicKey
-        // TODO Network reset turn off the judgment
-        if (height <= RewardCalculator.NETWORK_ROBUST_PHASE && this.publicKey == null || this.publicKey.publicKey == null) {
-            return 0;
-        }
-
-        try {
-            Conch.getBlockchain().readLock();
-            long effectiveBalanceNQT = getLessorsGuaranteedBalanceNQT(height);
-            if (activeLesseeId == 0 || Constants.SYNC_BUTTON) {
-                effectiveBalanceNQT += getGuaranteedBalanceNQT(Constants.GUARANTEED_BALANCE_CONFIRMATIONS);
-            }
-            return  effectiveBalanceNQT / Constants.ONE_SS;
-        } finally {
-            Conch.getBlockchain().readUnlock();
-        }
-    }
+    
     /**
      * return the effective balance in the unit
      * @param height
@@ -1689,7 +1661,7 @@ public final class Account {
         }
 
         // adding height judgment logic, not check the account publicKey
-        if (height <= NONE_PUBLICKEY_ACTIVE_HEIGHT && (this.publicKey == null || this.publicKey.publicKey == null)) {
+        if (height <= Constants.NONE_PUBLICKEY_ACTIVE_HEIGHT && (this.publicKey == null || this.publicKey.publicKey == null)) {
             return 0;
         }
 
