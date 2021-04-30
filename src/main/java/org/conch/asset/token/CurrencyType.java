@@ -21,6 +21,7 @@
 
 package org.conch.asset.token;
 
+import org.conch.Conch;
 import org.conch.asset.MonetaryTx;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
@@ -272,7 +273,7 @@ public enum CurrencyType {
 
     private static void validate(Currency currency, int type, Transaction transaction) throws ConchException.ValidationException {
         if (transaction.getAmountNQT() != 0) {
-            throw new ConchException.NotValidException("Currency transaction amount must be 0");
+            throw new ConchException.NotValidException("Currency transaction " + Conch.COIN_UNIT + " amount must be 0");
         }
 
         final EnumSet<CurrencyType> validators = EnumSet.noneOf(CurrencyType.class);
@@ -314,8 +315,14 @@ public enum CurrencyType {
                 throw new ConchException.NotValidException("Invalid currency code: " + code + " code must be all upper case");
             }
         }
-        if (code.contains("CDW")  || "cdw".equals(normalizedName) ) {
-            throw new ConchException.NotValidException("Currency name already used");
+        if (Conch.PROJECT_NAME == Constants.MW_CHAIN) {
+            if (code.contains("CDW")  || "cdw".equals(normalizedName) ) {
+                throw new ConchException.NotValidException("Currency name already used");
+            }
+        } else if (Conch.PROJECT_NAME == Constants.SHARDER_CHAIN) {
+            if (code.contains("SSA")  || "ssa".equals(normalizedName) ) {
+                throw new ConchException.NotValidException("Currency name already used");
+            }
         }
         Currency currency;
         if ((currency = Currency.getCurrencyByName(normalizedName)) != null && ! currency.canBeDeletedBy(issuerAccountId)) {

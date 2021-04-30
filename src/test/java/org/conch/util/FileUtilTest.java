@@ -6,8 +6,8 @@ import org.conch.common.Constants;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -23,7 +23,6 @@ public class FileUtilTest {
     private static final String VERSION_URL = Constants.OSS_PREFIX + "cos/client/release/cos-latest-version";
     private static final String LATEST_VERSION_DEV_URL = Constants.OSS_PREFIX + "cos/client/dev/cos-latest-version";
     private static final String DOWNLOAD_URL_0_1_1 = Constants.OSS_PREFIX + "cos/client/release/cos-hub-0.1.1.zip";
-    private static final String DOWNLOAD_URL_0_1_0 = Constants.OSS_PREFIX + "cos/client/release/cos-hub-0.1.0.zip";
 
     public static void fetchUpgradePackageViaVersion() throws IOException, ConchException.NotValidException {
         String version = getNewestHubVersion();
@@ -56,7 +55,7 @@ public class FileUtilTest {
         return version;
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws MalformedURLException {
 //        try {
 //            //fetchUpgradePackageViaVersion();
 //            getNewestHubVersion();
@@ -65,8 +64,9 @@ public class FileUtilTest {
 //            e.printStackTrace();
 //        }
         
-        File file = new File("/Users/ben/Downloads/fileTime/cos-db-archive");
-        System.out.println(file.lastModified());
-        System.out.println(new Date(file.lastModified()).toString());
+//        File file = new File("/Users/ben/Downloads/fileTime/cos-db-archive");
+//        System.out.println(file.lastModified());
+//        System.out.println(new Date(file.lastModified()).toString());
+
     }
 }

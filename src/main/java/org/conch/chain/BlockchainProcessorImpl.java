@@ -30,6 +30,7 @@ import org.conch.common.Constants;
 import org.conch.consensus.burn.BurnCalculator;
 import org.conch.consensus.genesis.SharderGenesis;
 import org.conch.consensus.poc.PocScore;
+import org.conch.consensus.poc.db.PocDb;
 import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.consensus.reward.RewardCalculator;
 import org.conch.crypto.Crypto;
@@ -37,6 +38,7 @@ import org.conch.db.*;
 import org.conch.http.ForceConverge;
 import org.conch.mint.Generator;
 import org.conch.mint.pool.SharderPoolProcessor;
+import org.conch.peer.CertifiedPeer;
 import org.conch.peer.Peer;
 import org.conch.peer.Peers;
 import org.conch.security.Guard;
@@ -51,6 +53,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 import org.json.simple.JSONValue;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.sql.*;
@@ -1915,6 +1918,14 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 }
             }
 
+            // verify block coinBase tx
+            if(Constants.BLOCK_REWARD_VERIFY
+                    && blockchain.getHeight()+1 >= Constants.BLOCK_REWARD_VERIFY_HEIGHT
+                    && transaction.getType().isType(TransactionType.TYPE_COIN_BASE)
+                    && transaction.getAmountNQT() != Constants.rewardCalculatorInstance.blockReward(blockchain.getHeight()+1)) {
+                throw new TransactionNotAcceptedException("CoinBaseTx verification failed", transaction);
+            }
+
             if (!hasPrunedTransactions) {
                 for (Appendix.AbstractAppendix appendage : transaction.getAppendages()) {
                     if ((appendage instanceof Appendix.Prunable)
@@ -1977,6 +1988,11 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             throws TransactionNotAcceptedException, ConchException.StopException {
         try {
             isProcessingBlock = true;
+
+            if(block.getHeight() >= Constants.MINER_REMOVE_HIGHT){
+                checkMiner(block);
+            }
+
             // unconfirmed balance update
             for (TransactionImpl transaction : block.getTransactions()) {
                 if (!transaction.applyUnconfirmed()) {
@@ -2087,6 +2103,57 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 TransactionProcessorImpl.getInstance().notifyListeners(block.getTransactions(), TransactionProcessor.Event.ADDED_CONFIRMED_TRANSACTIONS);
             }
             AccountLedger.commitEntries();
+
+            /**
+             * heco chain accossChain
+             *
+             * check Transactions if there is Transaction to the lockAddress, send to gateway
+             *
+             * @Author peifeng
+             */
+            if(blockchain.getHeight() >= Constants.HECO_HEIGHT){
+                block.getTransactions().forEach(transaction -> {
+                    if(transaction.getType().isType(TransactionType.TYPE_PAYMENT)){
+                        String url = Constants.MGR_URL;
+                        RestfulHttpClient.HttpResponse response = null;
+                        try {
+                            response = RestfulHttpClient.getClient(url+"getHecoExchangeAddress").get().request();
+                            String content = response.getContent();
+                            com.alibaba.fastjson.JSONObject contentObj = com.alibaba.fastjson.JSON.parseObject(content);
+                            String code = (String)contentObj.get("code");
+                            if(code.equals("200")){
+                                String recipientId = ((Long)contentObj.get("body")+"");
+                                if(recipientId.equals(transaction.getRecipientId()+"")) {
+                                    Map<String,String> params = new HashMap<>();
+                                    params.put("accountId",transaction.getSenderId()+"");
+                                    params.put("recordType","1");
+                                    params.put("amount",transaction.getAmountNQT()+"");
+                                    params.put("createDate",transaction.getTimestamp()+"");
+                                    params.put("SourceTransactionHash",transaction.getFullHash());
+                                    try {
+                                        response = RestfulHttpClient.getClient(url+"saveRecord").post().postParams(params).request();
+                                        content = response.getContent();
+                                        contentObj = com.alibaba.fastjson.JSON.parseObject(content);
+                                        code = (String)contentObj.get("code");
+                                        if(code.equals("200")){
+                                            Logger.logInfoMessage("Heco chain: Record save success");
+                                        }else{
+                                            com.alibaba.fastjson.JSONObject body = com.alibaba.fastjson.JSON.parseObject((String)contentObj.get("body"));;
+                                            Logger.logInfoMessage("Heco chain: "+(String)body.get("status"));
+                                        }
+                                    }catch (IOException e) {
+                                        Logger.logDebugMessage("Heco chain:can't sendTransactin in hecoChain"+e.getMessage());
+                                    }
+                                }
+                            }
+                        } catch (IOException e) {
+                            Logger.logDebugMessage("Heco chain: can't connect " + Constants.MGR_URL + " caused by: " + e.getMessage());
+                        }
+                    }
+                });
+            }
+
+
         } finally {
             isProcessingBlock = false;
             AccountLedger.clearEntries();
@@ -2169,6 +2236,96 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         blockchain.setLastBlock(previousBlock);
         blockListeners.notify(block, Event.BLOCK_POPPED);
         return previousBlock;
+    }
+
+    private static long QUALIFIED_CROWD_MINER_HOLDING_AMOUNT_MIN = 32*133L; // 1T-133MW
+
+    /**
+     * 条件检查的时间点： 在区块确认时，针对转账交易进行检查
+     * 转出方是否存在于矿工列表，存在进行最新挖矿持仓量检查，不满足移除；
+     * 方案1：
+     *   - 矿工数据做逻辑删除，设置检查状态，处于检查状态的逻辑删除矿工数，每个区块高度仍然按照第一条进行条件检测
+     *   - 回滚和分叉情况下，放回矿工列表
+     * @param block
+     */
+    private void checkMiner(BlockImpl block){
+        //得到矿工列表
+        HashMap<Long, Long> crowdMiners = new HashMap<>();
+        for (TransactionImpl transaction : block.getTransactions()) {
+            if(transaction.getType().isType(TransactionType.TYPE_COIN_BASE)){
+                Attachment.CoinBase coinBase = (Attachment.CoinBase) transaction.getAttachment();
+                if((coinBase.isType(Attachment.CoinBase.CoinBaseType.CROWD_BLOCK_REWARD)
+                        ||coinBase.isType(Attachment.CoinBase.CoinBaseType.BLOCK_REWARD))
+                        && coinBase.getCrowdMiners().size() > 0){
+                    crowdMiners = coinBase.getCrowdMiners();
+                    break;
+                }
+            }
+        }
+
+        for(Long crowdMinerId : crowdMiners.keySet()){
+            CertifiedPeer certifiedPeer = Conch.getPocProcessor().getCertifiedPeers().get(crowdMinerId);
+            if(certifiedPeer!=null && certifiedPeer.getDeleteHeight() > block.getHeight()){
+                certifiedPeer.setDeleteHeight(0);
+                PocDb.saveOrUpdatePeer(certifiedPeer);
+            }
+        }
+
+        for (TransactionImpl transaction : block.getTransactions()) {
+            //检查转账交易
+            if(transaction.getType().isType(TransactionType.TYPE_PAYMENT)){
+                //转出方是否存在于矿工列表
+                for(Long crowdMinerId : crowdMiners.keySet()){
+                    if(crowdMinerId.equals(transaction.getSenderId())){
+                        //存在进行最新挖矿持仓量检查
+                        long holdingAmount = 0;
+                        try{
+                            if(Account.getAccount(crowdMinerId)!=null){
+                                holdingAmount = Account.getAccount(crowdMinerId).getEffectiveBalanceSS(block.getHeight());
+                            }
+                        }catch(Exception e){
+                            Logger.logWarningMessage("[QualifiedMiner] not valid miner because can't get balance of account %s at height %d, caused by %s",  Account.getAccount(crowdMinerId).getRsAddress(), block.getHeight(), e.getMessage());
+                            holdingAmount = 0;
+                        }
+
+                        CertifiedPeer certifiedPeer = null;
+                        if(holdingAmount < QUALIFIED_CROWD_MINER_HOLDING_AMOUNT_MIN) {
+                            //不满足移除
+                            //原表增加deleteHeight字段 查询时判断deleteHeight == 0
+                            certifiedPeer = Conch.getPocProcessor().getCertifiedPeers().get(crowdMinerId);
+                            if(certifiedPeer!=null){
+                                if(certifiedPeer.getDeleteHeight() == 0) {
+                                    certifiedPeer.setDeleteHeight(block.getHeight());
+                                    PocDb.saveOrUpdatePeer(certifiedPeer);
+                                }
+                            }
+                        }
+                    }
+                    if(crowdMinerId.equals(transaction.getRecipientId())){
+                        CertifiedPeer certifiedPeer = Conch.getPocProcessor().getCertifiedPeers().get(crowdMinerId);
+                        if(certifiedPeer!=null){
+                            if(certifiedPeer.getDeleteHeight() != 0) {
+                                //存在进行最新挖矿持仓量检查
+                                long holdingAmount = 0;
+                                try{
+                                    if(Account.getAccount(crowdMinerId)!=null){
+                                        holdingAmount = Account.getAccount(crowdMinerId).getEffectiveBalanceSS(block.getHeight());
+                                    }
+                                }catch(Exception e){
+                                    Logger.logWarningMessage("[QualifiedMiner] not valid miner because can't get balance of account %s at height %d, caused by %s",  Account.getAccount(crowdMinerId).getRsAddress(), block.getHeight(), e.getMessage());
+                                    holdingAmount = 0;
+                                }
+
+                                if(holdingAmount >= QUALIFIED_CROWD_MINER_HOLDING_AMOUNT_MIN) {
+                                    certifiedPeer.setDeleteHeight(0);
+                                    PocDb.saveOrUpdatePeer(certifiedPeer);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private void popOffWithRescan(int height) {
@@ -2378,7 +2535,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         TransactionImpl coinBaseTx = null;
         try {
             // transaction version=1, deadline=10,timestamp=blockTimestamp
-            coinBaseTx = RewardCalculator.generateCoinBaseTxBuilder(publicKey, Conch.getHeight())
+            coinBaseTx = Constants.rewardCalculatorInstance.generateCoinBaseTxBuilder(publicKey, Conch.getHeight())
                     .timestamp(blockTimestamp)
                     .recipientId(0)
                     .build(secretPhrase);

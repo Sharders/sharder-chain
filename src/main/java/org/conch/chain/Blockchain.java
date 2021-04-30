@@ -96,7 +96,9 @@ public interface Blockchain {
 
     int getTransactionCountByType(int type, Connection con);
 
-    int getTransactionCountByAccount(long accountId, byte type, byte subtype);
+    int getTransactionCountByAccount(long accountId, byte type, byte subtype, boolean isRecipient, boolean isSender);
+
+    int getTransactionCountByAccount(long accountId, byte type, byte subtype,String recipientRS,String senderRS);
 
     DbIterator<? extends Transaction> getAllTransactions();
 
@@ -110,6 +112,10 @@ public interface Blockchain {
     DbIterator<? extends Transaction> getTransactions(long accountId, int numberOfConfirmations, byte type, byte subtype,
                                                       int blockTimestamp, boolean withMessage, boolean phasedOnly, boolean nonPhasedOnly,
                                                       int from, int to, boolean includeExpiredPrunable, boolean executedOnly);
+
+    DbIterator<? extends Transaction> getTransactions(long accountId, int numberOfConfirmations, byte type, byte subtype,
+                                                      int blockTimestamp, boolean withMessage, boolean phasedOnly, boolean nonPhasedOnly,
+                                                      int from, int to, boolean includeExpiredPrunable, boolean executedOnly,String recipientRS,String senderRS);
 
     DbIterator<? extends Transaction> getTransactions(Connection con, PreparedStatement pstmt);
 
