@@ -22,6 +22,7 @@
 package org.conch.chain;
 
 import org.conch.Conch;
+import org.conch.account.Account;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.db.Db;
@@ -35,6 +36,7 @@ import org.conch.util.Convert;
 import org.conch.util.Filter;
 import org.conch.util.ReadWriteUpdateLock;
 import org.conch.vote.PhasingPoll;
+import org.h2.util.StringUtils;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -480,10 +482,27 @@ public final class BlockchainImpl implements Blockchain {
     }
 
     @Override
-    public int getTransactionCountByAccount(long accountId, byte type,byte subtype){
+    public int getTransactionCountByAccount(long accountId, byte type,byte subtype, boolean isRecipient, boolean isSender){
 
+        boolean RecipientAndSender = false;
         StringBuilder buf = new StringBuilder();
-        buf.append("SELECT COUNT(*) FROM transaction WHERE (recipient_id = ? or sender_id = ?) ");
+        buf.append("SELECT COUNT(*) FROM transaction WHERE ");
+        if (isRecipient && !isSender) {
+            buf.append("recipient_id = ? ");
+        } else if (!isRecipient && isSender){
+            buf.append("sender_id = ? ");
+        } else if (isRecipient && isSender) {
+            RecipientAndSender = true;
+            buf.append("sender_id = ? ");
+            if(type >= 0){
+                buf.append("AND type = ? ");
+                if(subtype >= 0){
+                    buf.append("AND subtype = ? ");
+                }
+            }
+            buf.append("union all SELECT COUNT(*) FROM transaction WHERE ");
+            buf.append("recipient_id = ? AND sender_id <> ? ");
+        }
         if(type >= 0){
             buf.append("AND type = ? ");
             if(subtype >= 0){
@@ -496,12 +515,78 @@ public final class BlockchainImpl implements Blockchain {
             con = Db.db.getConnection();
             PreparedStatement pstmt = con.prepareStatement(buf.toString());
             pstmt.setLong(++i, accountId);
+            if (RecipientAndSender) {
+                if(type >= 0){
+                    pstmt.setByte(++i, type);
+                    if(subtype >= 0){
+                        pstmt.setInt(++i, subtype);
+                    }
+                }
+                pstmt.setLong(++i, accountId);
+                pstmt.setLong(++i, accountId);
+            }
+            if(type >= 0){
+                pstmt.setByte(++i, type);
+                if(subtype >= 0){
+                    pstmt.setInt(++i, subtype);
+                }
+            }
+            try(ResultSet rs = pstmt.executeQuery()){
+                if (RecipientAndSender) {
+                    int count = 0;
+                    while (rs.next()) {
+                        count += rs.getInt(1);
+                    }
+                    return count;
+                }
+                rs.next();
+                return rs.getInt(1);
+            }catch (Exception e){
+                throw new RuntimeException(e.toString(),e);
+            }
+        }catch (SQLException e){
+            throw new RuntimeException(e.toString(), e);
+        }finally {
+            DbUtils.close(con);
+        }
+    }
+
+    @Override
+    public int getTransactionCountByAccount(long accountId, byte type,byte subtype,String recipientRS,String senderRS){
+
+        StringBuilder buf = new StringBuilder();
+        buf.append("SELECT COUNT(*) FROM transaction WHERE (recipient_id = ? or sender_id = ?) ");
+        if(type >= 0){
+            buf.append("AND type = ? ");
+            if(subtype >= 0){
+                buf.append("AND subtype = ? ");
+            }
+        }
+        if(!StringUtils.isNullOrEmpty(recipientRS)){
+            buf.append("AND transaction.recipient_id = ? ");
+        }
+        if(!StringUtils.isNullOrEmpty(senderRS)){
+            buf.append("AND transaction.sender_id = ? ");
+        }
+
+        int i = 0;
+        Connection con = null;
+        try {
+            con = Db.db.getConnection();
+            PreparedStatement pstmt = con.prepareStatement(buf.toString());
+            pstmt.setLong(++i, accountId);
             pstmt.setLong(++i, accountId);
             if(type >= 0){
                 pstmt.setByte(++i, type);
                 if(subtype >= 0){
                     pstmt.setInt(++i, subtype);
                 }
+            }
+            if(!StringUtils.isNullOrEmpty(recipientRS)){
+                pstmt.setLong(++i, Account.rsAccountToId(recipientRS));
+            }
+            if(!StringUtils.isNullOrEmpty(senderRS)){
+                pstmt.setLong(++i, Account.rsAccountToId(senderRS));
             }
             try(ResultSet rs = pstmt.executeQuery()){
                 rs.next();
@@ -716,6 +801,150 @@ public final class BlockchainImpl implements Blockchain {
                 pstmt.setInt(++i, prunableExpiration);
             }
             DbUtils.setLimits(++i, pstmt, from, to);
+            return getTransactions(con, pstmt);
+        } catch (SQLException e) {
+            throw new RuntimeException(e.toString(), e);
+        }
+    }
+
+    @Override
+    public DbIterator<TransactionImpl> getTransactions(long accountId, int numberOfConfirmations, byte type, byte subtype,
+                                                       int blockTimestamp, boolean withMessage, boolean phasedOnly, boolean nonPhasedOnly,
+                                                       int from, int to, boolean includeExpiredPrunable, boolean executedOnly,String recipientRS,String senderRS) {
+
+        if (phasedOnly && nonPhasedOnly) {
+            throw new IllegalArgumentException("At least one of phasedOnly or nonPhasedOnly must be false");
+        }
+        int height = numberOfConfirmations > 0 ? getHeight() - numberOfConfirmations : Integer.MAX_VALUE;
+        if (height < 0) {
+            throw new IllegalArgumentException("Number of confirmations required " + numberOfConfirmations
+                    + " exceeds current blockchain height " + getHeight());
+        }
+        Connection con = null;
+        try {
+            StringBuilder buf = new StringBuilder();
+            buf.append("SELECT transaction.* FROM transaction ");
+            if (executedOnly && !nonPhasedOnly) {
+                buf.append(" LEFT JOIN phasing_poll_result ON transaction.id = phasing_poll_result.id ");
+            }
+            buf.append("WHERE recipient_id = ? AND sender_id <> ? ");
+            if(!StringUtils.isNullOrEmpty(recipientRS)){
+                buf.append("AND transaction.recipient_id = ? ");
+            }
+            if (blockTimestamp > 0) {
+                buf.append("AND block_timestamp >= ? ");
+            }
+            if (type >= 0) {
+                buf.append("AND type = ? ");
+                if (subtype >= 0) {
+                    buf.append("AND subtype = ? ");
+                }
+            }
+            if (height < Integer.MAX_VALUE) {
+                buf.append("AND transaction.height <= ? ");
+            }
+            if (withMessage) {
+                buf.append("AND (has_message = TRUE OR has_encrypted_message = TRUE ");
+                buf.append("OR ((has_prunable_message = TRUE OR has_prunable_encrypted_message = TRUE) AND timestamp > ?)) ");
+            }
+            if (phasedOnly) {
+                buf.append("AND phased = TRUE ");
+            } else if (nonPhasedOnly) {
+                buf.append("AND phased = FALSE ");
+            }
+            if (executedOnly && !nonPhasedOnly) {
+                buf.append("AND (phased = FALSE OR approved = TRUE) ");
+            }
+            buf.append("UNION SELECT transaction.* FROM transaction ");
+
+            if (executedOnly && !nonPhasedOnly) {
+                buf.append(" LEFT JOIN phasing_poll_result ON transaction.id = phasing_poll_result.id ");
+            }
+            buf.append("WHERE sender_id = ? ");
+            if (blockTimestamp > 0) {
+                buf.append("AND block_timestamp >= ? ");
+            }
+            if (type >= 0) {
+                buf.append("AND type = ? ");
+                if (subtype >= 0) {
+                    buf.append("AND subtype = ? ");
+                }
+            }
+            if (height < Integer.MAX_VALUE) {
+                buf.append("AND transaction.height <= ? ");
+            }
+            if (withMessage) {
+                buf.append("AND (has_message = TRUE OR has_encrypted_message = TRUE OR has_encrypttoself_message = TRUE ");
+                buf.append("OR ((has_prunable_message = TRUE OR has_prunable_encrypted_message = TRUE) AND timestamp > ?)) ");
+            }
+            if (phasedOnly) {
+                buf.append("AND phased = TRUE ");
+            } else if (nonPhasedOnly) {
+                buf.append("AND phased = FALSE ");
+            }
+            if (executedOnly && !nonPhasedOnly) {
+                buf.append("AND (phased = FALSE OR approved = TRUE) ");
+            }
+            if(!StringUtils.isNullOrEmpty(recipientRS)){
+                buf.append("AND transaction.recipient_id = ? ");
+            }
+            if(!StringUtils.isNullOrEmpty(senderRS)){
+                buf.append("AND transaction.sender_id = ? ");
+            }
+
+            buf.append("ORDER BY block_timestamp DESC, transaction_index DESC");
+            buf.append(DbUtils.limitsClause(from, to));
+            con = Db.db.getConnection();
+            PreparedStatement pstmt;
+            int i = 0;
+            pstmt = con.prepareStatement(buf.toString());
+            pstmt.setLong(++i, accountId);
+            pstmt.setLong(++i, accountId);
+            if(!StringUtils.isNullOrEmpty(recipientRS)){
+                pstmt.setLong(++i, Account.rsAccountToId(recipientRS));
+            }
+            if (blockTimestamp > 0) {
+                pstmt.setInt(++i, blockTimestamp);
+            }
+            if (type >= 0) {
+                pstmt.setByte(++i, type);
+                if (subtype >= 0) {
+                    pstmt.setByte(++i, subtype);
+                }
+            }
+            if (height < Integer.MAX_VALUE) {
+                pstmt.setInt(++i, height);
+            }
+            int prunableExpiration = Math.max(0, Constants.INCLUDE_EXPIRED_PRUNABLE && includeExpiredPrunable ?
+                    Conch.getEpochTime() - Constants.MAX_PRUNABLE_LIFETIME :
+                    Conch.getEpochTime() - Constants.MIN_PRUNABLE_LIFETIME);
+            if (withMessage) {
+                pstmt.setInt(++i, prunableExpiration);
+            }
+            pstmt.setLong(++i, accountId);
+            if (blockTimestamp > 0) {
+                pstmt.setInt(++i, blockTimestamp);
+            }
+            if (type >= 0) {
+                pstmt.setByte(++i, type);
+                if (subtype >= 0) {
+                    pstmt.setByte(++i, subtype);
+                }
+            }
+            if (height < Integer.MAX_VALUE) {
+                pstmt.setInt(++i, height);
+            }
+            if (withMessage) {
+                pstmt.setInt(++i, prunableExpiration);
+            }
+            if(!StringUtils.isNullOrEmpty(recipientRS)){
+                pstmt.setLong(++i, Account.rsAccountToId(recipientRS));
+            }
+            if(!StringUtils.isNullOrEmpty(senderRS)){
+                pstmt.setLong(++i, Account.rsAccountToId(senderRS));
+            }
+            DbUtils.setLimits(++i, pstmt, from, to);
+
             return getTransactions(con, pstmt);
         } catch (SQLException e) {
             throw new RuntimeException(e.toString(), e);
