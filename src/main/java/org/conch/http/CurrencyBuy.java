@@ -30,12 +30,12 @@ import org.json.simple.JSONStreamAware;
 import javax.servlet.http.HttpServletRequest;
 
 /**
- * Buy currency for native coin
+ * Buy currency for MW
  * <p>
  * Parameters
  * <ul>
  * <li>currency - currency id
- * <li>rateNQT - exchange rate between coin amount and currency units
+ * <li>rateNQT - exchange rate between MW amount and currency units
  * <li>units - number of units to buy
  * </ul>
  *

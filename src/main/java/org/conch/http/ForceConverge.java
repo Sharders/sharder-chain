@@ -543,7 +543,7 @@ public final class ForceConverge extends APIServlet.APIRequestHandler {
                             continue;
                         }
 
-                        RewardCalculator.blockRewardDistribution(tx,false);
+                        Constants.rewardCalculatorInstance.blockRewardDistribution(tx,false);
                     }
                     i--;
                 }

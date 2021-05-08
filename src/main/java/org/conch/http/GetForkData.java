@@ -49,15 +49,6 @@ import java.util.*;
 
 public class GetForkData extends APIServlet.APIRequestHandler {
 
-    enum Level {
-        // 18
-        SMALL,
-        // 144
-        MEDIUM,
-        // 432
-        LONG
-    }
-
     static final GetForkData instance = new GetForkData();
 
     private GetForkData() {
@@ -67,7 +58,7 @@ public class GetForkData extends APIServlet.APIRequestHandler {
     @Override
     protected JSONStreamAware processRequest(HttpServletRequest req) throws ParameterException {
         JSONObject response = new JSONObject();
-        response.put("forkObjs", JSON.toJSON(Peers.getForkObjMap().values()));
+        response.put("forkObjs", JSON.toJSON(Peers.getForkBlockObjMapToAPI().values()));
         return response;
     }
 

@@ -127,6 +127,11 @@ public final class GetPeers extends APIServlet.APIRequestHandler {
         return true;
     }
 
+    @Override
+    protected boolean requireRequestControl() {
+        return true;
+    }
+
     public static void main(String[] args){
 
     }

@@ -203,4 +203,9 @@ public final class GetAccount extends APIServlet.APIRequestHandler {
     protected boolean startDbTransaction() {
         return true;
     }
+
+    @Override
+    protected boolean requireRequestControl() {
+        return true;
+    }
 }

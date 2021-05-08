@@ -92,4 +92,9 @@ public final class GetBlockchainStatus extends APIServlet.APIRequestHandler {
     protected boolean startDbTransaction() {
         return true;
     }
+
+    @Override
+    protected boolean requireRequestControl() {
+        return true;
+    }
 }

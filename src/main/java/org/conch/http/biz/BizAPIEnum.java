@@ -41,6 +41,7 @@ public enum BizAPIEnum {
     GET_BIZ_BLOCKS("getBizBlocks",GetBizBlocks.instance),
     GET_ACCOUNT_TXS("getAccountTxs",GetAccountTxs.instance),
     GET_TX_STATISTIC("getTxStatistics",GetTxStatistics.instance),
+    GET_BIZ_NEXT_BLOCK_GENERATORS("getBizNextBlockGenerators",GetBizNextBlockGenerators.instance),
     GET_TX("getTx",GetTx.instance),
     GET_BACKUP("getBackup",GetBackup.instance), //backup number
     GET_BIZ_BLOCKS_NUM("getBizBlocksNum",GetBizBlockNum.instance),

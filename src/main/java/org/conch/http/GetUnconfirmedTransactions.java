@@ -91,4 +91,9 @@ public final class GetUnconfirmedTransactions extends APIServlet.APIRequestHandl
         }
         return response;
     }
+
+    @Override
+    protected boolean requireRequestControl() {
+        return true;
+    }
 }
