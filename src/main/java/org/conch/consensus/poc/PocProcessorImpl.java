@@ -103,13 +103,13 @@ public class PocProcessorImpl implements PocProcessor {
     /**
      * NOTE: the follow method can be removed after the snapshot function released
      *
-     * re-calculate when height exceed the poc change height
-     * holding score algo. change to use the effective balance as the ; re-calculate the hardware and holding score
+     * re-calculate when height exceed the poc change height 'Constants.POC_MW_POC_SCORE_CHANGE_HEIGHT'
+     * mw-holding score algo. change to use the effective balance as the ; re-calculate the hardware and mw-holding score
      *
      * @param height
      */
     // Force to use the new algo. to calculate: correct the 0 score
-    // and not limited hardware score at the poc change height
+    // and not limited hardware score at Constants.POC_MW_POC_SCORE_CHANGE_HEIGHT
     public static boolean FORCE_RE_CALCULATE = false;
     private synchronized void reCalculateWhenExceedPocAlgoChangeHeight(int height){
         if(Constants.POC_SCORE_CHANGE_HEIGHT == -1){
@@ -157,6 +157,7 @@ public class PocProcessorImpl implements PocProcessor {
                            +  " ORDER BY block_timestamp ASC, transaction_index ASC");
 
                    pocTxsIterator = (DbIterator<TransactionImpl>)Conch.getBlockchain().getTransactions(con, pstmt);
+//                   pocTxsIterator = Conch.getBlockchain().getTransactions(GenesisRecipient.POC_TX_CREATOR_ID, TransactionType.TYPE_POC, false, 0, Integer.MAX_VALUE, Constants.POC_MW_POC_SCORE_CHANGE_HEIGHT);
                    while (pocTxsIterator.hasNext()) {
                        TransactionImpl txImpl = pocTxsIterator.next();
                        Long statementAccountId = txImpl.getRecipientId();
@@ -166,7 +167,7 @@ public class PocProcessorImpl implements PocProcessor {
                    DbUtils.close(pocTxsIterator);
                }
 
-              // re-calculate the hardware and holding score
+              // re-calculate the hardware and mw holding score
               Set<Long> accountIds = PocHolder.inst.scoreMap.keySet();
               for(Long accountId : accountIds){
                   PocScore scoreToReCalculation = PocHolder.inst.scoreMap.get(accountId);
