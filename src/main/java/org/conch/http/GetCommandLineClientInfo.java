@@ -135,7 +135,7 @@ public final class GetCommandLineClientInfo extends APIServlet.APIRequestHandler
 
 
         String blockListHeader = String.format(prefix + "List of blocks last %d-%d packaged by the current peer: ", firstIndex+1, lastIndex+1);
-        String blockListTitle = String.format(prefix + "%-30s%-20s%-20s%-20s%-20s%-20s", "BlockId", "TotalAmount", "TotalFee", "TransactionCount", "BlockHeight", "BlockTimestamp");
+        String blockListTitle = String.format(prefix + "%-30s%-20s%-20s%-20s%-20s%-20s", "BlockId", "TotalAmount("+ Conch.COIN_UNIT +")", "TotalFee("+ Conch.COIN_UNIT +")", "TransactionCount", "BlockHeight", "BlockTimestamp");
         String blockListContentFormat = prefix + "%-30d%-20f%-20f%-20d%-20d%-20s";
         String blockListContent = "";
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");

@@ -416,6 +416,8 @@ public class PocDb  {
      * certified peer table
      */
     private static class CertifiedPeerTable extends DerivedDbTable {
+        private final BlockchainImpl blockchain = BlockchainImpl.getInstance();
+
         public CertifiedPeerTable() {
             super("certified_peer");
         }
@@ -439,9 +441,11 @@ public class PocDb  {
             boolean isInTx = Db.db.isInTransaction();
             Connection con = null;
             try {
+                blockchain.readLock();
                 con = Db.db.getConnection();
-                PreparedStatement pstmt = con.prepareStatement("SELECT * FROM certified_peer ORDER BY height DESC");
-
+                PreparedStatement pstmt = con.prepareStatement("SELECT * FROM certified_peer  ORDER BY height DESC;");
+//                SELECT * FROM certified_peer WHERE delete_height =0 or delete_height >? ORDER BY height DESC;
+//                pstmt.setInt(1,blockchain.getHeight() - 10);
                 ResultSet rs = pstmt.executeQuery();
                 while (rs.next()) {
                     try {
@@ -466,6 +470,7 @@ public class PocDb  {
                 if (!isInTx) {
                     DbUtils.close(con);
                 }
+                blockchain.readUnlock();
             }
             return peerMap;
         }
@@ -632,6 +637,19 @@ public class PocDb  {
         private int update(Connection con, CertifiedPeer certifiedPeer, Long dbId) throws SQLException {
             if(con == null || certifiedPeer.getBoundAccountId() == -1 || certifiedPeer.getHeight() < 0 ){
                 return 0;
+            }
+
+            if(certifiedPeer.getDeleteHeight() != 0){
+                PreparedStatement pstmtUpdate = con.prepareStatement("UPDATE certified_peer SET host=?, type=?, last_updated=? ,delete_height=? WHERE db_id = ?");
+
+                pstmtUpdate.setString(1, certifiedPeer.getHost());
+                pstmtUpdate.setInt(2, certifiedPeer.getTypeCode());
+                pstmtUpdate.setInt(3, certifiedPeer.getUpdateTimeInEpochFormat());
+                pstmtUpdate.setLong(4, certifiedPeer.getDeleteHeight());
+                pstmtUpdate.setLong(5, dbId);
+
+
+                return pstmtUpdate.executeUpdate();
             }
 
             PreparedStatement pstmtUpdate = con.prepareStatement("UPDATE certified_peer SET host=?, type=?, last_updated=? WHERE db_id = ?");

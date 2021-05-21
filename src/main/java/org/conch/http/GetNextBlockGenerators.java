@@ -22,6 +22,7 @@
 package org.conch.http;
 
 import org.conch.Conch;
+import org.conch.account.Account;
 import org.conch.chain.Block;
 import org.conch.chain.Blockchain;
 import org.conch.common.ConchException;
@@ -111,6 +112,7 @@ public final class GetNextBlockGenerators extends APIServlet.APIRequestHandler {
             }
             response.put("qualifiedActiveCount", crowdMiners.size() + 1);
             List<Generator.ActiveGenerator> activeGenerators = Generator.getNextGenerators();
+
             response.put("activeCount", activeGenerators.size());
             JSONArray generators = new JSONArray();
             for (Generator.ActiveGenerator generator : activeGenerators) {
@@ -144,6 +146,11 @@ public final class GetNextBlockGenerators extends APIServlet.APIRequestHandler {
 
     @Override
     protected boolean startDbTransaction() {
+        return true;
+    }
+
+    @Override
+    protected boolean requireRequestControl() {
         return true;
     }
 }

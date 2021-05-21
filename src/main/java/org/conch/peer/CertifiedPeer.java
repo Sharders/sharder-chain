@@ -17,14 +17,14 @@ import java.sql.Timestamp;
  * process PocNodeConf tx and update certified peer list.
  * org.conch.consensus.poc.PocProcessorImpl#nodeTypeTxProcess(int, org.conch.consensus.poc.tx.PocTxBody.PocNodeType)
  *
- * UPDATE#2: get hub bind details form mgr center and update certified peer list.
+ * UPDATE#2: get hub bind details form mwfs.io and update certified peer list.
  * org.conch.peer.Peers#GET_HUB_PEER_THREAD
  *
  * UPDATE#3: 
  * syn peers and update certified peer list.
  * org.conch.consensus.poc.PocProcessorImpl#peerSynThread
  *
- * @author <a href="mailto:xy@sharder.org">Ben</a>
+ * @author <a href="mailto:xy@mwfs.io">Ben</a>
  * @since 2019-03-29
  */
 public class CertifiedPeer implements Serializable {
@@ -39,6 +39,7 @@ public class CertifiedPeer implements Serializable {
     long boundAccountId;
     String boundRS;
     Timestamp updateTime;
+    int deleteHeight = 0;
 
 
     public CertifiedPeer(Peer.Type type, String host, long accountId, long lastUpdateMS) {
@@ -130,7 +131,16 @@ public class CertifiedPeer implements Serializable {
     public void setHeight(int height) {
         this.height = height;
     }
-    
+
+    public int getDeleteHeight() {
+        return deleteHeight;
+    }
+
+    public void setDeleteHeight(int deleteHeight) {
+        this.deleteHeight = deleteHeight;
+    }
+
+
     public boolean isType(Peer.Type type){
         return (type == null || this.type == null)  ? false : this.type.equals(type);
     }

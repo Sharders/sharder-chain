@@ -21,14 +21,22 @@
 
 package org.conch.common;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.consensus.reward.RewardCalculator;
+import org.conch.consensus.reward.RewardCalculatorDefault;
+import org.conch.consensus.reward.RewardCalculatorForMw;
 import org.conch.env.RuntimeEnvironment;
 import org.conch.peer.Peer;
+import org.conch.util.Logger;
 
 import java.util.*;
+
+import static org.conch.util.JSON.readJsonFile;
 
 public final class Constants {
 
@@ -76,6 +84,11 @@ public final class Constants {
         }
     }
 
+    public static final JSONObject heightConf = (JSONObject) Conch.constantsJsonObj.get("height");
+    public static final JSONObject bootNodeHostConf = (JSONObject) Conch.constantsJsonObj.get("bootNodeHost");
+    public static final JSONObject acrossChainsConf = (JSONObject) Conch.constantsJsonObj.get("acrossChains");
+    public static final JSONObject featureConf = (JSONObject) Conch.constantsJsonObj.get("feature");
+
     private static final String networkInProperties = Conch.getStringProperty("sharder.network");
     public static final String NetworkDef = loadNetworkDefinition();
 
@@ -87,7 +100,7 @@ public final class Constants {
     public static final List<String> bootNodesHost = parseBootNodesHost();
     public static final String bootNodeHost = parseBootNodeHost();
 
-    public static final Long BURN_OPENING_HEIGHT = isTestnetOrDevnet() ? (-1L) : 10L;
+    public static final Long BURN_OPENING_HEIGHT = isTestnetOrDevnet() ? heightConf.getLong("BURN_OPENING_HEIGHT_NOT_MAINNET") : heightConf.getLong("BURN_OPENING_HEIGHT_IS_MAINNET");
     public static final Long BURN_ADDRESS_ID = -1L;
 
     public static final int MAX_NUMBER_OF_TRANSACTIONS = 20000;
@@ -96,7 +109,7 @@ public final class Constants {
     public static final long MAX_BALANCE_SS = 1000000000;
     public static final long ONE_SS = 100000000;
     public static final long MAX_BALANCE_NQT = MAX_BALANCE_SS * ONE_SS;
-    
+
     /** another initial env => target: 6000, min-limit: 17, max-limit=22, base-gamma: 21 */
     public static final long INITIAL_BASE_TARGET = isTestnetOrDevnet() ? (153777867 * 67) : (153722867 * 8);
     public static final int MIN_BLOCKTIME_LIMIT = 53;
@@ -204,30 +217,30 @@ public final class Constants {
     public static final int MAX_STORED_DATA_DESCRIPTION_LENGTH = 1000;
     public static final int MAX_STORED_DATA_TYPE_LENGTH = 100;
     public static final int MAX_STORED_DATA_CHANNEL_LENGTH = 100;
-    public static final int MIN_EXISTENCE_HEIGHT = 100;
+    public static final int MIN_EXISTENCE_HEIGHT = heightConf.getIntValue("MIN_EXISTENCE_HEIGHT");
 
-    public static final int POC_BLOCK_HEIGHT = 0;
+    public static final int POC_BLOCK_HEIGHT = heightConf.getIntValue("POC_BLOCK_HEIGHT");
     public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK = 0;
     public static final int REFERENCED_TRANSACTION_FULL_HASH_BLOCK_TIMESTAMP = 0;
 
-    public static final int FXT_BLOCK = isTestnetOrDevnet() ? 10000 : 10000; 
-    public static final int LAST_KNOWN_BLOCK = isTestnetOrDevnet() ? 3 : 2;
+    public static final int FXT_BLOCK = isTestnetOrDevnet() ? 10000 : 10000;
+    public static final int LAST_KNOWN_BLOCK = isTestnetOrDevnet() ? heightConf.getIntValue("LAST_KNOWN_BLOCK_NOT_MAINNET") : heightConf.getIntValue("LAST_KNOWN_BLOCK_IS_MAINNET");
 
-    public static final int POC_LEDGER_RESET_HEIGHT = isTestnet() ? -1 : -1;
+    public static final int POC_LEDGER_RESET_HEIGHT = isTestnet() ? heightConf.getIntValue("POC_LEDGER_RESET_HEIGHT_IS_TESTNET") : heightConf.getIntValue("POC_LEDGER_RESET_HEIGHT_NOT_TESTNET");
     // PoC calculate algorithm changed height.
     // NOTE: set the height to 0 when reset the chain or start a new chain
     public static final int POC_CAL_ALGORITHM = 0;
-    // Re-calculate the hardware and olding score; -1 means closed force re-calculate.
-    public static final int POC_SCORE_CHANGE_HEIGHT = -1;
+    // Re-calculate the hardware and mw-holding score; -1 means closed force re-calculate.
+    public static final int POC_SCORE_CHANGE_HEIGHT = heightConf.getIntValue("POC_SCORE_CHANGE_HEIGHT");
 
     // Not opened yet
-    public static final int PHASING_BLOCK_HEIGHT = Integer.MAX_VALUE;
+    public static final int PHASING_BLOCK_HEIGHT = heightConf.getIntValue("PHASING_BLOCK_HEIGHT");
     public static final int DIGITAL_GOODS_STORE_BLOCK = Integer.MAX_VALUE;
     public static final int TRANSPARENT_FORGING_BLOCK_HUB_ANNOUNCEMENT = Integer.MAX_VALUE;
     public static final int MONETARY_SYSTEM_BLOCK = Integer.MAX_VALUE;
 
-    public static final int SHUFFLING_BLOCK_HEIGHT = 0;
-  
+    public static final int SHUFFLING_BLOCK_HEIGHT = heightConf.getIntValue("SHUFFLING_BLOCK_HEIGHT");
+
     public static final int MAX_REFERENCED_TRANSACTION_TIMESPAN = 60 * 1440 * 60;
 
     public static final int[] MIN_VERSION = new int[] {0, 0, 1};
@@ -237,25 +250,21 @@ public final class Constants {
     public static final long SHUFFLING_DEPOSIT_NQT = (isTestnetOrDevnet() ? 7 : 1000) * ONE_SS;
 
     public static final boolean correctInvalidFees = Conch.getBooleanProperty("sharder.correctInvalidFees");
-    public static final String ACCOUNT_PREFIX = "CDW-"; //account prefix
 
     //chain begin time
     public static final long EPOCH_BEGINNING = launchedTime(0).getTimeInMillis();
 
     //Mining pool
-    public static final int POOL_OPENING_HEIGHT = isTestnetOrDevnet() ? -1 : -1;
+    public static final int POOL_OPENING_HEIGHT = isTestnetOrDevnet() ? heightConf.getIntValue("POOL_OPENING_HEIGHT_NOT_MAINNET") : heightConf.getIntValue("POOL_OPENING_HEIGHT_IS_MAINNET");
     public static final int SHARDER_POOL_DELAY = isDevnet() ? 1 : 1; //transaction become effective
     public static final int SHARDER_POOL_MAX_BLOCK_DESTROY = 5; //pool can be destroyed by manual
-    public static final int SHARDER_POOL_DEADLINE = isDevnet() ? 60 * 24 : 60 * 24 * 7; 
+    public static final int SHARDER_POOL_DEADLINE = isDevnet() ? 60 * 24 : 60 * 24 * 7;
     public static final int SHARDER_REWARD_DELAY = isDevnet() ? 1 : (isTestnet() ? 3 : 7);
-    public static final int SHARDER_POOL_JOIN_TX_VALIDATION_HEIGHT = isDevnet() ? 1 : (isTestnet() ? 300 : 1);
+    public static final int SHARDER_POOL_JOIN_TX_VALIDATION_HEIGHT = isDevnet() ? heightConf.getIntValue("SHARDER_POOL_JOIN_TX_VALIDATION_HEIGHT_IS_DEVNET") : (isTestnet() ? heightConf.getIntValue("SHARDER_POOL_JOIN_TX_VALIDATION_HEIGHT_IS_TESTNET") : heightConf.getIntValue("SHARDER_POOL_JOIN_TX_VALIDATION_HEIGHT_IS_MAINNET"));
 
     //Coinbase
-    public static final int COINBASE_CROWD_MINER_OPEN_HEIGHT = isTestnetOrDevnet() ? 0 : 0;
-    private static final int SETTLEMENT_INTERVAL_SIZE = Conch.getIntProperty("sharder.rewards.settlementInterval");
-
-    //OSS
-    public static final String OSS_PREFIX = "https://ss-cn.oss-cn-zhangjiakou.aliyuncs.com/";
+    public static final int COINBASE_CROWD_MINER_OPEN_HEIGHT = isTestnetOrDevnet() ? heightConf.getIntValue("COINBASE_CROWD_MINER_OPEN_HEIGHT_NOT_MAINNET") : heightConf.getIntValue("COINBASE_CROWD_MINER_OPEN_HEIGHT_IS_MAINNET");
+    public static final int SETTLEMENT_INTERVAL_SIZE = Conch.getIntProperty("sharder.rewards.settlementInterval");
 
     //syn
     public static final int SYNC_BLOCK_NUM = Conch.getIntProperty("sharder.sync.blockNum");
@@ -267,24 +276,47 @@ public final class Constants {
     public static Boolean MANUAL_SYNC_BUTTON = Conch.getBooleanProperty("sharder.sync.manualButton", false);
     public static Boolean GENERATE_EXPIRED_FILE_BUTTON = Conch.getBooleanProperty("sharder.generateExpiredFileButton"
             , true);
+    public static final Boolean BLOCK_REWARD_VERIFY = Conch.getBooleanProperty("sharder.blockRewardVerify", false);
+
+    // height related
+    public static int NONE_PUBLICKEY_ACTIVE_HEIGHT = 0;
+    public static int BLOCK_REWARD_VERIFY_HEIGHT = 0;
+    public static int MINER_REMOVE_HIGHT = 0;
+
+    public static RewardCalculator rewardCalculatorInstance;
+
+    public static final String MW_CHAIN = "mw";
+    public static final String SHARDER_CHAIN = "sharder";
+    public static String ACCOUNT_PREFIX = "CDW-"; //account prefix
+    //OSS
+    public static String OSS_PREFIX = "https://mwfs.oss-cn-shenzhen.aliyuncs.com/";
+
+    // airdrop
+    public static final JSONObject airdropJsonObj = loadAirdropSettings() == null ? new JSONObject() : loadAirdropSettings();
 
     /**
-     * Whether reach crowd reward height
-     *
-     * @param height
-     * @return
+     * The configuration is updated when the different networks are started
      */
-    public static int getRewardSettlementHeight(int height) {
-        // before 5185 height reward interval is every 432 height
-        int interval = 432;
-        if (height > 5185 && height < 6050) {
-            interval = 432 * 2;
-        } else if (height >= 6050 && height <= RewardCalculator.NETWORK_ROBUST_PHASE) {
-            interval = SETTLEMENT_INTERVAL_SIZE;
-        } else if (height > RewardCalculator.NETWORK_ROBUST_PHASE) {
-            interval = 432 * 10;
+    static {
+        switch (Conch.PROJECT_NAME) {
+            case MW_CHAIN:
+                if (Constants.isMainnet()) {
+                    rewardCalculatorInstance = new RewardCalculatorDefault();
+                } else {
+                    rewardCalculatorInstance = new RewardCalculatorForMw();
+                    MINER_REMOVE_HIGHT = heightConf.getIntValue("MINER_REMOVE_HEIGHT");
+                    NONE_PUBLICKEY_ACTIVE_HEIGHT = heightConf.getIntValue("NONE_PUBLICKEY_ACTIVE_HEIGHT");
+                    BLOCK_REWARD_VERIFY_HEIGHT = Constants.isDevnet() ? heightConf.getIntValue("BLOCK_REWARD_VERIFY_HEIGHT_IS_DEVNET") : heightConf.getIntValue("BLOCK_REWARD_VERIFY_HEIGHT_ID_TESTNET");
+                }
+                break;
+            case SHARDER_CHAIN:
+                rewardCalculatorInstance = new RewardCalculatorDefault();
+                ACCOUNT_PREFIX = "SSA-";
+                OSS_PREFIX = "https://mwfs.oss-cn-shenzhen.aliyuncs.com/";
+                break;
+            default:
+                rewardCalculatorInstance = new RewardCalculatorDefault();
         }
-        return interval;
     }
 
     public static boolean updateHistoryRecord() {
@@ -292,6 +324,16 @@ public final class Constants {
             return false;
         }
         return true;
+    }
+
+    public static com.alibaba.fastjson.JSONObject loadAirdropSettings() {
+        String jsonString = "";
+        try {
+            jsonString = readJsonFile(Conch.CONFIG_DIR + "/airdrop_setting.json");
+        } catch (Exception e) {
+            Logger.logInfoMessage("airdrop_setting file does not exist, airdrop default close");
+        }
+        return JSON.parseObject(jsonString);
     }
 
     /**
@@ -305,7 +347,7 @@ public final class Constants {
         int month = index == 0 ? Calendar.AUGUST : (index == 1 ? Calendar.JANUARY : Calendar.SEPTEMBER);
         int day = index == 0 ? 16 : (index == 1 ? 1 : 9);
         int hms = index == 0 ? 8 : (index == 1 ? 1 : 9);
-        
+
         calendar.set(Calendar.YEAR, year);
         calendar.set(Calendar.MONTH, month);
         calendar.set(Calendar.DAY_OF_MONTH, day);
@@ -380,7 +422,7 @@ public final class Constants {
     public static Network getNetwork(){
         return Network.valueOfIgnoreCase(Network.class,NetworkDef);
     }
-    
+
     private static final String gapMinutes = isDevnet() ?  Conch.getStringProperty("sharder.devnetBlockGap") :
             ( isTestnet() ? Conch.getStringProperty("sharder.testnetBlockGap", "10") : Conch.getStringProperty("sharder.blockGap", "10"));
     public static final int GAP_SECONDS = getBlockGapSeconds();
@@ -414,21 +456,33 @@ public final class Constants {
     }
 
     private static final String parseBootNodeHost() {
+        JSONArray jsonArray;
         if(isMainnet()){
-            return "boot.mw.run";
+            jsonArray = bootNodeHostConf.getJSONArray("MAIN");
         }else if(isTestnet()){
-            return "testboot.mw.run";
+            jsonArray = bootNodeHostConf.getJSONArray("TEST");
+        } else {
+            jsonArray = bootNodeHostConf.getJSONArray("DEV");
         }
-        return "192.168.0.239";
+        return jsonArray.get(0).toString();
     }
-    
+
     private static final List<String> parseBootNodesHost() {
-       if(isMainnet()){
-           return Lists.newArrayList("boot.mw.run");
-       }else if(isTestnet()){
-           return Lists.newArrayList("testboot.mw.run","testna.mw.run","testnb.mw.run");
-       }
-       return Lists.newArrayList("192.168.0.239");
+        List<String> arrayList = Lists.newArrayList();
+        JSONArray jsonArray;
+        if (isMainnet()) {
+            jsonArray = bootNodeHostConf.getJSONArray("MAIN");
+        } else if (isTestnet()) {
+            jsonArray = bootNodeHostConf.getJSONArray("TEST");
+        } else {
+            jsonArray = bootNodeHostConf.getJSONArray("DEV");
+        }
+        if (jsonArray != null) {
+            for (Object item : jsonArray) {
+                arrayList.add(item.toString());
+            }
+        }
+        return arrayList;
     }
     
     
@@ -436,8 +490,10 @@ public final class Constants {
         return bootNodesHost.contains(peer.getHost()) || bootNodesHost.contains(peer.getAnnouncedAddress());
     }
     
-    public static synchronized boolean isValidBootNode(String peerHost){
-        if(StringUtils.isEmpty(peerHost)) return false;
+    public static synchronized boolean isValidBootNode(String peerHost) {
+        if (StringUtils.isEmpty(peerHost)) {
+            return false;
+        }
         return bootNodesHost.contains(peerHost);
     }
 
@@ -455,4 +511,10 @@ public final class Constants {
     public static final boolean initFromArchivedDbFile = Conch.getBooleanProperty("sharder.initFromArchivedDbFile");
 
     public static final int HeartBeat_Time = Conch.getIntProperty("sharder.heartBeatTime",5*60*1000);
+
+    public static final String MGR_URL = acrossChainsConf.getString("MGR_URL");
+
+    public static final int HECO_HEIGHT = acrossChainsConf.getIntValue("HECO_HEIGHT");
+
+
 }

@@ -40,7 +40,7 @@ import java.util.*;
  * @author <a href="mailto:xy@sharder.org">Ben</a>
  * @since 2019/1/8
  */
-public class RewardCalculator {
+public abstract class RewardCalculator {
 
     /**
      * Reward definition
@@ -49,8 +49,6 @@ public class RewardCalculator {
     private enum RewardDef {
         BLOCK_REWARD(1333 * Constants.ONE_SS),
         CROWD_MINERS_REWARD(667 * Constants.ONE_SS),
-        ROBUST_PHASE_CROWD_MINERS_REWARD(9 * Constants.ONE_SS / 10),
-        ROBUST_PHASE_BLOCK_REWARD(1 * Constants.ONE_SS),
         STABLE_PHASE_BLOCK_REWARD(1 * Constants.ONE_SS),
         STABLE_PHASE_CROWD_MINERS_REWARD(1 * Constants.ONE_SS / 2);
 
@@ -66,60 +64,44 @@ public class RewardCalculator {
 
     }
 
+    public static RewardCalculator newInstance () {
+        if (Conch.PROJECT_NAME == "mw") {
+            if (Constants.isMainnet()) {
+                return new RewardCalculatorDefault();
+            }
+            return new RewardCalculatorForMw();
+        } else {
+            return new RewardCalculatorDefault();
+        }
+    }
+
     /**
      * Halve height, -1 means close halve
      */
-    private static final int HALVE_COUNT = -1;
+    public static final int HALVE_COUNT = -1;
     /**
      * Estimated stable height after network reset
      */
-    public static final int NETWORK_STABLE_PHASE = Constants.isDevnet() ? 5 : 2008;
-    /**
-     * Estimated robust height after network reset
-     */
-    public static final int NETWORK_ROBUST_PHASE = Constants.isDevnet() ? 10 : 11111;
+    public static final int NETWORK_STABLE_PHASE = Constants.isDevnet() ? Constants.heightConf.getIntValue("NETWORK_STABLE_PHASE_IS_DEVNET") : Constants.heightConf.getIntValue("NETWORK_STABLE_PHASE_IS_TESTNET");
     /**
      * how much one block reward
      * @return
      */
-    public static long blockReward(int height) {
-        // Halving logic
-        if(HALVE_COUNT != -1) {
-            double turn = 0d;
-            if(Conch.getBlockchain().getHeight() > HALVE_COUNT){
-                turn = Conch.getBlockchain().getHeight() / HALVE_COUNT;
-            }
-            double rate = Math.pow(0.5d, turn);
-            return (long)(RewardDef.BLOCK_REWARD.getAmount() * rate);
-        }
+    public abstract long blockReward(int height);
 
-        // No block rewards in the miner joining phase
-        if(height <= NETWORK_STABLE_PHASE) {
-            return RewardDef.STABLE_PHASE_BLOCK_REWARD.getAmount();
-        } else if (height <= NETWORK_ROBUST_PHASE) {
-            return RewardDef.BLOCK_REWARD.getAmount();
-        } else {
-            return RewardDef.ROBUST_PHASE_BLOCK_REWARD.getAmount();
-        }
-    }
+    public abstract long crowdMinerReward(int height);
 
-    public static long crowdMinerReward(int height){
-        if(height >= Constants.COINBASE_CROWD_MINER_OPEN_HEIGHT
-        || LocalDebugTool.isLocalDebugAndBootNodeMode){
-            if(height <= NETWORK_STABLE_PHASE) {
-                return RewardDef.STABLE_PHASE_CROWD_MINERS_REWARD.getAmount();
-            } else if (height <= NETWORK_ROBUST_PHASE) {
-                return RewardDef.CROWD_MINERS_REWARD.getAmount();
-            } else {
-                return RewardDef.ROBUST_PHASE_CROWD_MINERS_REWARD.getAmount();
-            }
-        }
-        return 0L;
-    }
-
-    public static long blockMiningReward(int height){
+    public long blockMiningReward(int height){
         return blockReward(height) - crowdMinerReward(height);
     }
+
+    /**
+     * Whether reach crowd reward height
+     *
+     * @param height
+     * @return
+     */
+    public abstract int getRewardSettlementHeight(int height);
 
     /**
      *
@@ -127,7 +109,7 @@ public class RewardCalculator {
      * @param height blockchain's height
      * @return
      */
-    public static TransactionImpl.BuilderImpl generateCoinBaseTxBuilder(final byte[] publicKey, int height){
+    public TransactionImpl.BuilderImpl generateCoinBaseTxBuilder(final byte[] publicKey, int height){
         Account creator = Account.getAccount(publicKey);
 
         // Pool owner -> pool rewards map (send rewards to pool joiners)
@@ -230,10 +212,10 @@ public class RewardCalculator {
      * - qualified condition:
      * a) create a tx to declared the node;
      * b) linked the mining address;
-     * c) current height's balance  > 4256（32T staking amount）;
+     * c) current height's balance  > 4256 MW（32T staking amount）;
      * @return map: miner's account id : poc score
      */
-    private static long QUALIFIED_CROWD_MINER_HOLDING_AMOUNT_MIN = 32*133L; // 1T-133
+    private static long QUALIFIED_CROWD_MINER_HOLDING_AMOUNT_MIN = 32*133L; // 1T-133MW
     private static HashMap<Long, Long> generateCrowdMinerPocScoreMap(List<Long> exceptAccounts, int height){
         if(EXIST_CROWD_MINER_CONFIG) {
             if(localPeerAndScoreMap == null || localPeerAndScoreMap.size() == 0) {
@@ -244,47 +226,50 @@ public class RewardCalculator {
 
         HashMap<Long, Long> crowdMinerPocScoreMap = Maps.newHashMap();
         // read the qualified miner list
-        Map<Long, CertifiedPeer> certifiedPeers = Conch.getPocProcessor().getCertifiedPeers();
-        if (certifiedPeers == null || certifiedPeers.size() == 0) {
+        Map<Long, CertifiedPeer>  certifiedPeers = Conch.getPocProcessor().getCertifiedPeers();
+        if(certifiedPeers == null || certifiedPeers.size() == 0) {
             return crowdMinerPocScoreMap;
         }
-        long startMS = System.currentTimeMillis();
-        Logger.logDebugMessage("Start to generate crow miner poc-score map [miner size=%d]", certifiedPeers.size());
+
         // generate the poc score map
-        for (CertifiedPeer certifiedPeer : certifiedPeers.values()) {
+        for(CertifiedPeer certifiedPeer : certifiedPeers.values()){
+
             // only reward once for same miner
-            if (exceptAccounts != null
-                    && exceptAccounts.contains(certifiedPeer.getBoundAccountId())) {
+            if(exceptAccounts != null
+            && exceptAccounts.contains(certifiedPeer.getBoundAccountId())){
                 continue;
             }
             // qualified miner judgement
             Account declaredAccount = Account.getAccount(certifiedPeer.getBoundAccountId());
-            if (declaredAccount == null) {
+            if(declaredAccount == null) {
                 continue;
             }
 
-            long holdingMwAmount = 0;
+            long holdingAmount = 0;
             try{
-//                holdingMwAmount = declaredAccount.getEffectiveBalanceSS(height);
-                holdingMwAmount = declaredAccount.getConfirmedEffectiveBalanceSS(height);
+                holdingAmount = declaredAccount.getEffectiveBalanceSS(height);
             }catch(Exception e){
                 Logger.logWarningMessage("[QualifiedMiner] not valid miner because can't get balance of account %s at height %d, caused by %s",  declaredAccount.getRsAddress(), height, e.getMessage());
-                holdingMwAmount = 0;
+                holdingAmount = 0;
             }
-            if(holdingMwAmount < QUALIFIED_CROWD_MINER_HOLDING_AMOUNT_MIN) {
+            if(holdingAmount < QUALIFIED_CROWD_MINER_HOLDING_AMOUNT_MIN) {
                 continue;
             }
 
             // poc score judgement
             PocScore pocScore = PocHolder.getPocScore(height, declaredAccount.getId());
-            if (pocScore == null || pocScore.total().longValue() <= 0) {
+            if(pocScore == null || pocScore.total().longValue() <= 0) {
                 continue;
             }
+
             crowdMinerPocScoreMap.put(declaredAccount.getId(), pocScore.total().longValue());
         }
-        long usedTimeMS = System.currentTimeMillis() - startMS;
-        Logger.logDebugMessage("Finish generate crow miner poc-score map[used time≈%dS]", usedTimeMS / 1000);
         return crowdMinerPocScoreMap;
+    }
+
+    public static void main(String[] args) {
+        Conch.init();
+        generateCrowdMinerPocScoreMap(null, Conch.getHeight());
     }
 
     /**
@@ -323,7 +308,7 @@ public class RewardCalculator {
      *
      * @param tx coinbase tx of block at the settlement height
      */
-    private static boolean checkAndSettleCrowdMinerRewards(Transaction tx) throws ConchException.StopException {
+    private boolean checkAndSettleCrowdMinerRewards(Transaction tx) throws ConchException.StopException {
         if (!Db.db.isInTransaction()) {
             throw new IllegalStateException("RewardCalculator#checkAndSettleCrowdMinerRewards method should in a " +
                     "transaction, open the tx before call this method");
@@ -365,6 +350,7 @@ public class RewardCalculator {
 
                 long totalPocScoreLong = 0;
                 Map<Long, Long> crowdMiners = coinBase.getCrowdMiners();
+
                 for(long pocScore : crowdMiners.values()){
                     totalPocScoreLong += pocScore;
                 }
@@ -442,7 +428,7 @@ public class RewardCalculator {
      * @param crowdMiners
      * @return crowd miner reward json array:[{accountId:,accountRS:,pocScore:,rewardAmount:}]
      */
-    public static  JSONArray calCrowdMinerReward(Account minerAccount, Transaction tx, Map<Long, Long> crowdMiners){
+    public JSONArray calCrowdMinerReward(Account minerAccount, Transaction tx, Map<Long, Long> crowdMiners){
         return _calAndSetCrowdMinerReward(false, minerAccount, tx, crowdMiners, false);
     }
 
@@ -460,7 +446,7 @@ public class RewardCalculator {
      *  rewardAmount: 11491
      * }]
      */
-    public static JSONArray calPoolReward(long senderId, long blockGeneratorId, Transaction tx, Map<Long, Long> consignors){
+    public JSONArray calPoolReward(long senderId, long blockGeneratorId, Transaction tx, Map<Long, Long> consignors){
         JSONArray poolRewardArray = new JSONArray();
         Map<Long, Long> poolRewardMap = PoolRule.calRewardMapAccordingToRules(senderId, blockGeneratorId, blockMiningReward(tx.getHeight()), consignors);
         for (long accountId : poolRewardMap.keySet()) {
@@ -475,7 +461,7 @@ public class RewardCalculator {
     }
 
     /**
-     * reward calculation algo.: miner's PoC score / total miner's PoC score * 667
+     * reward calculation algo.: miner's PoC score / total miner's PoC score * 667 MW
      * @param updateBalance true: update and froze the balance after calculate, false: just calculate the rewards
      * @param minerAccount block's miner account
      * @param tx coinbase tx
@@ -489,7 +475,7 @@ public class RewardCalculator {
      *  rewardAmount: 2451491
      * }]
      */
-    private static JSONArray _calAndSetCrowdMinerReward(boolean updateBalance, Account minerAccount, Transaction tx, Map<Long, Long> crowdMiners, boolean stageTwo){
+    private JSONArray _calAndSetCrowdMinerReward(boolean updateBalance, Account minerAccount, Transaction tx, Map<Long, Long> crowdMiners, boolean stageTwo){
         JSONArray crowdMinerRewardArray = new JSONArray();
         Map<Long,Long> crowdMinerRewardMap = Maps.newHashMap();
 
@@ -607,7 +593,7 @@ public class RewardCalculator {
      * @param stageTwo true - stage two; false - stage one
      * @return
      */
-    public static long blockRewardDistribution(Transaction tx, boolean stageTwo) throws ConchException.StopException {
+    public long blockRewardDistribution(Transaction tx, boolean stageTwo) throws ConchException.StopException {
         Attachment.CoinBase coinBase = (Attachment.CoinBase) tx.getAttachment();
         Account senderAccount = Account.getAccount(tx.getSenderId());
         Account minerAccount = Account.getAccount(coinBase.getCreator());

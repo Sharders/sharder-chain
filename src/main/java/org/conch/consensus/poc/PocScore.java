@@ -196,7 +196,7 @@ public class PocScore implements Serializable {
     /**
      * two conditions:
      * - valid node (has the node type statement tx)
-     * - own the native coins
+     * - own the MW
      */
     public boolean qualifiedMiner(){
         if(this.ssScore.signum() >= 0
@@ -254,7 +254,7 @@ public class PocScore implements Serializable {
     }
 
     /**
-     * 0.3 in Testnet
+     * 0.3 in MW Testnet
      *
      * Testnet:
      * 0.5 :  0 < height < 4765      

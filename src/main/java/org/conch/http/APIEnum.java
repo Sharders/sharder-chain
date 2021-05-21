@@ -301,9 +301,9 @@ public enum APIEnum {
     ROLLBACK_DATABASE("rollbackDatabase", RollBackDataBase.instance),
     GET_INFO("getInfo",GetInfo.instance),
     AIRDROP("airdrop",Airdrop.instance),
-    AIRDROP_DETECTION("airdropDetection",AirdropDetection.instance),
     GET_MINER_STATISTICS("getMinerStatistics",GetMinerStatistics.instance),
     GET_FORK_DATA("getForkData",GetForkData.instance),
+    GET_ACCOUNT_HOLDINGS_COIN("getAccountHoldingsCoin",GetAccountHoldingsCoin.instance),
     //sharder_authorization_login
     AUTHORIZATION_LOGIN("authorizationLogin",AuthorizationLogin.instance),
     // sharder pool
@@ -330,7 +330,9 @@ public enum APIEnum {
     GET_POC_ONLINE_RATE("getPocOnlineRate", PocTxApi.GetOnlineRate.INSTANCE),
     CREATE_POC_NODE_TYPE("createPocNodeType", PocTxApi.CreateNodeType.INSTANCE),
     RE_PROCESS_POC_TXS("reProcessPocTxs", PocTxApi.ReProcessPocTxs.INSTANCE),
-    RESET_CERTIFIED_PEERS("resetCertifiedPeers", PocTxApi.ResetCertifiedPeers.INSTANCE);
+    RESET_CERTIFIED_PEERS("resetCertifiedPeers", PocTxApi.ResetCertifiedPeers.INSTANCE),
+    // api_html
+    CREATE_API_HTML("createApiHtml", CreateApiHtmlServlet.instance);
 
     private static final Map<String, APIEnum> apiByName = new HashMap<>();
 

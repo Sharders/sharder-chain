@@ -573,6 +573,14 @@ public final class JSONResponses {
         ACCESS_CLOSED_AT_HEIGHT = JSON.prepare(response);
     }
 
+    public static final JSONStreamAware OVER_REQUEST_LIMIT;
+    static {
+        JSONObject response = new JSONObject();
+        response.put("errorCode", 6);
+        response.put("errorDescription", "System buzy now, please try it again later");
+        OVER_REQUEST_LIMIT = JSON.prepare(response);
+    }
+
     private JSONResponses() {} // never
 
 }

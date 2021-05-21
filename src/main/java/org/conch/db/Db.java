@@ -56,7 +56,7 @@ public final class Db {
     }
 
     public static String getName() {
-        return Constants.isTestnetOrDevnet() ? "ss_test_db" : "ss_db";
+        return Constants.isTestnetOrDevnet() ? "mw_test_db" : "mw_db";
     }
 
 }

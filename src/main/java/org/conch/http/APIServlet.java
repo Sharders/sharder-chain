@@ -21,6 +21,7 @@
 
 package org.conch.http;
 
+import com.google.common.util.concurrent.RateLimiter;
 import org.conch.Conch;
 import org.conch.addons.AddOns;
 import org.conch.common.ConchException;
@@ -57,7 +58,7 @@ public final class APIServlet extends HttpServlet {
         protected APIRequestHandler(String fileParameter, APITag[] apiTags, String... origParameters) {
             List<String> parameters = new ArrayList<>();
             Collections.addAll(parameters, origParameters);
-            if ((requirePassword() || parameters.contains("lastIndex")) && ! API.disableAdminPassword) {
+            if ((requirePassword() || parameters.contains("lastIndex")) && !API.disableAdminPassword) {
                 parameters.add("adminPassword");
             }
             if (allowRequiredBlockParameters()) {
@@ -111,16 +112,21 @@ public final class APIServlet extends HttpServlet {
             return false;
         }
 
+        protected boolean requireRequestControl() {
+            return false;
+        }
+
     }
 
     private static final boolean enforcePost = Conch.getBooleanProperty("sharder.apiServerEnforcePOST");
-    static final Map<String,APIRequestHandler> apiRequestHandlers;
-    static final Map<String,APIRequestHandler> disabledRequestHandlers;
+    static final Map<String, APIRequestHandler> apiRequestHandlers;
+    static final Map<String, APIRequestHandler> disabledRequestHandlers;
+    private final RateLimiter limiter = RateLimiter.create(Conch.getIntProperty("sharder.maxDbConnections"));
 
     static {
 
-        Map<String,APIRequestHandler> map = new HashMap<>();
-        Map<String,APIRequestHandler> disabledMap = new HashMap<>();
+        Map<String, APIRequestHandler> map = new HashMap<>();
+        Map<String, APIRequestHandler> disabledMap = new HashMap<>();
 
         for (APIEnum api : APIEnum.values()) {
             if (!api.getName().isEmpty() && api.getHandler() != null) {
@@ -168,7 +174,8 @@ public final class APIServlet extends HttpServlet {
         return apiRequestHandlers.get(requestType);
     }
 
-    static void initClass() {}
+    static void initClass() {
+    }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -213,6 +220,14 @@ public final class APIServlet extends HttpServlet {
                 return;
             }
 
+            if (apiRequestHandler.requireRequestControl()) {
+                boolean flag = limiter.tryAcquire();
+                if (!flag) {
+                    response = OVER_REQUEST_LIMIT;
+                    return;
+                }
+            }
+
             if (Constants.isLightClient && apiRequestHandler.requireFullClient()) {
                 response = LIGHT_CLIENT_DISABLED_API;
                 return;
@@ -230,12 +245,12 @@ public final class APIServlet extends HttpServlet {
                     ParameterParser.getUnsignedLong(req, "requireBlock", false) : 0;
             final long requireLastBlockId = apiRequestHandler.allowRequiredBlockParameters() ?
                     ParameterParser.getUnsignedLong(req, "requireLastBlock", false) : 0;
-           
+
             try {
                 if (requireBlockId != 0 || requireLastBlockId != 0) {
                     Conch.getBlockchain().readLock();
                 }
-                
+
                 try {
                     if (apiRequestHandler.startDbTransaction()) {
                         Db.db.beginTransaction();

@@ -21,6 +21,7 @@
 
 package org.conch.http;
 
+import org.conch.Conch;
 import org.conch.tools.ClientUpgradeTool;
 import org.conch.util.Logger;
 import org.json.simple.JSONObject;
@@ -37,7 +38,7 @@ import java.io.IOException;
 public final class GetLatestCosVersion extends APIServlet.APIRequestHandler {
 
     static final GetLatestCosVersion INSTANCE = new GetLatestCosVersion();
-    private static final String FAILED_INFO = "Failed to fetch latest version of COS client, please check your network connection";
+    private static final String FAILED_INFO = "Failed to fetch latest version of "+ Conch.COIN_UNIT +" client, please check your network connection";
 
     private GetLatestCosVersion() {
         super(new APITag[]{APITag.DEBUG});
@@ -80,6 +81,11 @@ public final class GetLatestCosVersion extends APIServlet.APIRequestHandler {
 
     @Override
     protected boolean startDbTransaction() {
+        return true;
+    }
+
+    @Override
+    protected boolean requireRequestControl() {
         return true;
     }
 }

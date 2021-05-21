@@ -29,6 +29,7 @@ import org.conch.db.DbIterator;
 import org.conch.db.DbUtils;
 import org.conch.tx.Attachment;
 import org.conch.tx.Transaction;
+import org.conch.tx.TransactionType;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -57,7 +58,8 @@ public final class GetBlockchainTransactions extends APIServlet.APIRequestHandle
         boolean includeExpiredPrunable = "true".equalsIgnoreCase(req.getParameter("includeExpiredPrunable"));
         boolean includePhasingResult = "true".equalsIgnoreCase(req.getParameter("includePhasingResult"));
         boolean executedOnly = "true".equalsIgnoreCase(req.getParameter("executedOnly"));
-
+        String recipientRS = req.getParameter("recipientRS");
+        String senderRS = req.getParameter("senderRS");
         byte type;
         byte subtype;
         try {
@@ -75,22 +77,30 @@ public final class GetBlockchainTransactions extends APIServlet.APIRequestHandle
         int lastIndex = ParameterParser.getLastIndex(req);
         JSONArray transactions = new JSONArray();
         DbIterator<? extends Transaction> iterator = null;
-        try {
+        JSONObject response = new JSONObject();
+        int count = 0;
 
-            long statementAccountId = new Long(accountId);
+        try {
             iterator = Conch.getBlockchain().getTransactions(accountId, numberOfConfirmations,
                     type, subtype, timestamp, withMessage, phasedOnly, nonPhasedOnly, firstIndex, lastIndex,
-                    includeExpiredPrunable, executedOnly);
+                    includeExpiredPrunable, executedOnly,recipientRS,senderRS);
             // normal txs
             while (iterator.hasNext()) {
-                transactions.add(JSONData.transaction(iterator.next(), includePhasingResult));
+                transactions.add(JSONData.transaction(iterator.next(), includePhasingResult, false));
             }
 
         }finally {
             DbUtils.close(iterator);
         }
+        try{
+            if(type != TransactionType.TYPE_POC) {
+                count = Conch.getBlockchain().getTransactionCountByAccount(accountId,type,subtype, true, true);
+            }
+            response.put("count",count);
+        }catch(Exception e){
+            throw new RuntimeException(e.toString(),e);
+        }
 
-        JSONObject response = new JSONObject();
         response.put("transactions", transactions);
         return response;
 
@@ -123,6 +133,11 @@ public final class GetBlockchainTransactions extends APIServlet.APIRequestHandle
 
     @Override
     protected boolean startDbTransaction() {
+        return true;
+    }
+
+    @Override
+    protected boolean requireRequestControl() {
         return true;
     }
 }

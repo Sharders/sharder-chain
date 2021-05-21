@@ -515,7 +515,7 @@ public class SharderPoolProcessor implements Serializable {
                         continue;
                     }
 
-                    long miningRewards = RewardCalculator.blockRewardDistribution(tx, true);
+                    long miningRewards = Constants.rewardCalculatorInstance.blockRewardDistribution(tx, true);
                     updateHistoricalRewards(id, miningRewards);
                 }
             }

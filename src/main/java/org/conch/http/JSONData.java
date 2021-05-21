@@ -477,31 +477,15 @@ public final class JSONData {
 
     public static JSONObject forkBlock(Block block) {
         JSONObject json = new JSONObject();
-        json.put("block", block.getStringId());
+        json.put("block", block.getId());
         json.put("height", block.getHeight());
-        putAccount(json, "generator", block.getGeneratorId());
-//        json.put("generatorPublicKey", Convert.toHexString(block.getGeneratorPublicKey()));
+        json.put("generatorRS", Account.rsAccount(block.getGeneratorId()));
         json.put("timestamp", block.getTimestamp());
-//        json.put("numberOfTransactions", block.getTransactions().size());
-//        json.put("totalAmountNQT", String.valueOf(block.getTotalAmountNQT()));
-//        json.put("totalFeeNQT", String.valueOf(block.getTotalFeeNQT()));
-//        json.put("payloadLength", block.getPayloadLength());
         json.put("version", block.getVersion());
-//        json.put("baseTarget", Long.toUnsignedString(block.getBaseTarget()));
         json.put("cumulativeDifficulty", block.getCumulativeDifficulty().toString());
-//        json.put("hasRewardDistribution", block.getRewardDistributionHeight()>0);
-        if (block.getPreviousBlockId() != 0) {
-            json.put("previousBlock", Long.toUnsignedString(block.getPreviousBlockId()));
-        }
-        if (block.getNextBlockId() != 0) {
-            json.put("nextBlock", Long.toUnsignedString(block.getNextBlockId()));
-        }
-//        json.put("payloadHash", Convert.toHexString(block.getPayloadHash()));
-//        json.put("generationSignature", Convert.toHexString(block.getGenerationSignature()));
-        if (block.getVersion() > 1) {
-//            json.put("previousBlockHash", Convert.toHexString(block.getPreviousBlockHash()));
-        }
-//        json.put("blockSignature", Convert.toHexString(block.getBlockSignature()));
+//        if (block.getNextBlockId() != 0) {
+//            json.put("nextBlock", Long.toUnsignedString(block.getNextBlockId()));
+//        }
         return json;
     }
 
@@ -1024,10 +1008,10 @@ public final class JSONData {
     }
 
     public static JSONObject unconfirmedTransaction(Transaction transaction) {
-        return unconfirmedTransaction(transaction, null);
+        return unconfirmedTransaction(transaction, null, false);
     }
 
-    static JSONObject unconfirmedTransaction(Transaction tx, Filter<Appendix> filter) {
+    static JSONObject unconfirmedTransaction(Transaction tx, Filter<Appendix> filter, boolean removeAttachment) {
         JSONObject json = new JSONObject();
         json.put("type", tx.getType().getType());
         json.put("subtype", tx.getType().getSubtype());
@@ -1051,62 +1035,63 @@ public final class JSONData {
             json.put("fullHash", tx.getFullHash());
             json.put("transaction", tx.getStringId());
         }
-        JSONObject attachmentJSON = new JSONObject();
-        if (filter == null) {
-            for (Appendix appendage : tx.getAppendages(true)) {
-                attachmentJSON.putAll(appendage.getJSONObject());
-            }
-        } else {
-            for (Appendix appendage : tx.getAppendages(filter, true)) {
-                attachmentJSON.putAll(appendage.getJSONObject());
-            }
-        }
-        if (! attachmentJSON.isEmpty()) {
-            for (Map.Entry entry : (Iterable<Map.Entry>) attachmentJSON.entrySet()) {
-                if (entry.getValue() instanceof Long) {
-                    entry.setValue(String.valueOf(entry.getValue()));
+        if (!removeAttachment) {
+            JSONObject attachmentJSON = new JSONObject();
+            if (filter == null) {
+                for (Appendix appendage : tx.getAppendages(true)) {
+                    attachmentJSON.putAll(appendage.getJSONObject());
+                }
+            } else {
+                for (Appendix appendage : tx.getAppendages(filter, true)) {
+                    attachmentJSON.putAll(appendage.getJSONObject());
                 }
             }
-            if(TransactionType.Data.TAGGED_DATA_UPLOAD.equals(tx.getType())){
+            if (! attachmentJSON.isEmpty()) {
+                for (Map.Entry entry : (Iterable<Map.Entry>) attachmentJSON.entrySet()) {
+                    if (entry.getValue() instanceof Long) {
+                        entry.setValue(String.valueOf(entry.getValue()));
+                    }
+                }
+                if(TransactionType.Data.TAGGED_DATA_UPLOAD.equals(tx.getType())){
 
-                attachmentJSON.replace("data","");
-            }
-            
-            // quit pool tx
-            if(tx.getType().isType(TransactionType.TYPE_SHARDER_POOL)
-                    && tx.getType().isSubType(TransactionType.SUBTYPE_SHARDER_POOL_QUIT)
-                    && attachmentJSON.containsKey("txId")) {
-                
-                String txId = String.valueOf(attachmentJSON.get("txId"));
-                Transaction joinTx = Conch.getBlockchain().getTransaction(Long.valueOf(txId));
-                attachmentJSON.put("txSId",joinTx != null ? joinTx.getStringId() : "none");
-              
-                if(joinTx != null && joinTx.getAttachment() != null){
-                    attachmentJSON.put("amount", joinTx.getAttachment().getJSONObject().get("amount"));
-                }  
-            }
-
-            // join pool tx or deletion poo tx: convert the pool id
-
-
-            // coinbase
-            if(tx.getType().isType(TransactionType.TYPE_COIN_BASE)) {
-                Attachment.CoinBase coinBase = (Attachment.CoinBase) tx.getAttachment();
-
-                if(coinBase.isType(Attachment.CoinBase.CoinBaseType.CROWD_BLOCK_REWARD)
-                && coinBase.getCrowdMiners().size() > 0){
-                    HashMap<Long, Long> crowdMiners = coinBase.getCrowdMiners();
-                    Account minerAccount = Account.getAccount(coinBase.getCreator());
-                    attachmentJSON.put("crowdMiners", RewardCalculator.calCrowdMinerReward(minerAccount, tx, crowdMiners));
+                    attachmentJSON.replace("data","");
                 }
 
-                if( coinBase.getConsignors().size() > 0){
-                    attachmentJSON.put("consignors",RewardCalculator.calPoolReward(tx.getSenderId(), coinBase.getGeneratorId(), tx, coinBase.getConsignors()));
+                // quit pool tx
+                if(tx.getType().isType(TransactionType.TYPE_SHARDER_POOL)
+                        && tx.getType().isSubType(TransactionType.SUBTYPE_SHARDER_POOL_QUIT)
+                        && attachmentJSON.containsKey("txId")) {
+
+                    String txId = String.valueOf(attachmentJSON.get("txId"));
+                    Transaction joinTx = Conch.getBlockchain().getTransaction(Long.valueOf(txId));
+                    attachmentJSON.put("txSId",joinTx != null ? joinTx.getStringId() : "none");
+
+                    if(joinTx != null && joinTx.getAttachment() != null){
+                        attachmentJSON.put("amount", joinTx.getAttachment().getJSONObject().get("amount"));
+                    }
                 }
+
+                // join pool tx or deletion poo tx: convert the pool id
+
+                // coinbase
+                if(tx.getType().isType(TransactionType.TYPE_COIN_BASE)) {
+                    Attachment.CoinBase coinBase = (Attachment.CoinBase) tx.getAttachment();
+
+                    if(coinBase.isType(Attachment.CoinBase.CoinBaseType.CROWD_BLOCK_REWARD)
+                            && coinBase.getCrowdMiners().size() > 0){
+                        HashMap<Long, Long> crowdMiners = coinBase.getCrowdMiners();
+                        Account minerAccount = Account.getAccount(coinBase.getCreator());
+                        attachmentJSON.put("crowdMiners", Constants.rewardCalculatorInstance.calCrowdMinerReward(minerAccount, tx, crowdMiners));
+                    }
+
+                    if( coinBase.getConsignors().size() > 0){
+                        attachmentJSON.put("consignors",Constants.rewardCalculatorInstance.calPoolReward(tx.getSenderId(), coinBase.getGeneratorId(), tx, coinBase.getConsignors()));
+                    }
+                }
+                attachmentJSON.put("blockMiningRewardAmount",Constants.rewardCalculatorInstance.blockMiningReward(tx.getHeight()));
+                attachmentJSON.put("crowdMinerRewardAmount",Constants.rewardCalculatorInstance.crowdMinerReward(tx.getHeight()));
+                json.put("attachment", attachmentJSON);
             }
-            attachmentJSON.put("blockMiningRewardAmount",RewardCalculator.blockMiningReward(tx.getHeight()));
-            attachmentJSON.put("crowdMinerRewardAmount",RewardCalculator.crowdMinerReward(tx.getHeight()));
-            json.put("attachment", attachmentJSON);
         }
         putAccount(json, "sender", tx.getSenderId());
         json.put("height", tx.getHeight());
@@ -1136,8 +1121,25 @@ public final class JSONData {
         return json;
     }
 
+    public static JSONObject transaction(Transaction transaction, boolean includePhasingResult, boolean removeAttachment) {
+        JSONObject json = unconfirmedTransaction(transaction, null, removeAttachment);
+        json.put("block", Long.toUnsignedString(transaction.getBlockId()));
+        json.put("confirmations", Conch.getBlockchain().getHeight() - transaction.getHeight());
+        json.put("blockTimestamp", transaction.getBlockTimestamp());
+        json.put("transactionIndex", transaction.getIndex());
+        if (includePhasingResult && transaction.getPhasing() != null) {
+            PhasingPoll.PhasingPollResult phasingPollResult = PhasingPoll.getResult(transaction.getId());
+            if (phasingPollResult != null) {
+                json.put("approved", phasingPollResult.isApproved());
+                json.put("result", String.valueOf(phasingPollResult.getResult()));
+                json.put("executionHeight", phasingPollResult.getHeight());
+            }
+        }
+        return json;
+    }
+
     static JSONObject transaction(Transaction transaction, Filter<Appendix> filter) {
-        JSONObject json = unconfirmedTransaction(transaction, filter);
+        JSONObject json = unconfirmedTransaction(transaction, filter, false);
         json.put("block", Long.toUnsignedString(transaction.getBlockId()));
         json.put("confirmations", Conch.getBlockchain().getHeight() - transaction.getHeight());
         json.put("blockTimestamp", transaction.getBlockTimestamp());

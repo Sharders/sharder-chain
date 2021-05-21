@@ -90,7 +90,7 @@ public class DbBackupTask extends Task{
             pathStr = path==null?defaultPath:path;
             if(fileName == null) {
                 int height = Conch.getBlockchain().getHeight();
-                fileNameStr = "ss_test_db_" + height +".zip";
+                fileNameStr = "mw_test_db_" + height +".zip";
             }else {
                 fileNameStr = fileName + (fileName.contains(".zip")?"":".zip");
             }
