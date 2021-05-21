@@ -28,16 +28,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.chain.Block;
+import org.conch.chain.BlockchainImpl;
 import org.conch.common.Constants;
 import org.conch.common.UrlManager;
 import org.conch.consensus.poc.hardware.GetNodeHardware;
 import org.conch.db.Db;
 import org.conch.db.DbIterator;
 import org.conch.db.DbUtils;
-import org.conch.http.API;
-import org.conch.http.APIEnum;
-import org.conch.http.ForceConverge;
-import org.conch.http.JSONData;
+import org.conch.http.*;
 import org.conch.http.biz.domain.ForkObj;
 import org.conch.mint.Generator;
 import org.conch.security.Guard;
@@ -56,9 +54,14 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
 import javax.servlet.DispatcherType;
+import java.math.BigInteger;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
+
+import static org.conch.common.Constants.bootNodesHost;
+import static org.conch.peer.PeerDb.*;
 
 /**
  * @author ben-xy
@@ -70,6 +73,26 @@ public final class Peers {
         DOWNLOADED_VOLUME, UPLOADED_VOLUME, WEIGHT,
         ADDED_ACTIVE_PEER, CHANGED_ACTIVE_PEER,
         NEW_PEER, ADD_INBOUND, REMOVE_INBOUND, CHANGED_SERVICES
+    }
+    public enum forkBlocksLevel {
+        // 6
+        MINI(6),
+        // 18
+        SMALL(18),
+        // 144
+        MEDIUM(144),
+        // 432
+        LONG(432);
+
+        public final int level;
+
+        forkBlocksLevel(int level) {
+            this.level = level;
+        }
+
+        public int getLevel() {
+            return level;
+        }
     }
 
     static final int LOGGING_MASK_EXCEPTIONS = 1;
@@ -84,7 +107,10 @@ public final class Peers {
     static final int readTimeout;
     public static final int blacklistingPeriod;
     static final boolean getMorePeers;
-    static final boolean isOpenForkAnalyze;
+    public static final boolean isProcessForkNode;
+    static final boolean closeCollectFork;
+    static final boolean isCommonNode;
+
     // change 20 -> 400, because one block include more than 2000 txs at 2018.11.21
     public static final int MAX_REQUEST_SIZE = 400 * 1024 * 1024;
     public static final int MAX_RESPONSE_SIZE = 400 * 1024 * 1024;
@@ -419,12 +445,14 @@ public final class Peers {
         usePeersDb = Conch.getBooleanProperty("sharder.usePeersDb") && !Constants.isOffline;
         savePeers = usePeersDb && Conch.getBooleanProperty("sharder.savePeers");
         getMorePeers = Conch.getBooleanProperty("sharder.getMorePeers");
-        isOpenForkAnalyze = Conch.getBooleanProperty("sharder.isOpenForkAnalyze");
         cjdnsOnly = Conch.getBooleanProperty("sharder.cjdnsOnly");
         ignorePeerAnnouncedAddress = Conch.getBooleanProperty("sharder.ignorePeerAnnouncedAddress");
         if (useWebSockets && useProxy) {
             Logger.logMessage("Using a proxy, will not create outbound websockets.");
         }
+        closeCollectFork = Conch.getBooleanProperty("sharder.closeCollectFork");
+        isProcessForkNode = Conch.getBooleanProperty("sharder.isProcessForkNode");
+        isCommonNode = !isProcessForkNode && !isCollectForkNode(getMyAddress());
 
         final List<Future<String>> unresolvedPeers = Collections.synchronizedList(new ArrayList<>());
 
@@ -607,7 +635,6 @@ public final class Peers {
 
         @Override
         public void run() {
-
             try {
                 try {
 
@@ -654,6 +681,11 @@ public final class Peers {
                     }
 
                     peers.values().forEach(peer -> {
+                        if (peer.getState() == Peer.State.CONNECTED
+                                && isCollectForkNode(peer.getAddress())
+                                && now - peer.getLastUpdated() > 600) {
+                            peersService.submit(peer::connect);
+                        }
                         if (peer.getState() == Peer.State.CONNECTED
                                 && now - peer.getLastUpdated() > 3600
                                 && now - peer.getLastConnectAttempt() > 600) {
@@ -719,94 +751,25 @@ public final class Peers {
 
     };
 
-    private static Set<String> EntireNetPeerHosts = Sets.newConcurrentHashSet();
     private static Map<String, ForkObj> forkObjMap = Maps.newHashMap();
-    private static int latestNum = Conch.getIntProperty("sharder.numForkBlocks") != 0 ? Conch.getIntProperty("sharder.numForkBlocks") : 144;
+    private static Map<Long, ForkBlock.ForkBlockObj> forkBlockObjMap = Maps.newHashMap();
+    private static Map<String, List<JSONObject>> forkBlocksMap = Maps.newHashMap();
+    private static Map<String, List<JSONObject>> forkBlocksMapByProcessNode = Maps.newHashMap();
+    public static Map<String, JSONObject> missingForkBlocksMap = Maps.newHashMap();
 
     public static Map<String, ForkObj> getForkObjMap() {
         return forkObjMap;
     }
 
-    private static final Runnable generateForkDataThread = () -> {
-        try {
-            forkObjMap.clear();
-            List<String> bootNodesHost = Constants.bootNodesHost;
-            bootNodesHost.add(Conch.getMyAddress());
+    public static Map<String, ForkObj> getForkObjMapToAPI() {
+        return forkObjMapToAPI;
+    }
+    public static Map<Long, ForkBlock.ForkBlockObj> getForkBlockObjMapToAPI() {
+        return forkBlockObjMapToAPI;
+    }
 
-            // add custom node
-//            bootNodesHost.add("192.168.0.239");
-//            bootNodesHost.add("192.168.0.232");
-//            bootNodesHost.add("192.168.0.238");
-
-            EntireNetPeerHosts.addAll(bootNodesHost);
-            for (String peerHost : bootNodesHost) {
-                if (Conch.getMyAddress().equals(peerHost)) {
-                    continue;
-                }
-                Peer peer = getPeer(peerHost, true);
-                if (peer == null) {
-                    continue;
-                }
-                //[NAT] inject useNATService property to the request params
-                JSONObject request = new JSONObject();
-                request.put("requestType", "getPeers");
-                request.put("notFilter", "true");
-                request.put("useNATService", Peers.isUseNATService());
-                request.put("announcedAddress", Conch.getMyAddress());
-                JSONObject response = peer.send(JSON.prepareRequest(request), Peers.MAX_RESPONSE_SIZE);
-                if (response == null) {
-                    continue;
-                }
-                JSONArray peers = (JSONArray) response.get("peers");
-                if (peers != null && peers.size() > 0) {
-                    for (int i = 0; i < peers.size(); i++) {
-                        String announcedAddress = (String) peers.get(i);
-                        PeerImpl newPeer = findOrCreatePeer(announcedAddress, Peers.isUseNATService(announcedAddress));
-                        if (newPeer != null && !Guard.internalIp(newPeer.getHost())) {
-//                        if (newPeer != null) {
-                            EntireNetPeerHosts.add(newPeer.getHost());
-                        }
-                    }
-                }
-            }
-            JSONObject request = new JSONObject();
-            DbIterator<? extends Block> iterator = null;
-            List<JSONObject> blocks = new JSONArray();
-            try {
-                iterator = Conch.getBlockchain().getBlocks(0, latestNum-1);
-                while (iterator.hasNext()) {
-                    Block block = iterator.next();
-                    if (block.getTimestamp() < 0) {
-                        break;
-                    }
-                    blocks.add(JSONData.forkBlock(block));
-                }
-            }finally {
-                DbUtils.close(iterator);
-            }
-            processBlocksToForkObj(Peers.getMyAddress(), blocks);
-            for (String peerHost : EntireNetPeerHosts) {
-                if (Conch.getMyAddress().equals(peerHost)) {
-                    continue;
-                }
-                Peer peer = Peers.getPeer(peerHost, true);
-                request.put("requestType", "getBlocks");
-                request.put("latestNum", latestNum);
-                JSONObject response = peer.send(JSON.prepareRequest(request), Peers.MAX_RESPONSE_SIZE);
-                if (response == null) {
-                    continue;
-                }
-                Object blocksObj = response.get("blocks");
-                if (blocksObj == null) {
-                    continue;
-                }
-                processBlocksToForkObj(peer.getAnnouncedAddress(), (List<JSONObject>) blocksObj);
-            }
-            forkAnalyze();
-        } catch (Exception e) {
-            Logger.logDebugMessage("Get fork data process fail");
-        }
-    };
+    private static Map<String, ForkObj> forkObjMapToAPI = Maps.newHashMap();
+    private static Map<Long, ForkBlock.ForkBlockObj> forkBlockObjMapToAPI = Maps.newHashMap();
 
     private static final Runnable getMorePeersThread = new Runnable() {
 
@@ -964,6 +927,48 @@ public final class Peers {
 
     };
 
+    public static int deleteHeight() {
+        if (maxHeight != 0) {
+            return maxHeight - forkBlocksLevel.LONG.getLevel();
+        } else {
+            return Conch.getHeight() - forkBlocksLevel.LONG.getLevel();
+        }
+    }
+
+    /**
+     * Get database related data, every 24h execute once
+     */
+    private static final Runnable updateForkBlockDataThread = new Runnable() {
+        @Override
+        public void run() {
+            DbIterator<ForkBlock> forkBlocks = null;
+            try {
+                deleteForkBlocksAndLinkedFromHeight(deleteHeight());
+                blockLinkedGeneratorMap.clear();
+                blockLinkedGeneratorHeightMap.clear();
+                blockLinkedGeneratorMap = getAllForkBlockLinkedAccountMap();
+                for (Map.Entry<String, HashSet<ForkBlock.ForkBlockLinkedAccount>> entry : blockLinkedGeneratorMap.entrySet()) {
+                    TreeSet<Integer> treeSet = Sets.newTreeSet();
+                    for (ForkBlock.ForkBlockLinkedAccount linkedAccount : entry.getValue()) {
+                        treeSet.add(linkedAccount.getHeight());
+                        blockLinkedGeneratorHeightMap.put(entry.getKey(), treeSet);
+                    }
+                }
+                blockIdsSet.clear();
+                blockMap.clear();
+                forkBlocks = getAllForkBlocks();
+                for (ForkBlock forkBlock : forkBlocks) {
+                    blockMap.put(forkBlock.getId(), forkBlock);
+                    blockIdsSet.add(forkBlock.getId());
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                DbUtils.close(forkBlocks);
+            }
+        }
+    };
+
     private static final String SC_PEERS_API = UrlManager.getFoundationUrl(
             UrlManager.PEERS_LIST_EOLINKER,
             UrlManager.PEERS_LIST_LOCAL,
@@ -1091,8 +1096,8 @@ public final class Peers {
             if (Peers.getMorePeers) {
                 ThreadPool.scheduleThread("GetMorePeers", Peers.getMorePeersThread, 20);
             }
-            if (Peers.isOpenForkAnalyze) {
-                ThreadPool.scheduleThread("GenerateForkData", Peers.generateForkDataThread, 10, TimeUnit.MINUTES);
+            if (isProcessForkNode) {
+                ThreadPool.scheduleThread("UpdateForkBlockData", Peers.updateForkBlockDataThread, 1, TimeUnit.HOURS);
             }
         }
     }
@@ -1471,7 +1476,7 @@ public final class Peers {
 
 
     private static Map<String,Integer> weightedPeerCountMap = Maps.newConcurrentMap();
-    private static int MAX_CONNECT_CHECK_COUNT = (Constants.bootNodesHost.size() + 3) * 3;
+    private static int MAX_CONNECT_CHECK_COUNT = (bootNodesHost.size() + 3) * 3;
     /**
      *  true: count < 3
      *  false: 3 =< count <= 6
@@ -1734,12 +1739,117 @@ public final class Peers {
         }
         return json;
     }
-    
-    private static void generateMyPeerInfoRequest(Peer.BlockchainState state){
+
+    public static boolean isCollectForkNode(String announcedAddress) {
+        ArrayList<Object> collectForkNodes = Lists.newArrayList();
+        collectForkNodes.addAll(bootNodesHost);
+        collectForkNodes.add("testnc.mw.run");
+        return collectForkNodes.contains(announcedAddress) && !Peers.closeCollectFork;
+    }
+
+    public static JSONArray getForkBlocks(Integer startNum, Integer endNum) {
+        JSONArray blocks = new JSONArray();
+        DbIterator<? extends Block> iterator = null;
+        final int timestamp = 0;
+        try {
+            iterator = Conch.getBlockchain().getBlocksByHeight(startNum + 1, endNum, null);
+            while (iterator.hasNext()) {
+                Block block = iterator.next();
+                if (block.getTimestamp() < timestamp) {
+                    break;
+                }
+                blocks.add(JSONData.forkBlock(block));
+            }
+        }finally {
+            DbUtils.close(iterator);
+        }
+        return blocks;
+    }
+
+    public static JSONObject additionalBlockHeightObj = new JSONObject();
+
+    /**
+     * - commonNode: report forkBlocks to the designated node (BootNode)
+     * - collectForkNode: return forkObjMap to processForkNode
+     * - processForkNode: return identification
+     *
+     * Current call frequency = 600s < f < 620s, have check
+     * @param conditionObj
+     * @return json
+     */
+    public static JSONObject getForkBlockSummary(JSONObject conditionObj){
+        JSONObject json = new JSONObject();
+        if (conditionObj == null) {
+            return json;
+        }
+        if (conditionObj.get("sendToCollectForkNode") != null) {
+            if (isProcessForkNode) {
+                json.put("processForkNode", true);
+                json.put("missedBlocksMap", missingForkBlocksMap);
+            } else {
+                if (!additionalBlockHeightObj.isEmpty()) {
+                    Integer[] maxAndMinArray = getMaxAndMinArray();
+                    JSONArray forkBlocks = getForkBlocks(maxAndMinArray[0], maxAndMinArray[1]);
+                    json.put("forkBlocks", forkBlocks);
+                } else {
+                    JSONArray forkBlocks = getForkBlocks(Conch.getHeight() - forkBlocksLevel.MINI.getLevel(), Conch.getHeight());
+                    json.put("forkBlocks", forkBlocks);
+                }
+            }
+        }
+        if (conditionObj.get("sendToProcessForkNode") != null){
+            if (Generator.HUB_BIND_ADDRESS != null) {
+                if (missingForkBlocksMap.get(Generator.HUB_BIND_ADDRESS) != null) {
+                    additionalBlockHeightObj = missingForkBlocksMap.get(Generator.HUB_BIND_ADDRESS);
+                    Integer[] maxAndMinArray = getMaxAndMinArray();
+                    forkBlocksMap.put(Generator.HUB_BIND_ADDRESS, Peers.getForkBlocks(maxAndMinArray[0], maxAndMinArray[1]));
+                } else {
+                    forkBlocksMap.put(Generator.HUB_BIND_ADDRESS, getForkBlocks(Conch.getHeight()-forkBlocksLevel.MINI.getLevel(), Conch.getHeight()));
+                }
+
+            }
+            if (!Peers.forkBlocksMap.isEmpty()) {
+                json.put("forkBlocksMap", Peers.forkBlocksMap);
+            }
+        }
+        if (conditionObj.get("sendToCommonNode") != null) {
+            json.put("missedBlocks", missingForkBlocksMap.get(conditionObj.get("sendToCommonNode")));
+        }
+        return json;
+    }
+
+    private static Integer[] getMaxAndMinArray() {
+        Integer[] ints = new Integer[2];
+        if (additionalBlockHeightObj.get("startHeight") != null && additionalBlockHeightObj.get("endHeight") != null) {
+            // todo 检测类型转换是否存在异常
+            int startHeight = Integer.parseInt(String.valueOf(additionalBlockHeightObj.get("startHeight")));
+            int endHeight = Integer.parseInt(String.valueOf(additionalBlockHeightObj.get("endHeight")));
+            if (startHeight > Conch.getHeight() - forkBlocksLevel.MINI.getLevel()) {
+                startHeight = Conch.getHeight() - forkBlocksLevel.MINI.getLevel();
+            }
+            if (endHeight <= Conch.getHeight()) {
+                endHeight = Conch.getHeight();
+            }
+            ints[0] = startHeight;
+            ints[1] = endHeight;
+        } else {
+            ints[0] = Conch.getHeight() - forkBlocksLevel.MINI.getLevel();
+            ints[1] = Conch.getHeight();
+        }
+        additionalBlockHeightObj.clear();
+        return ints;
+    }
+
+    /**
+     * if sendNode not processForkNode or BootNode, set as false
+     * @param state
+     * @param conditionObj
+     */
+    private static void generateMyPeerInfoRequest(Peer.BlockchainState state, JSONObject conditionObj){
         // generate my peer details and update state
         // generate the request and response api
         if (state != currentBlockchainState) {
-            JSONObject myPeerJson = generateMyPeerJson();
+            JSONObject myPeerJson = generateMyPeerJson(conditionObj);
             myPeerJson.put("blockchainState", state.ordinal());
             myPeerInfoResponse = JSON.prepare(myPeerJson);
 
@@ -1747,13 +1857,26 @@ public final class Peers {
             myPeerJson.put("bestPeer", getBestPeerUri());
             myPeerInfoRequest = JSON.prepareRequest(myPeerJson);
             currentBlockchainState = state;
+        } else if (conditionObj != null && state == currentBlockchainState) {
+            JSONObject myPeerJson = generateMyPeerJson(conditionObj);
+            myPeerJson.put("blockchainState", state.ordinal());
+            myPeerInfoResponse = JSON.prepare(myPeerJson);
+
+            myPeerJson.put("requestType", "getInfo");
+            myPeerJson.put("bestPeer", getBestPeerUri());
+            myPeerInfoRequest = JSON.prepareRequest(myPeerJson);
         }
     }
+
+    public static JSONObject generateMyPeerJson() {
+        return generateMyPeerJson(null);
+    }
     
-    public static JSONObject generateMyPeerJson(){
+    public static JSONObject generateMyPeerJson(JSONObject conditionObj){
         JSONObject json = new JSONObject(myPeerInfo);
         json.put("peerLoad", getBestPeerLoad().toJson());
         json.putAll(getBlockchainSummary());
+        json.putAll(getForkBlockSummary(conditionObj));
         return json;
     }
 
@@ -1762,7 +1885,7 @@ public final class Peers {
      * peer info request used to tell my peer info to other peers when connected
      *
      */
-    private static void checkBlockchainStateAndGenerateMyPeerInfoRequest(Boolean setToUpToDate) {
+    private static void checkBlockchainStateAndGenerateMyPeerInfoRequest(Boolean setToUpToDate, JSONObject conditionObj) {
         Peer.BlockchainState state = Peer.BlockchainState.LIGHT_CLIENT;
         if(!Constants.isLightClient) {
             
@@ -1786,16 +1909,39 @@ public final class Peers {
             }
         }
         
-        generateMyPeerInfoRequest(state);
+        generateMyPeerInfoRequest(state, conditionObj);
     }
 
+    public static JSONObject reqOrResObj = new JSONObject();
+
     public static JSONStreamAware getMyPeerInfoRequest() {
-        checkBlockchainStateAndGenerateMyPeerInfoRequest(null);
+        checkBlockchainStateAndGenerateMyPeerInfoRequest(null, null);
         return myPeerInfoRequest;
     }
 
     public static JSONStreamAware getMyPeerInfoResponse() {
-        checkBlockchainStateAndGenerateMyPeerInfoRequest(null);
+        checkBlockchainStateAndGenerateMyPeerInfoRequest(null, null);
+        return myPeerInfoResponse;
+    }
+
+    public static JSONStreamAware getMyPeerInfoRequestToCollectForkNode() {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("sendToCollectForkNode", true);
+        checkBlockchainStateAndGenerateMyPeerInfoRequest(null, jsonObject);
+        return myPeerInfoRequest;
+    }
+
+    public static JSONStreamAware getMyPeerInfoResponseToProcessForkNode() {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("sendToProcessForkNode", true);
+        checkBlockchainStateAndGenerateMyPeerInfoRequest(null, jsonObject);
+        return myPeerInfoResponse;
+    }
+
+    public static JSONStreamAware getMyPeerInfoResponseToCommonNode(String bindRsAccount) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("sendToCommonNode", bindRsAccount);
+        checkBlockchainStateAndGenerateMyPeerInfoRequest(null, jsonObject);
         return myPeerInfoResponse;
     }
 
@@ -1809,7 +1955,7 @@ public final class Peers {
     }
 
     public static Peer.BlockchainState checkAndUpdateBlockchainState(Boolean forceSetToUpToDate) {
-        checkBlockchainStateAndGenerateMyPeerInfoRequest(forceSetToUpToDate);
+        checkBlockchainStateAndGenerateMyPeerInfoRequest(forceSetToUpToDate, null);
         return currentBlockchainState;
     }
 
@@ -1854,7 +2000,7 @@ public final class Peers {
 
         boolean connectedBootNodes = false;
         List<String> needConnectNodes = Lists.newArrayList();
-        for (String nodeHost : Constants.bootNodesHost) {
+        for (String nodeHost : bootNodesHost) {
             if (Conch.matchMyAddress(nodeHost)) {
                 continue;
             }
@@ -1926,31 +2072,441 @@ public final class Peers {
         checkOrConnectAllGuideNodes(true);
     }
 
-    private static void forkAnalyze() {
-        // todo loop all forks, confirm commonBlock, base on commonBlock to analyze fork length
-    }
     /**
-     * Label different forks based on key
-     * @param announcedAddress
-     * @param blocks
+     * Stores data before the fork point
      */
-    public static void processBlocksToForkObj(String announcedAddress, List<JSONObject> blocks) {
+    public static Map<Integer, JSONObject> blocksMap = Maps.newTreeMap();
+    public static HashSet<Long> blockIdsSet = Sets.newHashSet();
+    public static HashMap<Long, ForkBlock> blockMap = Maps.newHashMap();
+    public static HashSet<ForkBlock> newBlockSet = Sets.newHashSet();
+    /**
+     * Used to detect missing blocks
+     */
+    public static Map<String, HashSet<ForkBlock.ForkBlockLinkedAccount>> blockLinkedGeneratorMap = Maps.newHashMap();
+    public static Map<String, TreeSet<Integer>> blockLinkedGeneratorHeightMap = Maps.newHashMap();
+    public static Set<ForkBlock.ForkBlockLinkedAccount> newBlockLinkedGeneratorSet = Sets.newHashSet();
+    public static int commonBlockHeight = 0;
+    public static int forkSize;
+    public static int maxHeight = 0;
+    public static int minHeight = 0;
+    private static long lastTime = System.currentTimeMillis();
+    public static Set<String> allNodeSet = Sets.newHashSet();
+
+    /**
+     * loop all forks, confirm commonBlockHeight, base on commonBlockHeight to analyze fork size and report to DingTalk
+     * @param forkBlocksMapData
+     */
+    public static void processForkBlocksMap(Map<String, List<JSONObject>> forkBlocksMapData) {
+        try {
+            long currentTime = System.currentTimeMillis();
+            if (currentTime - lastTime > 30 * 60 * 1000) {
+                commonBlockHeight = 0;
+                allNodeSet.clear();
+                lastTime = currentTime;
+            }
+            if (Generator.HUB_BIND_ADDRESS != null) {
+                forkBlocksMapData.put(Generator.HUB_BIND_ADDRESS, getForkBlocks(Conch.getHeight()-forkBlocksLevel.MINI.getLevel(), Conch.getHeight()));
+            }
+            // confirmed commonBlockHeight
+            for (Map.Entry<String, List<JSONObject>> entry : forkBlocksMapData.entrySet()) {
+                allNodeSet.add(entry.getKey());
+                List<JSONObject> blocks = entry.getValue();
+                Collections.reverse(blocks);
+                for (JSONObject currentBlock : blocks) {
+                    String blockId =(String) currentBlock.get("block");
+                    int height = (int) currentBlock.get("height");
+                    if (blocksMap.get(height) == null) {
+                        blocksMap.put(height, currentBlock);
+                        if (height > maxHeight) {
+                            maxHeight = height;
+                        }
+                        if (height < minHeight) {
+                            minHeight = height;
+                        }
+                    } else {
+                        if (!blocksMap.get(height).get("block").equals(blockId)) {
+                            // detect the oldest fork point, reset every 30 minutes
+                            if (commonBlockHeight != 0 && height >= commonBlockHeight) {
+                                continue;
+                            }
+                            commonBlockHeight = (int) currentBlock.get("height");
+                            lastTime = System.currentTimeMillis();
+                            // Remove blocks of blocksMap with height greater than commonBlockHeight
+                            for (Integer currentHeight : blocksMap.keySet()) {
+                                if (currentHeight >= commonBlockHeight) {
+                                    blocksMap.remove(currentHeight);
+                                }
+                            }
+                            updateCommonBlocksMap();
+                            break;
+                        }
+                    }
+                }
+            }
+            if (commonBlockHeight != 0) {
+                for (Map.Entry<String, List<JSONObject>> entry : forkBlocksMapData.entrySet()) {
+                    String generatorRS = entry.getKey();
+                    List<JSONObject> blocks = entry.getValue();
+                    Collections.reverse(blocks);
+                    // Collect data of each miner node
+                    List<JSONObject> myBlocks = forkBlocksMapByProcessNode.get(generatorRS);
+                    // Update Miner Block Data: Remove blocks before commonBlockHeight and add blocks after commonBlockHeight
+                    if (myBlocks == null) {
+                        myBlocks = forkBlocksMapByProcessNode.put(generatorRS, Lists.newArrayList());
+                    } else {
+                        myBlocks.removeIf(myBlock -> (int) myBlock.get("height") < commonBlockHeight);
+                    }
+                    for (JSONObject block : blocks) {
+                        if ((int) block.get("height") < commonBlockHeight) {
+                            continue;
+                        }
+                        myBlocks.add(block);
+                    }
+                    int currentMaxHeight = (int) myBlocks.get(myBlocks.size() - 1).get("height");
+                    int currentMinHeight = (int) myBlocks.get(0).get("height");
+                    if (myBlocks.size() < currentMaxHeight - currentMinHeight) {
+                        JSONObject jsonObject = new JSONObject();
+                        jsonObject.put("startHeight", currentMinHeight);
+                        jsonObject.put("endHeight", currentMaxHeight);
+                        missingForkBlocksMap.put(generatorRS, jsonObject);
+                    } else {
+                        missingForkBlocksMap.remove(generatorRS);
+                    }
+                    forkBlocksMapByProcessNode.put(generatorRS, myBlocks);
+                }
+                forkSize = maxHeight - commonBlockHeight;
+                if (forkSize >= 18) {
+                    reportToDingTalk(commonBlockHeight);
+                }
+            } else {
+                updateCommonBlocksMap();
+            }
+            // todo 记录commonBlock之前的节点
+            for (Map.Entry<String, List<JSONObject>> entry : forkBlocksMapByProcessNode.entrySet()) {
+                processBlocksToForkObj(entry.getKey(), entry.getValue());
+            }
+            // todo 3/4完成 持久化 forkBlocksMapByProcessNode节点数据
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            Logger.logErrorMessage("Processing ForkBlocks data failed, error: " + e);
+        } finally {
+            forkBlockObjMapToAPI.clear();
+            forkBlockObjMapToAPI.putAll(forkBlockObjMap);
+            forkBlockObjMap.clear();
+        }
+
+    }
+
+     /**
+     * loop all forks, confirm commonBlockHeight, base on commonBlockHeight to analyze fork size and report to DingTalk
+     * @param forkBlocksMapData
+     */
+    public static void processForkBlocksMap2(Map<String, List<JSONObject>> forkBlocksMapData) {
+        try {
+            // Clear invalid data of database
+            int minHeight = 0;
+            if (maxHeight != 0) {
+                minHeight = maxHeight - forkBlocksLevel.LONG.getLevel();
+            }
+
+            // Collect latest forkBlocks data of all nodes
+            if (Generator.HUB_BIND_ADDRESS != null) {
+                if (missingForkBlocksMap.get(Generator.HUB_BIND_ADDRESS) != null) {
+                    JSONObject jsonObject = missingForkBlocksMap.get(Generator.HUB_BIND_ADDRESS);
+                    int startHeight = (int) jsonObject.get("startHeight");
+                    int endHeight = (int) jsonObject.get("endHeight");
+                    forkBlocksMapData.put(Generator.HUB_BIND_ADDRESS, getForkBlocks(startHeight, endHeight));
+                    missingForkBlocksMap.remove(Generator.HUB_BIND_ADDRESS);
+                } else {
+                    forkBlocksMapData.put(Generator.HUB_BIND_ADDRESS, getForkBlocks(Conch.getHeight()-forkBlocksLevel.MINI.getLevel(), Conch.getHeight()));
+                }
+            }
+            for (Map.Entry<String, List<JSONObject>> entry : forkBlocksMapData.entrySet()) {
+                String generator = entry.getKey();
+                List<JSONObject> blocks = entry.getValue();
+                // Check whether the node is block rolled back, if so, then discard the stored relevant data
+                JSONObject latestForkBlock = blocks.get(0);
+                int latestHeight =Integer.parseInt(String.valueOf(latestForkBlock.get("height")));
+                TreeSet<Integer> heights = blockLinkedGeneratorHeightMap.get(generator);
+                if (heights != null && latestHeight < heights.last()) {
+                    // reset, for block leak detection logic
+                    blockLinkedGeneratorHeightMap.put(generator, Sets.newTreeSet());
+                    blockLinkedGeneratorMap.put(generator, Sets.newHashSet());
+                    deleteForkBlocksAndLinkedFromAccount(generator);
+                    continue;
+                }
+                long accountId = Account.rsAccountToId(generator);
+                Collections.reverse(blocks);
+                for (JSONObject currentBlock : blocks) {
+                    int height = Integer.parseInt(String.valueOf(currentBlock.get("height")));
+                    if (height < minHeight) {
+                        continue;
+                    }
+                    long blockId = (long) currentBlock.get("block");
+                    String generatorRS = (String) currentBlock.get("generatorRS");
+                    long generatorId = Account.rsAccountToId(generatorRS);
+                    int timestamp = Integer.parseInt(String.valueOf(currentBlock.get("timestamp")));
+                    int version = Integer.parseInt(String.valueOf(currentBlock.get("version")));
+                    String cumulativeDifficulty = (String) currentBlock.get("cumulativeDifficulty");
+                    ForkBlock.ForkBlockLinkedAccount linkedAccount = new ForkBlock.ForkBlockLinkedAccount(blockId, accountId, height);
+                    ForkBlock forkBlock = new ForkBlock(version, timestamp, blockId, generatorId, BigInteger.valueOf(Long.parseLong(cumulativeDifficulty)), height);
+                    if (!blockIdsSet.contains(blockId)) {
+                        blockIdsSet.add(blockId);
+                        blockMap.put(blockId, forkBlock);
+                        newBlockSet.add(forkBlock);
+                        if (height > maxHeight) {
+                            maxHeight = height;
+                        }
+                    }
+                    boolean status;
+                    if (blockLinkedGeneratorHeightMap.get(generator) == null) {
+                        TreeSet<Integer> treeSet = Sets.newTreeSet();
+                        status = treeSet.add(height);
+                        HashSet<ForkBlock.ForkBlockLinkedAccount> hashSet = Sets.newHashSet();
+                        hashSet.add(linkedAccount);
+                        blockLinkedGeneratorMap.put(generator, hashSet);
+                        blockLinkedGeneratorHeightMap.put(generator, treeSet);
+                    } else {
+                        TreeSet<Integer> treeSet = blockLinkedGeneratorHeightMap.get(generator);
+                        HashSet<ForkBlock.ForkBlockLinkedAccount> hashSet = blockLinkedGeneratorMap.get(generator);
+                        status = treeSet.add(height);
+                        hashSet.add(linkedAccount);
+                        blockLinkedGeneratorMap.put(generator, hashSet);
+                        blockLinkedGeneratorHeightMap.put(generator, treeSet);
+                    }
+                    if (status) {
+                        newBlockLinkedGeneratorSet.add(linkedAccount);
+                    }
+                }
+            }
+
+            // Data is stored in the database, and clear Map/Set
+            try {
+                Db.db.beginTransaction();
+                PeerDb.saveForkBlocks(newBlockSet);
+                PeerDb.saveForkBlockLinkedAccounts(newBlockLinkedGeneratorSet);
+                Db.db.commitTransaction();
+                newBlockSet.clear();
+                newBlockLinkedGeneratorSet.clear();
+            } catch (Exception e) {
+                Logger.logErrorMessage(e.toString(), e);
+                Db.db.rollbackTransaction();
+                throw e;
+            } finally {
+                Db.db.endTransaction();
+            }
+
+            // Check the data of each node and report missing blocks to the collectionForkNode
+            for (Map.Entry<String, TreeSet<Integer>> entry : blockLinkedGeneratorHeightMap.entrySet()) {
+                String generator = entry.getKey();
+                TreeSet<Integer> value = entry.getValue();
+                JSONObject jsonObject = new JSONObject();
+                if (value.isEmpty()) {
+                    jsonObject.put("startHeight", maxHeight - forkBlocksLevel.LONG.getLevel());
+                    jsonObject.put("endHeight", maxHeight);
+                    missingForkBlocksMap.put(generator, jsonObject);
+                } else {
+                    if (Math.abs(value.first() - value.last()) + 1 > value.size()) {
+                        int cursorMin = value.first();
+                        int cursorMax = value.last();
+                        // Locate the specific range
+                        while (value.contains(cursorMax)) {
+                            cursorMax--;
+                        }
+                        while (value.contains(cursorMin)) {
+                            cursorMin++;
+                        }
+                        jsonObject.put("startHeight", cursorMin);
+                        jsonObject.put("endHeight", cursorMax);
+                        missingForkBlocksMap.put(generator, jsonObject);
+                    } else {
+                        missingForkBlocksMap.remove(generator);
+                    }
+                }
+            }
+
+            ArrayList<Integer> linkedAllHeights = Lists.newArrayList();
+            // Combine the data of all nodes and all blocks to generate fork chain info
+            for (Map.Entry<String, HashSet<ForkBlock.ForkBlockLinkedAccount>> entry : blockLinkedGeneratorMap.entrySet()) {
+                String generator = entry.getKey();
+                HashSet<ForkBlock.ForkBlockLinkedAccount> linkedBlocks = entry.getValue();
+                ArrayList<ForkBlock> forkBlockList = Lists.newArrayList();
+                for (ForkBlock.ForkBlockLinkedAccount linkedBlock : linkedBlocks) {
+                    forkBlockList.add(blockMap.get(linkedBlock.getBlockId()));
+                    linkedAllHeights.add(linkedBlock.getHeight());
+                }
+                processForkBlocksToForkObj(generator, forkBlockList);
+            }
+
+            // Detect fork points
+            List<Integer> duplicateElements = getDuplicateElements(linkedAllHeights);
+            if (!duplicateElements.isEmpty()) {
+                for (Integer element : duplicateElements) {
+                    if (maxHeight - element >= 18) {
+                        reportToDingTalk(element);
+                    }
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            Logger.logErrorMessage("Processing ForkBlocks data failed, error: " + e);
+        } finally {
+            forkBlockObjMapToAPI.clear();
+            forkBlockObjMapToAPI.putAll(forkBlockObjMap);
+            forkBlockObjMap.clear();
+        }
+
+    }
+
+    public static <E> List<E> getDuplicateElements(List<E> list) {
+        return list.stream()
+                .collect(Collectors.toMap(e -> e, e -> 1, Integer::sum))
+                .entrySet()
+                .stream()
+                .filter(e -> e.getValue() > 1)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
+    }
+
+    private static void processForkBlocksToForkObj(String generator, ArrayList<ForkBlock> blocks) {
         if (blocks.isEmpty()) {
             return;
         }
-        JSONObject lastBlock = blocks.get(0);
+        blocks.sort(new Comparator<ForkBlock>() {
+            @Override
+            public int compare(ForkBlock o1, ForkBlock o2) {
+                if (o1.getHeight() > o2.getHeight()) {
+                    return 1;
+                } else if(o1.getHeight() == o2.getHeight()) {
+                    return 0;
+                } else {
+                    return -1;
+                }
+            }
+        });
+        // todo 考虑存储stringId，将blockId转为String格式，便于UI展示
+        ForkBlock lastBlock = blocks.get(blocks.size() - 1);
+        long blockId = lastBlock.getId();
+        // new fork
+        if (!forkBlockObjMap.containsKey(blockId)) {
+            // loop blocks, Compare the existence of an item equal to blockId
+            /*for (Map.Entry<String, ForkObj> entry : forkObjMap.entrySet()) {
+                int flag = 0;
+                for (JSONObject block : entry.getValue().getBlocks()) {
+                    if (blockId.equals(block.get("block"))) {
+                        forkObjMap.get(entry.getKey()).addGenerator(generatorRS);
+                        flag = 1;
+                        break;
+                    }
+                }
+                if (flag != 0) {
+                    break;
+                }
+            }*/
+            forkBlockObjMap.put(blockId, new ForkBlock.ForkBlockObj(blockId, blocks, generator));
+        } else {
+            // process old fork
+            if (blocks.size() > forkBlockObjMap.get(blockId).getForkBlocks().size()) {
+                ForkBlock.ForkBlockObj forkBlockObj = forkBlockObjMap.get(blockId);
+                // replace forkBlocks
+                forkBlockObj.setForkBlocks(blocks);
+                forkBlockObjMap.put(blockId, forkBlockObj);
+            }
+            forkBlockObjMap.get(blockId).addGenerator(generator);
+        }
+    }
+
+    /**
+     * clean up invalid data, and update
+     * the latest block is more than 3 * 144 away from the current height
+     */
+    private static void updateCommonBlocksMap() {
+        if (maxHeight - minHeight > forkBlocksLevel.LONG.getLevel()) {
+            int startHeight = maxHeight - forkBlocksLevel.LONG.getLevel();
+            for (int height : blocksMap.keySet()) {
+                if (height < startHeight) {
+                    blocksMap.remove(height);
+                }
+            }
+            minHeight = startHeight;
+        }
+        List<JSONObject> blocks = new ArrayList<>(blocksMap.values());
+        forkBlocksMapByProcessNode.put("common_" + allNodeSet.size(), blocks);
+    }
+
+     /**
+     * clean up invalid data, and update
+     * the latest block is more than 3 * 144 away from the current height
+     */
+    private static void updateBlocksMap() {
+        if (maxHeight - minHeight > forkBlocksLevel.LONG.getLevel()) {
+            int startHeight = maxHeight - forkBlocksLevel.LONG.getLevel();
+            for (int height : blocksMap.keySet()) {
+                if (height < startHeight) {
+                    blocksMap.remove(height);
+                }
+            }
+            minHeight = startHeight;
+        }
+        List<JSONObject> blocks = new ArrayList<>(blocksMap.values());
+        forkBlocksMapByProcessNode.put("common_" + allNodeSet.size(), blocks);
+    }
+
+    /**
+     * report fork info to DingTalk
+     * @param height
+     */
+    private static void reportToDingTalk(Integer height) {
+
+    }
+
+    /**
+     * Label different forks based on key
+     * @param generatorRS
+     * @param blocks
+     */
+    public static void processBlocksToForkObj(String generatorRS, List<JSONObject> blocks) {
+        if (blocks.isEmpty()) {
+            return;
+        }
+        JSONObject lastBlock = blocks.get(blocks.size()-1);
         String blockId =(String) lastBlock.get("block");
         // new fork
         if (!forkObjMap.containsKey(blockId)) {
-            forkObjMap.put(blockId, new ForkObj(blockId, blocks, announcedAddress));
+            // loop blocks, Compare the existence of an item equal to blockId
+            /*for (Map.Entry<String, ForkObj> entry : forkObjMap.entrySet()) {
+                int flag = 0;
+                for (JSONObject block : entry.getValue().getBlocks()) {
+                    if (blockId.equals(block.get("block"))) {
+                        forkObjMap.get(entry.getKey()).addGenerator(generatorRS);
+                        flag = 1;
+                        break;
+                    }
+                }
+                if (flag != 0) {
+                    break;
+                }
+            }*/
+            forkObjMap.put(blockId, new ForkObj(blockId, blocks, generatorRS));
             return;
         }
         // process old fork
-        forkObjMap.get(blockId).addPeer(announcedAddress);
-        /**
-         * UI： xy axis height，difficulty， forkName（blockId + Miner）
-         * click detail => blockDetail + nodeList
-         */
+        forkObjMap.get(blockId).addGenerator(generatorRS);
     }
+
+    /**
+     * save or update any bindRsAccount forkBlocks,new blocks direct replacement of old blocks
+     * @param bindRsAccount
+     * @param blocks
+     */
+    public static void saveOrUpdateForkBlocks(String bindRsAccount, List<JSONObject> blocks) {
+        if (blocks.isEmpty()) {
+            return;
+        }
+        forkBlocksMap.put(bindRsAccount, blocks);
+    }
+
 
 }

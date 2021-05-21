@@ -43,6 +43,8 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.zip.GZIPInputStream;
 
+import static org.conch.peer.Peers.isCollectForkNode;
+
 final class PeerImpl implements Peer {
     // ip
     private final String host;
@@ -733,7 +735,13 @@ final class PeerImpl implements Peer {
                 }
             }
             // get peer detail
-            JSONObject response = send(Peers.getMyPeerInfoRequest());
+            JSONObject response;
+            if (isCollectForkNode(this.announcedAddress) && Conch.getEpochTime() - this.lastUpdated > 600) {
+                Logger.logDebugMessage("Send peerInfo to collectForkNode[%s]", this.announcedAddress);
+                response = send(Peers.getMyPeerInfoRequestToCollectForkNode());
+            } else {
+                response = send(Peers.getMyPeerInfoRequest());
+            }
             if (response != null) {
                 if (response.get("error") != null) {
                     setState(State.NON_CONNECTED);
@@ -1090,7 +1098,20 @@ final class PeerImpl implements Peer {
         blockSummaryJson.put("lastBlockGenerator", json.get("lastBlockGenerator"));
         blockSummaryJson.put("lastBlockTimestamp", json.get("lastBlockTimestamp"));
         blockSummaryJson.put("currentFork", json.get("currentFork"));
-
+        if (Peers.isProcessForkNode && json.get("forkBlocksMap") != null) {
+            long startTime = System.currentTimeMillis();
+            Peers.processForkBlocksMap2((Map) json.get("forkBlocksMap"));
+            Logger.logInfoMessage("collectForkNode[%s] append forkBlocksMap to here, and processing fork logic used time[%dMS]", this.announcedAddress, System.currentTimeMillis() - startTime);
+        }
+        if (Peers.isCommonNode && json.get("missedBlocks") != null) {
+            Logger.logDebugMessage("collectForkNode[%s] report missedBlocks to here", this.announcedAddress);
+            try {
+                JSONObject missedBlocks = (JSONObject) json.get("missedBlocks");
+                Peers.additionalBlockHeightObj = (JSONObject) missedBlocks.clone();
+            } catch (Exception e) {
+                Logger.logErrorMessage("Failed to get lost block data, error: ", e);
+            }
+        }
         return this;
     }
 }

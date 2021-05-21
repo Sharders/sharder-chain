@@ -28,6 +28,9 @@ import org.conch.util.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
+import java.util.List;
+import java.util.Map;
+
 final class GetInfo extends PeerServlet.PeerRequestHandler {
 
     static final GetInfo instance = new GetInfo();
@@ -124,7 +127,35 @@ final class GetInfo extends PeerServlet.PeerRequestHandler {
         if (peerImpl.getServices() != origServices) {
             Peers.notifyListeners(peerImpl, Peers.Event.CHANGED_SERVICES);
         }
-
+        // CollectForkNode save or update forkBlocks,make sure blocks is up to date
+        if (request.get("forkBlocks") != null && Peers.isCollectForkNode(Conch.getMyAddress())) {
+            List<JSONObject> forkBlocks = (List<JSONObject>) request.get("forkBlocks");
+            Logger.logDebugMessage("SaveOrUpdate forkBlocks of commonNode[%s] and BindRSAccount[%s]", peerImpl.getAnnouncedAddress(), peerImpl.getBindRsAccount());
+            Peers.saveOrUpdateForkBlocks(peerImpl.getBindRsAccount(), forkBlocks);
+            // TEST-Start return missedForkBlocks to commonNode
+            /*JSONObject jsonObject = new JSONObject();
+            jsonObject.put("startHeight", Conch.getHeight()-Peers.forkBlocksLevel.MINI.getLevel());
+            jsonObject.put("endHeight", Conch.getHeight());
+            Peers.missingForkBlocksMap.put(peerImpl.getBindRsAccount(), jsonObject);*/
+            // TEST-End
+            if (Peers.missingForkBlocksMap.get(peerImpl.getBindRsAccount()) != null && request.get("processForkNode") == null) {
+                Logger.logDebugMessage("Report missedBlocks to commonNode[%s]", peerImpl.getAnnouncedAddress());
+                return Peers.getMyPeerInfoResponseToCommonNode(peerImpl.getBindRsAccount());
+            }
+        }
+        // ForkData is sent to processForkNode when it calls the API
+        if (request.get("processForkNode") != null
+                && (boolean) request.get("processForkNode") == true
+                && Peers.isCollectForkNode(Conch.getMyAddress())) {
+            if (request.get("missedBlocksMap") != null) {
+                Map<String, JSONObject> missedBlocksMap = (Map<String, JSONObject>) request.get("missedBlocksMap");
+                if (!missedBlocksMap.isEmpty()) {
+                    Peers.missingForkBlocksMap.putAll(missedBlocksMap);
+                }
+            }
+            Logger.logDebugMessage("Report and generate own forkBlocks to processForkNode[%s] and BindRSAccount[%s]", peerImpl.getAnnouncedAddress(), peerImpl.getBindRsAccount());
+            return Peers.getMyPeerInfoResponseToProcessForkNode();
+        }
         return Peers.getMyPeerInfoResponse();
 
     }
