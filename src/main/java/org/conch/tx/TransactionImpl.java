@@ -930,6 +930,10 @@ final public class TransactionImpl implements Transaction {
             if (transactionType == null) {
                 throw new ConchException.NotValidException("Invalid transaction type: " + type + ", " + subtype);
             }
+//            Attachment.CoinBase coinBase = (Attachment.CoinBase)transactionType.parseAttachment(attachmentData);
+//            if(coinBase != null){
+//                System.out.println(123);
+//            }
             BuilderImpl builder = new BuilderImpl(version, senderPublicKey,
                     amountNQT, feeNQT, deadline,
                     transactionType.parseAttachment(attachmentData))
@@ -1133,8 +1137,8 @@ final public class TransactionImpl implements Transaction {
             int blockchainHeight = Conch.getBlockchain().getHeight();
             long minimumFeeNQT = getMinimumFeeNQT(blockchainHeight);
             if (feeNQT < minimumFeeNQT) {
-                throw new ConchException.NotCurrentlyValidException(String.format("Transaction fee %f less than minimum fee %f at height %d",
-                        ((double) feeNQT) / Constants.ONE_SS, ((double) minimumFeeNQT) / Constants.ONE_SS, blockchainHeight));
+                throw new ConchException.NotCurrentlyValidException(String.format("Transaction fee %f %s less than minimum fee %f %s at height %d",
+                        ((double) feeNQT) / Constants.ONE_SS, Conch.COIN_UNIT, ((double) minimumFeeNQT) / Constants.ONE_SS, Conch.COIN_UNIT, blockchainHeight));
             }
             if (blockchainHeight > Constants.FXT_BLOCK && ecBlockId != 0) {
                 if (blockchainHeight < ecBlockHeight) {
