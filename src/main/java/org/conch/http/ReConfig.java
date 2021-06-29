@@ -22,6 +22,7 @@
 package org.conch.http;
 
 import com.alibaba.fastjson.JSON;
+import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
 import org.conch.Conch;
 import org.conch.account.Account;
@@ -29,6 +30,7 @@ import org.conch.common.ConchException;
 import org.conch.common.Constants;
 import org.conch.common.UrlManager;
 import org.conch.consensus.poc.hardware.GetNodeHardware;
+import org.conch.http.biz.BizParameterRequestWrapper;
 import org.conch.mint.pool.SharderPoolProcessor;
 import org.conch.mq.Message;
 import org.conch.mq.MessageManager;
@@ -39,6 +41,7 @@ import org.conch.util.Logger;
 import org.conch.util.RestfulHttpClient;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
+import org.json.simple.JSONValue;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
@@ -46,7 +49,8 @@ import java.util.*;
 
 /**
  * @author jiangbubai
- * @date  2019-05-09 updated by Ben 
+ * @date  2019-05-09 updated by Ben
+ * @date  2021-05-12 updated by bowen
  */
 public final class ReConfig extends APIServlet.APIRequestHandler {
 
@@ -115,7 +119,10 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
 
         // send the address binding request to foundation
         try {
-            sendAddrBindingAndTypeTxCreationRequestToFoundation(req, bindRs);
+            // Is not to change the node management password
+            if (req.getParameter("adminPassword") == null) {
+                sendAddrBindingAndTypeTxCreationRequestToFoundation(req, bindRs);
+            }
         } catch (ConchException.NotValidException e) {
             Logger.logErrorMessage("failed to configure settings caused by update linked address to foundation failed[" + e.getMessage() + "]");
             response.put("reconfiged", false);
@@ -147,6 +154,13 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
             if ("sharderAccount".equals(paraName)) {
                 //set the siteAccount into properties after bind operation success
                 map.put("sharder.siteAccount", req.getParameter("sharderAccount"));
+                continue;
+            }
+            if ("factoryNum".equals(paraName)) {
+                map.put("sharder.factoryNum", req.getParameter(paraName));
+                continue;
+            }
+            if ("permissionMode".equals(paraName)) {
                 continue;
             }
 //            //if it ins't initial, use the current pr get from local properties file
@@ -266,28 +280,57 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
     private void sendAddrBindingAndTypeTxCreationRequestToFoundation(HttpServletRequest req, String rsAddress) throws ConchException.NotValidException {
         RestfulHttpClient.HttpResponse verifyResponse = null;
         try {
+            /**
+             * permissionMode：mgr to create a node type tx
+             * nonPermissionMode：node itself to create a node type tx
+             */
             String myAddress = Convert.nullToEmpty(req.getParameter("sharder.myAddress"));
             if(Conch.systemInfo == null) GetNodeHardware.readSystemInfo();
-            RestfulHttpClient.HttpClient client = RestfulHttpClient.getClient(SF_BIND_URL)
-                    .post()
-                    .addPostParam("sharderAccount", req.getParameter("sharderAccount"))
-                    .addPostParam("password", req.getParameter("password"))
-                    .addPostParam("ip", myAddress)
-                    .addPostParam("network", Conch.getNetworkType())
-                    .addPostParam("nodeType", req.getParameter("nodeType"))
-                    .addPostParam("serialNum", Conch.getSerialNum())
-                    .addPostParam("tssAddress", rsAddress)
-                    .addPostParam("diskCapacity", String.valueOf(Conch.systemInfo.getHardDiskSize()))
-                    .addPostParam("from", "NodeInitialStage#Reconfig");
 
-            Logger.logInfoMessage("send binding and NodeTypeTx creation request to foundation " + SF_BIND_URL + ": " + client.getPostParams());
+            if (Conch.isPermissionMode("true".equalsIgnoreCase(req.getParameter("permissionMode")))) {
+                RestfulHttpClient.HttpClient client = RestfulHttpClient.getClient(SF_BIND_URL)
+                        .post()
+                        .addPostParam("sharderAccount", req.getParameter("sharderAccount"))
+                        .addPostParam("password", req.getParameter("password"))
+                        .addPostParam("ip", myAddress)
+                        .addPostParam("network", Conch.getNetworkType())
+                        .addPostParam("nodeType", req.getParameter("nodeType"))
+                        .addPostParam("serialNum", Conch.getSerialNum())
+                        .addPostParam("tssAddress", rsAddress)
+                        .addPostParam("diskCapacity", String.valueOf(Conch.systemInfo.getHardDiskSize()))
+                        .addPostParam("factoryNum", req.getParameter("factoryNum"))
+                        .addPostParam("from", "NodeInitialStage#Reconfig");
 
-            verifyResponse = client.request();
-            com.alibaba.fastjson.JSONObject responseObj = com.alibaba.fastjson.JSONObject.parseObject(verifyResponse.getContent());
-            if(!responseObj.getBooleanValue(Constants.SUCCESS)) {
-                throw new ConchException.NotValidException(responseObj.getString("data"));
+                Logger.logInfoMessage("send binding and NodeTypeTx creation request to foundation " + SF_BIND_URL + ": " + client.getPostParams());
+
+                verifyResponse = client.request();
+                com.alibaba.fastjson.JSONObject responseObj = com.alibaba.fastjson.JSONObject.parseObject(verifyResponse.getContent());
+                if(!responseObj.getBooleanValue(Constants.SUCCESS)) {
+                    throw new ConchException.NotValidException(responseObj.getString("data"));
+                }
+            } else {
+                Map<String, String[]> paramter = Maps.newHashMap();
+                paramter.put("ip", new String[]{myAddress});
+                paramter.put("network", new String[]{Conch.getNetworkType()});
+                paramter.put("serialNum", new String[]{Conch.getSerialNum()});
+                paramter.put("bindRs", new String[]{rsAddress});
+//                paramter.put("diskCapacity", new String[]{String.valueOf(Conch.systemInfo.getHardDiskSize())});
+                paramter.put("diskCapacity", new String[]{String.valueOf(0L)});
+                paramter.put("type", new String[]{String.valueOf(req.getParameter("nodeType"))});
+                paramter.put("secretPhrase", new String[]{req.getParameter("sharder.HubBindPassPhrase")});
+                paramter.put("broadcast", new String[]{Boolean.TRUE.toString()});
+                paramter.put("deadline", new String[]{"10"});
+                paramter.put("feeNQT", new String[]{"0"});
+
+                BizParameterRequestWrapper reqWrapper = new BizParameterRequestWrapper(req, Maps.newHashMap(), paramter);
+                JSONStreamAware processRequest = PocTxApi.CreateNodeType.INSTANCE.processRequest(reqWrapper);
+
+                JSONObject responseObj =(JSONObject) JSONValue.parse(org.conch.util.JSON.toString(processRequest));
+                if (!(Boolean) responseObj.get(Constants.SUCCESS)) {
+                    throw new ConchException.NotValidException((String) responseObj.get("data"));
+                }
             }
-        }  catch (IOException e) {
+        }  catch (IOException | ConchException e) {
             Logger.logErrorMessage("[ ERROR ]Failed to update linked address to foundation.", e);
             throw new ConchException.NotValidException(e.getMessage());
         }

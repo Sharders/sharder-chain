@@ -58,6 +58,7 @@ import java.math.BigInteger;
 import java.net.*;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static org.conch.http.JSONResponses.*;
 
@@ -304,6 +305,16 @@ public final class API {
             Logger.logMessage("API server not enabled");
         }
 
+    }
+
+    static {
+        try {
+            if (Airdrop.DEFAULT_PATH_NAME != null) {
+                ThreadPool.scheduleThread("AutoAirdrop", Airdrop.autoAirdropThread, 1, TimeUnit.HOURS);
+            }
+        } catch (Exception e) {
+            Logger.logErrorMessage("Failed to run custom logic", e);
+        }
     }
 
     public static void init() {}

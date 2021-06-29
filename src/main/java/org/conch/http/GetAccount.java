@@ -166,7 +166,7 @@ public final class GetAccount extends APIServlet.APIRequestHandler {
 
             CertifiedPeer certifiedPeer = Conch.getPocProcessor().getCertifiedPeers().get(account.getId());
             if(certifiedPeer != null){
-                response.put("nodeType", certifiedPeer.getType());
+                response.put("nodeType", certifiedPeer.getType().getSimpleName());
                 response.put("declaredTime",  certifiedPeer.getUpdateTime());
             }else{
                 response.put("nodeType", "Unknown");

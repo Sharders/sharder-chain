@@ -296,8 +296,8 @@ public final class JSON {
             jsonStr = sb.toString();
             return jsonStr;
         } catch (IOException e) {
-            e.printStackTrace();
-            Logger.logInfoMessage("Cannot read file " + fileName + " error " + e.getMessage());
+//            e.printStackTrace();
+            Logger.logErrorMessage("Cannot read file " + fileName + " error " + e.getMessage());
 
             throw new IllegalArgumentException(String.format("Error loading file %s", fileName));
         }

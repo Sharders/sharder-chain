@@ -99,7 +99,7 @@ import static org.conch.util.JSON.readJsonFile;
 
 public final class Conch {
 
-    public static final String VERSION = "0.1.9";
+    public static final String VERSION = "0.2.0";
     public static final String STAGE = "Alpha";
 
     public static final com.alibaba.fastjson.JSONObject constantsJsonObj = loadConstantsSettings();
@@ -132,6 +132,12 @@ public final class Conch {
     private static String nodeType = Peer.Type.NORMAL.getSimpleName();
     public static String nodeIp = IpUtil.getNetworkIp();
     public static Map<Integer, Boolean> airdropHeightMap = Maps.newHashMap();
+
+    public static boolean permissionMode = basicConf.getBooleanValue("PERMISSION_MODE");
+
+    public static boolean isPermissionMode(boolean permissionModeCondition) {
+        return Conch.permissionMode && permissionModeCondition;
+    }
 
     /**
      * Load the JSON configuration with respect to Constants

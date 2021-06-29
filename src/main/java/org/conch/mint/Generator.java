@@ -601,7 +601,7 @@ public class Generator implements Comparable<Generator> {
     }
 
     /**
-     * add cuurent miner into active miner list
+     * add current miner into active miner list
      * @param minerId
      */
     public static void addMiner(long minerId){

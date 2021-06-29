@@ -266,41 +266,46 @@ public class CheckSumValidator {
 
     static private boolean closeIgnore = false;
 
-    private static boolean updateSingle(JSONObject object) {
+    private static boolean parseAndUpdateIgnoreSettings(JSONObject ignoreSettingObj) {
         try {
             if (closeIgnore) {
                 return true;
             }
 
-            // 本地文件自测
-            // String readJsonFile = org.conch.util.JSON.readJsonFile("conf/settings.json");
-            // object = JSON.parseObject(readJsonFile);
-
             JSONObject guardSettings = null;
-            if (object.containsKey("GuardSettings")) {
-                guardSettings = object.getJSONObject("GuardSettings");
+            if (ignoreSettingObj.containsKey("GuardSettings")) {
+                guardSettings = ignoreSettingObj.getJSONObject("GuardSettings");
             }
             JSONObject dirtyPocTxs = null;
-            if (object.containsKey("DirtyPocTxs")) {
-                dirtyPocTxs = object.getJSONObject("DirtyPocTxs");
+            if (ignoreSettingObj.containsKey("DirtyPocTxs")) {
+                dirtyPocTxs = ignoreSettingObj.getJSONObject("DirtyPocTxs");
             }
             JSONObject dirtyPoolAccounts = null;
-            if (object.containsKey("DirtyPoolAccounts")) {
-                dirtyPoolAccounts = object.getJSONObject("DirtyPoolAccounts");
+            if (ignoreSettingObj.containsKey("DirtyPoolAccounts")) {
+                dirtyPoolAccounts = ignoreSettingObj.getJSONObject("DirtyPoolAccounts");
             }
             JSONObject ignoreTxs = null;
-            if (object.containsKey("IgnoreTxs")) {
-                ignoreTxs = object.getJSONObject("IgnoreTxs");
+            if (ignoreSettingObj.containsKey("IgnoreTxs")) {
+                ignoreTxs = ignoreSettingObj.getJSONObject("IgnoreTxs");
             }
-            JSONObject IgnoreBlocks = null;
-            if (object.containsKey("IgnoreBlocks")) {
-                IgnoreBlocks = object.getJSONObject("IgnoreBlocks");
-            } else if (object.containsKey("IgnoreBlokcs")) {
-                IgnoreBlocks = object.getJSONObject("IgnoreBlokcs");
+
+            // ignore blocks parse to support array and single object mode
+            String ignoreBlocksKey = "IgnoreBlocks";
+            if (ignoreSettingObj.containsKey("IgnoreBlokcs")) {
+                ignoreBlocksKey = "IgnoreBlokcs";
             }
+            String ignoreBlocksStr = ignoreSettingObj.getString(ignoreBlocksKey);
+
+            JSONArray ignoreBlockArray = new JSONArray();
+            if (ignoreBlocksStr.startsWith("[")) {
+                ignoreBlockArray = JSONObject.parseArray(ignoreBlocksStr);
+            } else {
+                ignoreBlockArray.add(ignoreSettingObj.getJSONObject(ignoreBlocksKey));
+            }
+
             JSONObject pocNodeTypeTxsV1 = null;
-            if (object.containsKey("pocNodeTypeTxsV1")) {
-                pocNodeTypeTxsV1 = object.getJSONObject("pocNodeTypeTxsV1");
+            if (ignoreSettingObj.containsKey("pocNodeTypeTxsV1")) {
+                pocNodeTypeTxsV1 = ignoreSettingObj.getJSONObject("pocNodeTypeTxsV1");
             }
 
             try {
@@ -322,10 +327,17 @@ public class CheckSumValidator {
             }
 
             try {
-                if (IgnoreBlocks != null) {
-                    long blockId = IgnoreBlocks.getLong("id");
-                    if (!ignoreBlockMap.containsKey(blockId)) {
-                        ignoreBlockMap.put(blockId, IgnoreBlocks);
+                if (ignoreBlockArray != null && ignoreBlockArray.size() > 0) {
+                    // parse and update the ignore block collection
+                    synchronized (ignoreBlockMap) {
+                        for (int i = 0; i < ignoreBlockArray.size(); i++) {
+                            JSONObject parsedObj = ignoreBlockArray.getJSONObject(i);
+                            long blockId = parsedObj.getLong("id");
+                            if (ignoreBlockMap.containsKey(blockId)) {
+                                continue;
+                            }
+                            ignoreBlockMap.put(blockId, parsedObj);
+                        }
                     }
                 }
             } catch (Exception e) {
@@ -358,7 +370,6 @@ public class CheckSumValidator {
                         }
 
                         Set<Long> dirtyPoolAccountsSet = knownDirtyPoolTxs.get(height);
-
                         com.alibaba.fastjson.JSONArray array = dirtyPoolAccounts.getJSONArray("dirtyPoolAccounts");
                         for (int i = 0; i < array.size(); i++) {
                             dirtyPoolAccountsSet.add(array.getLong(i));
@@ -459,12 +470,12 @@ public class CheckSumValidator {
                 for (int i = 0; i < array.size(); i++) {
                     JSONObject object = array.getJSONObject(i);
                     totalIgnoreBlocks += object.toString() + "\n\r";
-                    updateSingle(object);
+                    parseAndUpdateIgnoreSettings(object);
                 }
             } else if (content.startsWith("{")) {
                 com.alibaba.fastjson.JSONObject object = JSON.parseObject(content);
                 totalIgnoreBlocks += object.toString() + "\n\r";
-                updateSingle(object);
+                parseAndUpdateIgnoreSettings(object);
             } else {
                 Logger.logWarningMessage("not correct known ignore block get from " + url + " : " + content);
                 return;
@@ -508,7 +519,7 @@ public class CheckSumValidator {
     public static void main(String[] args) {
         //updateKnownIgnoreBlocks();
         //Map<Long, JSONObject> map = loadDefaultKnownIgnoreBlocks();
-        updateSingle(new JSONObject());
+        parseAndUpdateIgnoreSettings(new JSONObject());
 
     }
 
