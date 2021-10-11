@@ -96,6 +96,10 @@ public final class GetBlockchainTransactions extends APIServlet.APIRequestHandle
             if(type != TransactionType.TYPE_POC) {
                 count = Conch.getBlockchain().getTransactionCountByAccount(accountId,type,subtype, true, true);
             }
+            if(recipientRS!=null||senderRS!=null){
+                count = Conch.getBlockchain().getTransactionCountByAccount(accountId,type,subtype, recipientRS, senderRS);
+            }
+
             response.put("count",count);
         }catch(Exception e){
             throw new RuntimeException(e.toString(),e);

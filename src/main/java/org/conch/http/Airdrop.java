@@ -26,30 +26,45 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateFormatUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
+import org.conch.db.DbIterator;
+import org.conch.db.DbUtils;
 import org.conch.http.biz.BizParameterRequestWrapper;
 import org.conch.tx.Transaction;
+import org.conch.tx.TransactionType;
 import org.conch.util.Convert;
+import org.conch.util.Logger;
 import org.json.simple.JSONStreamAware;
 import org.json.simple.JSONValue;
 
-import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import javax.servlet.*;
+import javax.servlet.http.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.security.Principal;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static org.conch.http.JSONResponses.*;
+import static org.conch.util.Convert.*;
 import static org.conch.util.JSON.JsonWrite;
 import static org.conch.util.JSON.readJsonFile;
-
+/**
+ * @author bowen
+ * @date 01/11/2020
+ */
 public final class Airdrop extends CreateTransaction {
 
     static final Airdrop instance = new Airdrop();
 
-    static class TransferInfo {
+    public static class TransferInfo {
         private String recipientRS;
         private String amountNQT;
         private String recipientPublicKey;
@@ -140,7 +155,8 @@ public final class Airdrop extends CreateTransaction {
     /**
      * default airdrop JSON fileName
      */
-    private static final String DEFAULT_PATH_NAME = Constants.airdropJsonObj.getString("pathName");
+    public static final String DEFAULT_PATH_NAME = Constants.airdropJsonObj.getString("pathNameOfAirdrop");
+    public static final String PATH_NAME_PREFIX_OF_AIRDROP_RESULT = Constants.airdropJsonObj.getString("pathNamePrefixOfAirdropResult");
     /**
      * list of valid keys used for validation
      */
@@ -154,8 +170,13 @@ public final class Airdrop extends CreateTransaction {
      */
     private static final boolean IS_APPEND_MODE = Constants.airdropJsonObj.getBooleanValue("isAppendMode");
 
+    /**
+     * through the marked account, query the history of airdrops
+     */
+    public static final String markedAccount = Constants.airdropJsonObj.getString("markedAccount");
+
     private Airdrop() {
-        super(new APITag[]{APITag.ACCOUNTS, APITag.CREATE_TRANSACTION}, "pathName", "key", "jsonString", "isDetection");
+        super(new APITag[]{APITag.ACCOUNTS, APITag.CREATE_TRANSACTION}, "key", "jsonString", "isDetection");
     }
 
     private boolean verifyKey(String key) {
@@ -177,24 +198,24 @@ public final class Airdrop extends CreateTransaction {
             throw new ParameterException(NOT_ENABLE_ON_LIGHTCLIENT);
         }
         org.json.simple.JSONObject response = new org.json.simple.JSONObject();
-        String pathName = req.getParameter("pathName");
         String key = req.getParameter("key");
         String jsonString = req.getParameter("jsonString");
         boolean isDetection = "true".equalsIgnoreCase(req.getParameter("isDetection"));
+        String airdropResultPathName = PATH_NAME_PREFIX_OF_AIRDROP_RESULT + new SimpleDateFormat(DATE_FORMAT).format(new Date()) + ".json";
+        JSONObject parseObject;
+
         if (!ENABLE_AIRDROP) {
             return ACCESS_CLOSED;
         }
-        if (!verifyKey(key)) {
-            throw new ParameterException(incorrect("key", String.format("key %s is incorrect", key)));
-        }
-        JSONObject parseObject;
         if (jsonString != null) {
+            if (!verifyKey(key)) {
+                throw new ParameterException(incorrect("key", String.format("key %s is incorrect", key)));
+            }
             // parse jsonString
             parseObject = JSON.parseObject(jsonString);
         } else {
             // parse file
-            pathName = pathName == null ? DEFAULT_PATH_NAME : pathName;
-            String jsonStr = readJsonFile(pathName);
+            String jsonStr = readJsonFile(DEFAULT_PATH_NAME);
             parseObject = JSON.parseObject(jsonStr);
         }
         if (!isDetection) {
@@ -222,16 +243,20 @@ public final class Airdrop extends CreateTransaction {
 
             JSONArray transferSuccessList = new JSONArray();
             JSONArray transferFailList = new JSONArray();
+            // Check if the account balance meets the criteria
+            if (!checkAccountBalance(list, parseObject.getString("secretPhrase"))) {
+                return NOT_ENOUGH_FUNDS;
+            }
             for (TransferInfo info : list) {
                 org.json.simple.JSONObject jsonObject = new org.json.simple.JSONObject();
                 try {
                     paramter.put("recipientRS", new String[]{info.getRecipientRS()});
                     paramter.put("recipientPublicKey", new String[]{info.getRecipientPublicKey()});
-                    paramter.put("amountNQT", new String[]{info.getAmountNQT()});
+                    paramter.put("amountNQT", new String[]{getAmountByAirdropRate(info.getAmountNQT())});
                     paramter.put("transactionID", new String[]{info.getTransactionID()});
                     paramter.put("errorDescription", new String[]{info.getErrorDescription()});
 
-                    BizParameterRequestWrapper reqWrapper = new BizParameterRequestWrapper(req, req.getParameterMap(), paramter);
+                    BizParameterRequestWrapper reqWrapper = new BizParameterRequestWrapper(req, Maps.newHashMap(), paramter);
                     Account account = ParameterParser.getSenderAccount(reqWrapper);
 
                     long recipient = ParameterParser.getAccountId(reqWrapper, "recipientRS", true);
@@ -278,6 +303,7 @@ public final class Airdrop extends CreateTransaction {
 
                 }
             }
+            airdropRate = 1;
             org.json.simple.JSONObject jsonObject = new org.json.simple.JSONObject();
 
             jsonObject.put("secretPhrase", parseObject.getString("secretPhrase"));
@@ -292,7 +318,7 @@ public final class Airdrop extends CreateTransaction {
                 response.put("jsonResult", jsonObject);
             } else {
                 try {
-                    JsonWrite(jsonObject, pathName);
+                    JsonWrite(jsonObject, airdropResultPathName);
                 } catch (Exception e) {
                     response.put("writeToFileError", e.getMessage());
                 }
@@ -327,7 +353,7 @@ public final class Airdrop extends CreateTransaction {
 
                 String transactionIdString = Convert.emptyToNull(reqWrapper.getParameter("transactionID"));
                 if (transactionIdString == null) {
-                    jsonObject.put("errorResponse", MISSING_TRANSACTION);
+                    jsonObject.put("errorResponse", JSONValue.parse(org.conch.util.JSON.toString(MISSING_TRANSACTION)));
                 }
                 boolean includePhasingResult = "true".equalsIgnoreCase(reqWrapper.getParameter("includePhasingResult"));
 
@@ -375,7 +401,7 @@ public final class Airdrop extends CreateTransaction {
                 response.put("jsonResult", jsonObject);
             } else {
                 try {
-                    JsonWrite(jsonObject, pathName);
+                    JsonWrite(jsonObject, airdropResultPathName);
                 } catch (Exception e) {
                     response.put("writeToFileError", e.getMessage());
                 }
@@ -387,4 +413,430 @@ public final class Airdrop extends CreateTransaction {
             return response;
         }
     }
+
+    private boolean checkAccountBalance(List<TransferInfo> list, String secretPhrase) {
+        long totalFunds = 0L;
+        for (TransferInfo info : list) {
+            long parseLong = Long.parseLong(info.getAmountNQT());
+            totalFunds += parseLong;
+        }
+        long accountId = Account.getId(secretPhrase);
+        Account account = Account.getAccount(accountId);
+        long accountEffectiveBalanceNQT = account.getEffectiveBalanceNQT(Conch.getHeight());
+        if (accountEffectiveBalanceNQT > totalFunds + list.size() * Constants.ONE_SS) {
+            return true;
+        }
+        return false;
+    }
+
+    private String getAmountByAirdropRate(String amountNQT) {
+        if (airdropRate != 1) {
+            Long newAmountNQT = Long.parseLong(amountNQT) * airdropRate;
+            return newAmountNQT.toString();
+        }
+        return amountNQT;
+    }
+
+    private static long airdropRate = 1;
+
+    // auto airdrop
+    public static final Runnable autoAirdropThread = new Runnable() {
+        @Override
+        public void run() {
+            try {
+                if (!Conch.getBlockchainProcessor().isUpToDate()) {
+                    Logger.logInfoMessage("The current blockchain state is not up to date");
+                    return;
+                }
+                // parse file
+                String jsonStr = readJsonFile(DEFAULT_PATH_NAME);
+                JSONObject parseObject = JSON.parseObject(jsonStr);
+                String secretPhrase = parseObject.getString("secretPhrase");
+                if (secretPhrase == null) {
+                    Logger.logInfoMessage("The auto airdrop secretPhrase is missing");
+                    return;
+                }
+                DbIterator<? extends Transaction> iterator = null;
+                org.json.simple.JSONArray transactions = new org.json.simple.JSONArray();
+                int from = 0;
+                int to = 0;
+
+                try {
+                    iterator = Conch.getBlockchain().getTransactions(Account.getId(secretPhrase), Account.rsAccountToId(markedAccount), TransactionType.TYPE_PAYMENT,from, to);
+                    while (iterator.hasNext()) {
+                        Transaction transaction = iterator.next();
+                        transactions.add(JSONData.transaction(transaction, false));
+                    }
+                }finally {
+                    DbUtils.close(iterator);
+                }
+                if (transactions.size() == 0) {
+                    Logger.logInfoMessage("No relevant transaction records were found");
+                    return;
+                }
+                Integer timestamp = 0;
+                for (Object transaction : transactions) {
+                    org.json.simple.JSONObject jsonObject = (org.json.simple.JSONObject) transaction;
+                    Integer timestampNext =(Integer) jsonObject.get("timestamp");
+                    timestamp = timestampNext;
+                }
+
+                String txDateFrom = DateFormatUtils.format(new Date(fromEpochTime(timestamp)), DATE_FORMAT);
+                String currentDate = new SimpleDateFormat(DATE_FORMAT).format(new Date());
+                // if today is airdropped, skip
+                if (!currentDate.equals(txDateFrom)) {
+                    airdropRate = (DateUtils.parseDate(currentDate, DATE_FORMAT).getTime() - DateUtils.parseDate(txDateFrom, DATE_FORMAT).getTime()) / TimeUnit.DAYS.toMillis(1);
+                    Airdrop.instance.processRequest(new HttpServletRequest() {
+                            @Override
+                            public String getAuthType() {
+                                return null;
+                            }
+
+                            @Override
+                            public Cookie[] getCookies() {
+                                return new Cookie[0];
+                            }
+
+                            @Override
+                            public long getDateHeader(String s) {
+                                return 0;
+                            }
+
+                            @Override
+                            public String getHeader(String s) {
+                                return null;
+                            }
+
+                            @Override
+                            public Enumeration<String> getHeaders(String s) {
+                                return null;
+                            }
+
+                            @Override
+                            public Enumeration<String> getHeaderNames() {
+                                return null;
+                            }
+
+                            @Override
+                            public int getIntHeader(String s) {
+                                return 0;
+                            }
+
+                            @Override
+                            public String getMethod() {
+                                return null;
+                            }
+
+                            @Override
+                            public String getPathInfo() {
+                                return null;
+                            }
+
+                            @Override
+                            public String getPathTranslated() {
+                                return null;
+                            }
+
+                            @Override
+                            public String getContextPath() {
+                                return null;
+                            }
+
+                            @Override
+                            public String getQueryString() {
+                                return null;
+                            }
+
+                            @Override
+                            public String getRemoteUser() {
+                                return null;
+                            }
+
+                            @Override
+                            public boolean isUserInRole(String s) {
+                                return false;
+                            }
+
+                            @Override
+                            public Principal getUserPrincipal() {
+                                return null;
+                            }
+
+                            @Override
+                            public String getRequestedSessionId() {
+                                return null;
+                            }
+
+                            @Override
+                            public String getRequestURI() {
+                                return null;
+                            }
+
+                            @Override
+                            public StringBuffer getRequestURL() {
+                                return null;
+                            }
+
+                            @Override
+                            public String getServletPath() {
+                                return null;
+                            }
+
+                            @Override
+                            public HttpSession getSession(boolean b) {
+                                return null;
+                            }
+
+                            @Override
+                            public HttpSession getSession() {
+                                return null;
+                            }
+
+                            @Override
+                            public String changeSessionId() {
+                                return null;
+                            }
+
+                            @Override
+                            public boolean isRequestedSessionIdValid() {
+                                return false;
+                            }
+
+                            @Override
+                            public boolean isRequestedSessionIdFromCookie() {
+                                return false;
+                            }
+
+                            @Override
+                            public boolean isRequestedSessionIdFromURL() {
+                                return false;
+                            }
+
+                            @Override
+                            public boolean isRequestedSessionIdFromUrl() {
+                                return false;
+                            }
+
+                            @Override
+                            public boolean authenticate(HttpServletResponse httpServletResponse) throws IOException, ServletException {
+                                return false;
+                            }
+
+                            @Override
+                            public void login(String s, String s1) throws ServletException {
+
+                            }
+
+                            @Override
+                            public void logout() throws ServletException {
+
+                            }
+
+                            @Override
+                            public Collection<Part> getParts() throws IOException, ServletException {
+                                return null;
+                            }
+
+                            @Override
+                            public Part getPart(String s) throws IOException, ServletException {
+                                return null;
+                            }
+
+                            @Override
+                            public <T extends HttpUpgradeHandler> T upgrade(Class<T> aClass) throws IOException, ServletException {
+                                return null;
+                            }
+
+                            @Override
+                            public Object getAttribute(String s) {
+                                return null;
+                            }
+
+                            @Override
+                            public Enumeration<String> getAttributeNames() {
+                                return null;
+                            }
+
+                            @Override
+                            public String getCharacterEncoding() {
+                                return null;
+                            }
+
+                            @Override
+                            public void setCharacterEncoding(String s) throws UnsupportedEncodingException {
+
+                            }
+
+                            @Override
+                            public int getContentLength() {
+                                return 0;
+                            }
+
+                            @Override
+                            public long getContentLengthLong() {
+                                return 0;
+                            }
+
+                            @Override
+                            public String getContentType() {
+                                return null;
+                            }
+
+                            @Override
+                            public ServletInputStream getInputStream() throws IOException {
+                                return null;
+                            }
+
+                            @Override
+                            public String getParameter(String s) {
+                                return null;
+                            }
+
+                            @Override
+                            public Enumeration<String> getParameterNames() {
+                                return null;
+                            }
+
+                            @Override
+                            public String[] getParameterValues(String s) {
+                                return new String[0];
+                            }
+
+                            @Override
+                            public Map<String, String[]> getParameterMap() {
+                                return null;
+                            }
+
+                            @Override
+                            public String getProtocol() {
+                                return null;
+                            }
+
+                            @Override
+                            public String getScheme() {
+                                return null;
+                            }
+
+                            @Override
+                            public String getServerName() {
+                                return null;
+                            }
+
+                            @Override
+                            public int getServerPort() {
+                                return 0;
+                            }
+
+                            @Override
+                            public BufferedReader getReader() throws IOException {
+                                return null;
+                            }
+
+                            @Override
+                            public String getRemoteAddr() {
+                                return null;
+                            }
+
+                            @Override
+                            public String getRemoteHost() {
+                                return null;
+                            }
+
+                            @Override
+                            public void setAttribute(String s, Object o) {
+
+                            }
+
+                            @Override
+                            public void removeAttribute(String s) {
+
+                            }
+
+                            @Override
+                            public Locale getLocale() {
+                                return null;
+                            }
+
+                            @Override
+                            public Enumeration<Locale> getLocales() {
+                                return null;
+                            }
+
+                            @Override
+                            public boolean isSecure() {
+                                return false;
+                            }
+
+                            @Override
+                            public RequestDispatcher getRequestDispatcher(String s) {
+                                return null;
+                            }
+
+                            @Override
+                            public String getRealPath(String s) {
+                                return null;
+                            }
+
+                            @Override
+                            public int getRemotePort() {
+                                return 0;
+                            }
+
+                            @Override
+                            public String getLocalName() {
+                                return null;
+                            }
+
+                            @Override
+                            public String getLocalAddr() {
+                                return null;
+                            }
+
+                            @Override
+                            public int getLocalPort() {
+                                return 0;
+                            }
+
+                            @Override
+                            public ServletContext getServletContext() {
+                                return null;
+                            }
+
+                            @Override
+                            public AsyncContext startAsync() throws IllegalStateException {
+                                return null;
+                            }
+
+                            @Override
+                            public AsyncContext startAsync(ServletRequest servletRequest, ServletResponse servletResponse) throws IllegalStateException {
+                                return null;
+                            }
+
+                            @Override
+                            public boolean isAsyncStarted() {
+                                return false;
+                            }
+
+                            @Override
+                            public boolean isAsyncSupported() {
+                                return false;
+                            }
+
+                            @Override
+                            public AsyncContext getAsyncContext() {
+                                return null;
+                            }
+
+                            @Override
+                            public DispatcherType getDispatcherType() {
+                                return null;
+                            }
+                        });
+                }
+            } catch (Exception e) {
+//                e.printStackTrace();
+                Logger.logInfoMessage("Open auto-airdrop failed");
+            }
+        }
+    };
 }

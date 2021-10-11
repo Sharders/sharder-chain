@@ -18,6 +18,7 @@ import i18n from "./i18n/i18n";
 import querystring from 'querystring';
 import echarts from "echarts";
 import "echarts-worldmap";
+import clipboard from 'clipboard';
 let passUrls = ["static", "login", "register", "enter"];
 let whiteList = ["/mining", "/mining/binding-account"];
 
@@ -80,6 +81,7 @@ import PocDetailContent from "./views/dialog/pocDetailContent";
 import AdminPwd from "./views/dialog/adminPwd";
 import SecretPhrase from "./views/dialog/secretPhrase";
 import PoolTxDetail from "./views/dialog/poolTxDetail";
+
 //注册组件
 Vue.component("PocContent",PocContent);
 Vue.component("NodeTypeContent",NodeTypeContent);
@@ -96,6 +98,9 @@ Vue.component("SecretPhrase",SecretPhrase);
 
 sync(store, router);
 Vue.use(Element);
+
+//注册到vue原型上
+Vue.prototype.clipboard = clipboard;
 Vue.prototype.$http = axios;
 Vue.prototype.$global = global;
 Vue.prototype.$echarts = echarts;

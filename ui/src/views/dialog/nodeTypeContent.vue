@@ -100,7 +100,8 @@
     }
 </script>
 
-<style scoped>
+<style scoped type="text/scss" lang="scss">
+@import '../../styles/css/vars.scss';
     .nodeTypeContent {
         padding: 10px;
     }
@@ -122,7 +123,7 @@
     }
 
     .nodeTypeContent .template .content {
-        box-shadow: 1px 1px 10px #3fb09a;
+        box-shadow: 1px 1px 10px $primary_color;
         border-radius: 4px;
     }
 </style>

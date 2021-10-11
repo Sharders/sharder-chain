@@ -111,7 +111,8 @@ public final class Convert {
         return bigInteger.longValue();
     }
 
-    private static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
+    public static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
+    public static final String DATE_FORMAT = "yyyyMMdd";
     public static String dateFromEpochTime(int epochTime) {
         String res = "";
         try{

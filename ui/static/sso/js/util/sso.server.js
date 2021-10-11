@@ -1,10 +1,10 @@
 /******************************************************************************
- * Copyright © 2017 sharder.org.                                              *
+ * Copyright © 2017 mwfs.io.                                              *
  *                                                                            *
  * See the LICENSE.txt file at the top-level directory of this distribution   *
  * for licensing information.                                                 *
  *                                                                            *
- * Unless otherwise agreed in a custom licensing agreement with sharder.org,  *
+ * Unless otherwise agreed in a custom licensing agreement with mwfs.io,  *
  * no part of the COS software, including this file, may be copied, modified, *
  * propagated, or distributed except according to the terms contained in the  *
  * LICENSE.txt file.                                                          *
@@ -16,6 +16,7 @@
 /**
  * @depends {sso.js}
  */
+import globalVar from "../../../../src/utils/common";
 
 var NRS = (function (NRS, $, undefined) {
     var _password;
@@ -406,6 +407,9 @@ var NRS = (function (NRS, $, undefined) {
                 NRS.addToConsole(this.url, this.type, this.data, response);
             }
             addAddressData(data);
+            // if (requestType === "setAccountInfo") {
+            //     debugger
+            // }
             if (secretPhrase && response.unsignedTransactionBytes && !data.doNotSign && !response.errorCode && !response.error) {
                 var publicKey = NRS.generatePublicKey(secretPhrase);
                 var signature = NRS.signBytes(response.unsignedTransactionBytes, converters.stringToHexString(secretPhrase));
@@ -732,7 +736,7 @@ var NRS = (function (NRS, $, undefined) {
                 pos += 2;
                 transaction.description = converters.byteArrayToString(byteArray, pos, length);
                 pos += length;
-                if (transaction.name !== data.name || transaction.description !== data.description) {
+                if (transaction.name !== data.name || data.description !== undefined && transaction.description !== data.description) {
                     return false;
                 }
                 break;
@@ -1601,7 +1605,7 @@ var NRS = (function (NRS, $, undefined) {
     function addAddressData (data) {
         if (typeof data === "object" && ("recipient" in data)) {
             var address = new NxtAddress();
-            if (/^SSA\-/i.test(data.recipient)) {
+            if (globalVar.projectReg.test(data.recipient)) {
                 data.recipientRS = data.recipient;
                 if (address.set(data.recipient)) {
                     data.recipient = address.account_id();

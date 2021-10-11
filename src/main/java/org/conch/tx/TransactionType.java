@@ -608,7 +608,7 @@ public abstract class TransactionType {
             private void applyByType(Transaction transaction, Account senderAccount, Account recipientAccount) throws ConchException.StopException {
                 Attachment.CoinBase coinBase = (Attachment.CoinBase) transaction.getAttachment();
                 if (RewardCalculator.isBlockRewardTx(transaction.getAttachment())) {
-                    RewardCalculator.blockRewardDistribution(transaction,false);
+                    Constants.rewardCalculatorInstance.blockRewardDistribution(transaction,false);
                 } else if (Attachment.CoinBase.CoinBaseType.GENESIS == coinBase.getCoinBaseType()) {
                     if (SharderGenesis.isGenesisCreator(coinBase.getCreator()) && SharderGenesis.isGenesisRecipients(senderAccount.getId())) {
                         if (Constants.isDevnet()) {
@@ -1743,7 +1743,7 @@ public abstract class TransactionType {
                     throw new ConchException.NotValidException("Invalid account property: " + attachment.getJSONObject());
                 }
                 if (transaction.getAmountNQT() != 0) {
-                    throw new ConchException.NotValidException("Account property transaction cannot be used to send coin");
+                    throw new ConchException.NotValidException("Account property transaction cannot be used to send "+ Conch.COIN_UNIT);
                 }
                 if (transaction.getRecipientId() == SharderGenesis.CREATOR_ID) {
                     throw new ConchException.NotValidException("Setting Genesis account properties not allowed");
@@ -1811,7 +1811,7 @@ public abstract class TransactionType {
                             + " does not belong to " + Long.toUnsignedString(transaction.getRecipientId()));
                 }
                 if (transaction.getAmountNQT() != 0) {
-                    throw new ConchException.NotValidException("Account property transaction cannot be used to send coin");
+                    throw new ConchException.NotValidException("Account property transaction cannot be used to send "+ Conch.COIN_UNIT);
                 }
                 if (transaction.getRecipientId() == SharderGenesis.CREATOR_ID) {
                     throw new ConchException.NotValidException("Deleting Genesis account properties not allowed");
@@ -3322,7 +3322,7 @@ public abstract class TransactionType {
                 long maxFees = attachment.getMaxFees();
                 long maxFeesLimit = (attachment.getPhasingParams().getVoteWeighting().isBalanceIndependent() ? 3 : 22) * Constants.ONE_SS;
                 if (maxFees < 0 || (maxFees > 0 && maxFees < maxFeesLimit) || maxFees > Constants.MAX_BALANCE_NQT) {
-                    throw new ConchException.NotValidException(String.format("Invalid max fees %f", ((double) maxFees) / Constants.ONE_SS));
+                    throw new ConchException.NotValidException(String.format("Invalid max fees %f %s", ((double) maxFees) / Constants.ONE_SS, Conch.COIN_UNIT));
                 }
                 short minDuration = attachment.getMinDuration();
                 if (minDuration < 0 || (minDuration > 0 && minDuration < 3) || minDuration >= Constants.MAX_PHASING_DURATION) {

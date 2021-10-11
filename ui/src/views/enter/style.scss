@@ -1,3 +1,4 @@
+@import '../../styles/css/vars.scss';
 .content_enter{
     a{
         font-family: "Microsoft YaHei";
@@ -10,13 +11,24 @@
     }
     .tip{
         margin-top: 38px;
+        .text{
+            color: #333333;
+        }
+        .address{
+            color: $primary_color;
+            font-weight: bold;
+        }
+        .warning{
+            color: red;
+            font-weight: bold;
+        }
     }
     .input{
         margin-top: 10px;
         textarea{
             resize:none;
             //background: #edeff5;
-            color: #493eda;
+            color: $primary_color;
             font-size: 16px;
             font-weight: bold;
             line-height: 28px;

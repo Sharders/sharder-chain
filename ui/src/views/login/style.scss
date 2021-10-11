@@ -1,3 +1,4 @@
+@import '../../styles/css/vars.scss';
 .content_login{
     text-align: center;
     .login_operation{
@@ -16,6 +17,12 @@
         }
         .common_btn{
             width: 416px;
+        }
+        .login_binding_tip {
+            font-size: x-small;
+            color: $primary_color;
+            text-align: left;
+            height: 12px;
         }
     }
     :nth-child(3){
@@ -77,7 +84,6 @@
             //margin: 0 15px 30px;
             margin: 0 0 30px;
             padding: 0 15px;
-            height: 560px;
             .content_container {
                 width: auto;
             }

@@ -1,3 +1,4 @@
+@import '../../styles/css/vars.scss';
 .xs_section_fa {
     height: 260px;
     background: transparent;
@@ -35,7 +36,7 @@
                     &:first-child {
                         font-weight: bold;
                         font-size: 20px;
-                        color: #333;
+                        color: #555;
                     }
                 }
             }
@@ -50,6 +51,9 @@
         max-height: 480px;
         overflow-y: auto;
     }
+    .primary-color-account {
+        color: $primary_color;
+    }
 }
 
 .modal-w800 {
@@ -58,6 +62,7 @@
 
 .modal-w900 {
     min-width: 900px !important;
+    z-index: 999999;
 }
 
 .modal-w1000 {
@@ -113,10 +118,32 @@
                     font-size: 13px;
                     font-weight: 400;
                 }
+
             }
+
         }
     }
 }
+
+#activeCount {
+    display: inline !important;
+    // padding: 0 0 0 15px;
+    margin: -20px 0 0 0;
+}
+
+#qualifiedActiveCount {
+    display: inline;
+    // padding: 0 0 0 15px;
+    margin: 0 0 15px 0;
+}
+
+#activeCountLine{
+    width: 115px;
+    height: 0.8px;
+    margin: 25px 0 0 55px;
+    opacity: 0.3;
+}
+
 .only_mobile {
     display: none;
 }
@@ -144,5 +171,8 @@
     }
     .only_mobile {
         display: block;
+        a {
+            color: $primary_color;
+        }
     }
 }

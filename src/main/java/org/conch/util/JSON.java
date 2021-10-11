@@ -22,6 +22,10 @@
 package org.conch.util;
 
 import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.csv.CsvMapper;
+import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import org.conch.Conch;
 import org.json.simple.JSONAware;
 import org.json.simple.JSONObject;
@@ -292,8 +296,8 @@ public final class JSON {
             jsonStr = sb.toString();
             return jsonStr;
         } catch (IOException e) {
-            e.printStackTrace();
-            Logger.logInfoMessage("Cannot read file " + fileName + " error " + e.getMessage());
+//            e.printStackTrace();
+            Logger.logErrorMessage("Cannot read file " + fileName + " error " + e.getMessage());
 
             throw new IllegalArgumentException(String.format("Error loading file %s", fileName));
         }
@@ -322,6 +326,31 @@ public final class JSON {
             Logger.logInfoMessage("Cannot write to file " + fileName + " error " + e.getMessage());
 
             throw new IllegalArgumentException(String.format("Error write to file %s", fileName));
+        }
+    }
+
+    /**
+     * Json file convert to CSV file
+     * @param sourceJsonPathName Contains only one array
+     * @param targetCSVPathName
+     */
+    public static void JsonToCSV(String sourceJsonPathName, String targetCSVPathName) {
+        try {
+            JsonNode jsonTree = new ObjectMapper().readTree(new File(sourceJsonPathName)).elements().next();
+            CsvSchema.Builder csvSchemaBuilder = CsvSchema.builder();
+
+            JsonNode firstObject = jsonTree.elements().next();
+            firstObject.fieldNames().forEachRemaining(fieldName -> {csvSchemaBuilder.addColumn(fieldName);});
+            CsvSchema csvSchema = csvSchemaBuilder.build().withHeader();
+            CsvMapper csvMapper = new CsvMapper();
+            csvMapper.writerFor(JsonNode.class)
+                    .with(csvSchema)
+                    .writeValue(new File(targetCSVPathName), jsonTree);
+        } catch (IOException e) {
+            e.printStackTrace();
+            Logger.logInfoMessage("Cannot convert file " + sourceJsonPathName + " to " + targetCSVPathName + ", error: " + e.getMessage());
+
+            throw new IllegalArgumentException(String.format("Cannot convert file %s to %s", sourceJsonPathName, targetCSVPathName));
         }
     }
 }

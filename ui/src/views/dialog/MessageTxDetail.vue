@@ -32,7 +32,7 @@
                             </span>
                             <span v-if="rowData.messageInfo.name">
                                  <strong>{{$t('transaction.operation_data')}}:</strong>{{$t('transaction.update_account_name')}}:{{rowData.messageInfo.name}}<br>
-                                <strong>{{$t('dialog.block_info_total_fee')}}:</strong>{{$global.getBlockTotalFeeNQT(100000000)}} SS<br>
+                                <strong>{{$t('dialog.block_info_total_fee')}}:</strong>{{$global.getBlockTotalFeeNQT(100000000)}} MW<br>
                             </span>
                         </p>
                         <p v-if="typeof(secretPhrase) === 'undefined' || (rowData.recipientRS !== rowData.accountRS && rowData.accountRS !== rowData.senderRS)" class="node-type">
@@ -47,7 +47,7 @@
                             </span>
                             <span v-if="rowData.messageInfo.name">
                                 <strong>{{$t('transaction.operation_data')}}:</strong>{{$t('transaction.update_account_name')}}:{{rowData.messageInfo.name}}<br>
-                                <strong>{{$t('dialog.block_info_total_fee')}}:</strong>{{$global.getBlockTotalFeeNQT(100000000)}} SS<br>
+                                <strong>{{$t('dialog.block_info_total_fee')}}:</strong>{{$global.getBlockTotalFeeNQT(100000000)}} MW<br>
                             </span>
                         </p>
 
@@ -98,8 +98,8 @@
 
 </script>
 
-
-<style >
+<style scoped lang="scss" type="text/scss">
+@import '../../styles/css/vars.scss';
 
     .messageTxDetail {
         padding: 10px;
@@ -122,7 +122,7 @@
     }
 
     .messageTxDetail .template .content {
-        box-shadow: 1px 1px 10px #3fb09a;
+        box-shadow: 1px 1px 10px $primary_color;
         border-radius: 4px;
     }
 </style>

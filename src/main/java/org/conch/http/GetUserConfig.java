@@ -113,6 +113,9 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
             // airdrop
             response.put("sharder.airdrop.accounts", Constants.airdropJsonObj.getJSONArray("accounts"));
             response.put("sharder.airdrop.isEnable", Constants.airdropJsonObj.getBooleanValue("isEnable"));
+
+            // permissionMode
+            response.put("sharder.permissionMode", Conch.permissionMode);
         } catch (IOException e) {
             response.clear();
             response.put("error", e.getMessage());

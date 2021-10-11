@@ -42,6 +42,8 @@ import java.util.Arrays;
 
 public final class Crypto {
 
+    public static byte[] keyPair = new byte[64];
+
     private static final boolean useStrongSecureRandom = Conch.getBooleanProperty("sharder.useStrongSecureRandom");
 
     private static final ThreadLocal<SecureRandom> secureRandom = new ThreadLocal<SecureRandom>() {
@@ -94,6 +96,16 @@ public final class Crypto {
         return digest.digest();
     }
 
+    public static byte[] getSecretPhraseDigest(String secretPhrase) {
+        byte[] digest;
+        if (secretPhrase.indexOf(" ") == -1 && secretPhrase.length() == 64) {
+            digest = Convert.parseHexString(secretPhrase);
+        } else {
+            digest = Crypto.sha256().digest(Convert.toBytes(secretPhrase));
+        }
+        return digest;
+    }
+
     public static byte[] getPublicKey(byte[] keySeed) {
         byte[] publicKey = new byte[32];
         Curve25519.keygen(publicKey, null, Arrays.copyOf(keySeed, keySeed.length));
@@ -102,7 +114,7 @@ public final class Crypto {
 
     public static byte[] getPublicKey(String secretPhrase) {
         byte[] publicKey = new byte[32];
-        Curve25519.keygen(publicKey, null, Crypto.sha256().digest(Convert.toBytes(secretPhrase)));
+        Curve25519.keygen(publicKey, null, getSecretPhraseDigest(secretPhrase));
         return publicKey;
     }
 
@@ -113,9 +125,38 @@ public final class Crypto {
     }
 
     public static byte[] getPrivateKey(String secretPhrase) {
-        byte[] s = Crypto.sha256().digest(Convert.toBytes(secretPhrase));
+        byte[] s = getSecretPhraseDigest(secretPhrase);
         Curve25519.clamp(s);
         return s;
+    }
+
+    public static byte[] getKeyPair(String secretPhrase) {
+        byte[] P = new byte[32];
+        byte[] s = new byte[32];
+        MessageDigest digest = Crypto.sha256();
+        Curve25519.keygen(P, s, digest.digest(Convert.toBytes(secretPhrase)));
+        byte[] keyPair = new byte[64];
+        System.arraycopy(s, 0, keyPair, 0, 32);
+        System.arraycopy(P, 0, keyPair, 32, 32);
+        return keyPair;
+    }
+
+    public static byte[] getPublicKeyFromKeyPair(byte[] keyPair) {
+        byte[] publicKey = new byte[32];
+        if (keyPair.length != Crypto.keyPair.length) {
+            return publicKey;
+        }
+        Arrays.copyOfRange(keyPair, 32, 64);
+        return publicKey;
+    }
+
+    public static byte[] getPrivateKeyFromKeyPair(byte[] keyPair) {
+        byte[] privateKey = new byte[32];
+        if (keyPair.length != Crypto.keyPair.length) {
+            return privateKey;
+        }
+        Arrays.copyOfRange(keyPair, 0, 32);
+        return privateKey;
     }
 
     public static void curve(byte[] Z, byte[] k, byte[] P) {
@@ -126,7 +167,32 @@ public final class Crypto {
         byte[] P = new byte[32];
         byte[] s = new byte[32];
         MessageDigest digest = Crypto.sha256();
-        Curve25519.keygen(P, s, digest.digest(Convert.toBytes(secretPhrase)));
+        Curve25519.keygen(P, s, getSecretPhraseDigest(secretPhrase));
+
+        byte[] m = digest.digest(message);
+
+        digest.update(m);
+        byte[] x = digest.digest(s);
+
+        byte[] Y = new byte[32];
+        Curve25519.keygen(Y, null, x);
+
+        digest.update(m);
+        byte[] h = digest.digest(Y);
+
+        byte[] v = new byte[32];
+        Curve25519.sign(v, h, x, s);
+
+        byte[] signature = new byte[64];
+        System.arraycopy(v, 0, signature, 0, 32);
+        System.arraycopy(h, 0, signature, 32, 32);
+        return signature;
+    }
+
+    public static byte[] sign(byte[] message, byte[] keyPair) {
+        byte[] s = new byte[32];
+        System.arraycopy(keyPair, 0, s, 0, 32);
+        MessageDigest digest = Crypto.sha256();
 
         byte[] m = digest.digest(message);
 

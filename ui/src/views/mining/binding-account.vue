@@ -220,7 +220,8 @@
     }
 </style>
 <!--钱包内置兼容-->
-<style>
+<style scoped type="text/scss" lang="scss">
+@import '../../styles/css/vars.scss';
     @media (max-width: 640px) {
         #app .header {
             display: none;
@@ -473,7 +474,7 @@
         }
 
         .menu .el-radio-button__orig-radio:checked + .el-radio-button__inner {
-            color: #3fb09a !important;
+            color: $primary_color !important;
         }
 
         .mining .mining-list .mining-list-info {
@@ -518,7 +519,7 @@
     }
 
     .introduce .mining-info {
-        background: #3fb09a;
+        background: $primary_color;
         border-radius: 4px;
         color: #fff;
         padding: 15px 20px;
@@ -557,11 +558,11 @@
         border: none;
         font-size: 15px;
         color: #fff;
-        background: #3fb09a;
+        background: $primary_color;
     }
 
     .introduce .btn p {
-        color: #3fb09a;
+        color: $primary_color;
         text-align: center;
     }
 
@@ -624,7 +625,7 @@
         height: 40px;
         border-bottom-right-radius: 4px;
         border-bottom-left-radius: 4px;
-        background: #3fb09a;
+        background: $primary_color;
         color: #fff;
         outline: none;
         border: none;
@@ -668,7 +669,7 @@
     }
 
     .binding .el-icon-loading {
-        color: #3fb09a;
+        color: $primary_color;
     }
 
     .binding .el-icon-success {

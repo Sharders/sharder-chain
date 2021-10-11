@@ -87,7 +87,8 @@
     }
 </script>
 
-<style scoped>
+<style scoped type="text/scss" lang="scss">
+@import '../../styles/css/vars.scss';
     .free-collar-drill .free-collar {
         padding: 30px 15px 0;
     }
@@ -108,7 +109,7 @@
     }
 
     .free-collar .free-list {
-        background: #3fb09a;
+        background: $primary_color;
         border-radius: 4px;
         margin: 10px 0 0 0;
         color: #fff;

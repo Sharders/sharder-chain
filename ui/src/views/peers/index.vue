@@ -32,7 +32,8 @@
       <div class="block_list">
         <p>
           <span class="block_title fl">
-            <img src="../../assets/img/peerlist.svg" />
+            <img src="../../assets/img/peerlist.svg"  v-if="$global.projectName === 'mw'"/>
+            <img src="../../assets/img/sharder/peerlist.svg"  v-else-if="$global.projectName === 'sharder'"/>
             <span v-if="peerListFilterStatus == true">{{$t('peers.valid_peer_list')}}</span>
             <span v-else>{{$t('peers.peer_list')}}</span>
             <span class="peer_link">{{$t('peers.peer_list_link')}}</span>

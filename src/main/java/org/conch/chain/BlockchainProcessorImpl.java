@@ -35,6 +35,7 @@ import org.conch.consensus.poc.tx.PocTxBody;
 import org.conch.consensus.reward.RewardCalculator;
 import org.conch.crypto.Crypto;
 import org.conch.db.*;
+import org.conch.exchange.ExchangeProcessor;
 import org.conch.http.ForceConverge;
 import org.conch.mint.Generator;
 import org.conch.mint.pool.SharderPoolProcessor;
@@ -53,7 +54,6 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 import org.json.simple.JSONValue;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.sql.*;
@@ -1308,6 +1308,12 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
 
         blockListeners.addListener(block -> Db.db.analyzeTables(), Event.RESCAN_END);
 
+        /**
+         * add ExchangeProcessor
+         * @Author peifeng
+         */
+        blockListeners.addListener(new ExchangeProcessor(), Event.BEFORE_BLOCK_ACCEPT);
+
         ThreadPool.runBeforeStart(
                 () -> {
                     alreadyInitialized = true;
@@ -2103,55 +2109,6 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
                 TransactionProcessorImpl.getInstance().notifyListeners(block.getTransactions(), TransactionProcessor.Event.ADDED_CONFIRMED_TRANSACTIONS);
             }
             AccountLedger.commitEntries();
-
-            /**
-             * heco chain accossChain
-             *
-             * check Transactions if there is Transaction to the lockAddress, send to gateway
-             *
-             * @Author peifeng
-             */
-            if(blockchain.getHeight() >= Constants.HECO_HEIGHT){
-                block.getTransactions().forEach(transaction -> {
-                    if(transaction.getType().isType(TransactionType.TYPE_PAYMENT)){
-                        String url = Constants.MGR_URL;
-                        RestfulHttpClient.HttpResponse response = null;
-                        try {
-                            response = RestfulHttpClient.getClient(url+"getHecoExchangeAddress").get().request();
-                            String content = response.getContent();
-                            com.alibaba.fastjson.JSONObject contentObj = com.alibaba.fastjson.JSON.parseObject(content);
-                            String code = (String)contentObj.get("code");
-                            if(code.equals("200")){
-                                String recipientId = ((Long)contentObj.get("body")+"");
-                                if(recipientId.equals(transaction.getRecipientId()+"")) {
-                                    Map<String,String> params = new HashMap<>();
-                                    params.put("accountId",transaction.getSenderId()+"");
-                                    params.put("recordType","1");
-                                    params.put("amount",transaction.getAmountNQT()+"");
-                                    params.put("createDate",transaction.getTimestamp()+"");
-                                    params.put("SourceTransactionHash",transaction.getFullHash());
-                                    try {
-                                        response = RestfulHttpClient.getClient(url+"saveRecord").post().postParams(params).request();
-                                        content = response.getContent();
-                                        contentObj = com.alibaba.fastjson.JSON.parseObject(content);
-                                        code = (String)contentObj.get("code");
-                                        if(code.equals("200")){
-                                            Logger.logInfoMessage("Heco chain: Record save success");
-                                        }else{
-                                            com.alibaba.fastjson.JSONObject body = com.alibaba.fastjson.JSON.parseObject((String)contentObj.get("body"));;
-                                            Logger.logInfoMessage("Heco chain: "+(String)body.get("status"));
-                                        }
-                                    }catch (IOException e) {
-                                        Logger.logDebugMessage("Heco chain:can't sendTransactin in hecoChain"+e.getMessage());
-                                    }
-                                }
-                            }
-                        } catch (IOException e) {
-                            Logger.logDebugMessage("Heco chain: can't connect " + Constants.MGR_URL + " caused by: " + e.getMessage());
-                        }
-                    }
-                });
-            }
 
 
         } finally {

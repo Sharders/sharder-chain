@@ -26,6 +26,7 @@ import org.json.simple.JSONStreamAware;
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -152,16 +153,30 @@ public abstract class PocTxApi {
             super(new APITag[]{APITag.POC, APITag.CREATE_TRANSACTION}, "nodetype");
         }
 
+        /**
+         * 1. permissionMode：The POC node declare are created by the Foundation node
+         * 2. nonPermissionMode：The POC node declare are created by the any node
+         */
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
             try {
-                Preconditions.checkArgument(UrlManager.validFoundationHost(request), "Not valid host! ONLY foundation domain can do this operation!");
                 Account account = Optional.ofNullable(ParameterParser.getSenderAccount(request))
-                        .orElseThrow(() -> new ConchException.AccountControlException("account info can not be null!"));
-                Account.checkApiAutoTxAccount(Account.rsAccount(account.getId()));
-                String nodeTypeJsonStr = Https.getPostData(request);
-                JSONObject nodeTypeJson = Optional.ofNullable(JSONObject.parseObject(nodeTypeJsonStr))
-                        .orElseThrow(() -> new ConchException.NotValidException("node type info can not be null!"));
+                        .orElseThrow(() -> new ConchException.AccountControlException("account info can not be null!"));;
+                JSONObject nodeTypeJson = new JSONObject();
+                if (Conch.isPermissionMode("true".equalsIgnoreCase(request.getParameter("permissionMode")))) {
+                    Preconditions.checkArgument(UrlManager.validFoundationHost(request), "Not valid host! ONLY foundation domain can do this operation!");
+                    Account.checkApiAutoTxAccount(Account.rsAccount(account.getId()));
+                    String nodeTypeJsonStr = Https.getPostData(request);
+                    nodeTypeJson = Optional.ofNullable(JSONObject.parseObject(nodeTypeJsonStr))
+                            .orElseThrow(() -> new ConchException.NotValidException("node type info can not be null!"));
+                } else {
+                    Map<String, String[]> nodeTypeJsonMap = request.getParameterMap();
+                    for (Map.Entry<String, String[]> entry : nodeTypeJsonMap.entrySet()) {
+                        if (entry.getValue() != null) {
+                            nodeTypeJson.put(entry.getKey(), entry.getValue()[0]);
+                        }
+                    }
+                }
 
                 if(StringUtils.isEmpty(nodeTypeJson.getString("ip"))
                 || StringUtils.isEmpty(nodeTypeJson.getString("type"))) {

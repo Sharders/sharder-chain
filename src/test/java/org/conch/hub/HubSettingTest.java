@@ -1,5 +1,6 @@
 package org.conch.hub;
 
+import org.conch.Conch;
 import org.conch.base.BaseTest;
 import org.conch.common.ConchException;
 import org.conch.common.Constants;
@@ -19,7 +20,7 @@ public class HubSettingTest extends BaseTest {
     static void linkSSAddress() throws ConchException.NotValidException{
         RestfulHttpClient.HttpResponse verifyResponse = null;
         try {
-            String inputStr = _getFromConsole("Site Account, Account Password, Serial No, Address");
+            String inputStr = _getFromConsole("Site Account, Account Password, Serial No, "+ Conch.COIN_UNIT +" Address");
             String[] strArray = inputStr.split(",");
             String siteAccount = strArray[0];
             String password = strArray[1];

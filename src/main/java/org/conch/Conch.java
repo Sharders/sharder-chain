@@ -95,32 +95,57 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static org.conch.util.JSON.readJsonFile;
+
 public final class Conch {
 
-    public static final String VERSION = "0.1.9";
+    public static final String VERSION = "0.2.0";
     public static final String STAGE = "Alpha";
-    public static final String APPLICATION = "COS";
+
+    public static final com.alibaba.fastjson.JSONObject constantsJsonObj = loadConstantsSettings();
+    public static final com.alibaba.fastjson.JSONObject basicConf = (com.alibaba.fastjson.JSONObject) constantsJsonObj.get("basic");
+    public static final com.alibaba.fastjson.JSONObject portConf = (com.alibaba.fastjson.JSONObject) constantsJsonObj.get("port");
+    public static final com.alibaba.fastjson.JSONObject networkTypeConf = (com.alibaba.fastjson.JSONObject) constantsJsonObj.get("networkType");
+
+    public static final String APPLICATION = basicConf.getString("APPLICATION");
+    public static final String COIN_UNIT = basicConf.getString("COIN_UNIT");
+    public static final String PROJECT_NAME = basicConf.getString("PROJECT_NAME");
 
     private static volatile Time time = new Time.EpochTime();
 
     public static final String CONCH_DEFAULT_PROPERTIES = "sharder-default.properties";
     public static final String CONCH_PROPERTIES = "sharder.properties";
     public static final String CONFIG_DIR = "conf";
+    public static String CONCH_CONSTANTS;
 
     private static final RuntimeMode runtimeMode;
     public static final DirProvider dirProvider;
 
     private static final Properties DEFAULT_PROPERTIES = new Properties();
-    private static final String FOUNDATION_URL = "sharder.org";
-    private static final String FOUNDATION_TEST_URL = "test.sharder.org";
+    public static final String FOUNDATION_URL = basicConf.getString("FOUNDATION_URL");
+    public static final String FOUNDATION_TEST_URL = basicConf.getString("FOUNDATION_TEST_URL");
 
     public static final Peer.RunningMode runningMode;
     //TODO refactor myAddress, serialNum, nodeIp and nodeType into systemInfo
     private static final String myAddress;
-    private static String serialNum = "";
+    private static String serialNum = basicConf.getString("SERIAL_NUM");
     private static String nodeType = Peer.Type.NORMAL.getSimpleName();
     public static String nodeIp = IpUtil.getNetworkIp();
     public static Map<Integer, Boolean> airdropHeightMap = Maps.newHashMap();
+
+    public static boolean permissionMode = basicConf.getBooleanValue("PERMISSION_MODE");
+
+    public static boolean isPermissionMode(boolean permissionModeCondition) {
+        return Conch.permissionMode && permissionModeCondition;
+    }
+
+    /**
+     * Load the JSON configuration with respect to Constants
+     */
+    public static com.alibaba.fastjson.JSONObject loadConstantsSettings() {
+        CONCH_CONSTANTS = CONFIG_DIR + "/constants.json";
+        return JSON.parseObject(readJsonFile(CONCH_CONSTANTS));
+    }
 
     public static boolean getAirdropHeighStatus(int height) {
         if (airdropHeightMap.get(height) != null) {
@@ -140,9 +165,8 @@ public final class Conch {
     }
 
     public static String getNetworkType() {
-        return Constants.isMainnet() ? "beta" : Constants.isTestnet() ? "alpha" : "dev";
+        return Constants.isMainnet() ? networkTypeConf.getString("MAINNET") : Constants.isTestnet() ? networkTypeConf.getString("TESTNET") : networkTypeConf.getString("DEVNET");
     }
-
     
     public static String getNodeType(){
         CertifiedPeer boundedPeer = Conch.getPocProcessor().getBoundedPeer(Account.rsAccountToId(Generator.getAutoMiningRS()), getHeight());
@@ -192,7 +216,7 @@ public final class Conch {
                 .request();
         com.alibaba.fastjson.JSONObject result = JSON.parseObject(response.getContent());
 
-        Integer nodeTypeCode = Peer.Type.HUB.getSimpleCode();
+        Integer nodeTypeCode = Peer.Type.SOUL.getSimpleCode();
         if (result.getBoolean(Constants.SUCCESS)) {
             com.alibaba.fastjson.JSONObject data = result.getJSONObject("data");
             if (data == null || data.getInteger("type") == null) {
@@ -246,9 +270,9 @@ public final class Conch {
      * Preset parameters
      */
     public static class PresetParam {
-        public static final int DEFAULT_PEER_PORT=3218;
-        public static final int DEFAULT_API_PORT=8215;
-        public static final int DEFAULT_API_SSL_PORT=8217;
+        public static final int DEFAULT_PEER_PORT = portConf.getIntValue("DEFAULT_PEER_PORT");
+        public static final int DEFAULT_API_PORT = portConf.getIntValue("DEFAULT_API_PORT");
+        public static final int DEFAULT_API_SSL_PORT = portConf.getIntValue("DEFAULT_API_SSL_PORT");
 
         public Constants.Network network;
         public int peerPort;
@@ -266,13 +290,15 @@ public final class Conch {
         static {
             //preset params
             presetMap.clear();
-            presetMap.put(Constants.Network.DEVNET, new PresetParam(Constants.Network.DEVNET, 9218, 9215, 9217));
-            presetMap.put(Constants.Network.TESTNET, new PresetParam(Constants.Network.TESTNET, 7218, 7215, 7217));
-            presetMap.put(Constants.Network.MAINNET, new PresetParam(Constants.Network.MAINNET, 3218, 3215, 3217));
+            presetMap.put(Constants.Network.DEVNET, new PresetParam(Constants.Network.DEVNET, portConf.getIntValue("DEVNET_PEER"), portConf.getIntValue("DEVNET_API"), portConf.getIntValue("DEVNET_API_SSL")));
+            presetMap.put(Constants.Network.TESTNET, new PresetParam(Constants.Network.TESTNET, portConf.getIntValue("TESTNET_PEER"), portConf.getIntValue("TESTNET_API"), portConf.getIntValue("TESTNET_API_SSL")));
+            presetMap.put(Constants.Network.MAINNET, new PresetParam(Constants.Network.MAINNET, portConf.getIntValue("MAINNET_PEER"), portConf.getIntValue("MAINNET_API"), portConf.getIntValue("MAINNET_API_SSL")));
         }
 
         public static void print(){
-            if(presetMap == null || presetMap.size() == 0)  System.out.println("preset param map is null, nothing is preset!");
+            if(presetMap == null || presetMap.size() == 0) {
+                System.out.println("preset param map is null, nothing is preset!");
+            }
         }
 
         public static int getPeerPort(Constants.Network network){
@@ -761,6 +787,7 @@ public final class Conch {
         Conch.time = time;
     }
 
+//    @EnableSwagger2Doc
     public static void main(String[] args) {
         try {
             Runtime.getRuntime().addShutdownHook(new Thread(Conch::shutdown));
@@ -892,16 +919,22 @@ public final class Conch {
                 testSecureRandom();
                 long currentTime = System.currentTimeMillis();
                 Logger.logMessage("Initialization took " + (currentTime - startTime) / 1000 + " seconds");
-                Logger.logMessage("COS server " + getFullVersion() + " " + getCosUpgradeDate() + " started successfully.");
-                Logger.logMessage("Copyright © 2017 sharder.org.");
-                Logger.logMessage("Distributed under MIT.");
-                if (API.getWelcomePageUri() != null) Logger.logMessage("Client UI URL is " + API.getWelcomePageUri());
+                Logger.logMessage("COS server " + getFullVersion() + " " + getCosUpgradeDate() + " started successfully");
+                Logger.logMessage("Copyright © 2019 " + Conch.FOUNDATION_URL);
+                Logger.logMessage("Distributed under MIT");
+                if (API.getWelcomePageUri() != null) {
+                    Logger.logMessage("Client UI URL is " + API.getWelcomePageUri());
+                }
 
                 setServerStatus(ServerStatus.STARTED, API.getWelcomePageUri());
 
-                if (isDesktopMode()) runtimeMode.launchDesktopApplication();
+                if (isDesktopMode()) {
+                    runtimeMode.launchDesktopApplication();
+                }
 
-                if (Constants.isTestnetOrDevnet()) Logger.logMessage("RUNNING ON " +  Constants.getNetwork()  + " - DO NOT USE MAINNET ACCOUNTS!");
+                if (Constants.isTestnetOrDevnet()) {
+                    Logger.logMessage("RUNNING ON " +  Constants.getNetwork()  + " - DO NOT USE MAINNET ACCOUNTS!");
+                }
 
                 Peers.sysInitialed = true;
             } catch (Exception e) {
@@ -1058,7 +1091,9 @@ public final class Conch {
     }
 
     public static boolean reachLastKnownBlock(){
-        if(Constants.isDevnet() && Generator.isBootNode) return true;
+        if(Constants.isDevnet() && Generator.isBootNode) {
+            return true;
+        }
         int height = Conch.getHeight();
         if (height < Constants.LAST_KNOWN_BLOCK) {
             if(Logger.printNow(Logger.CONCH_P_reachLastKnownBlock)) {
@@ -1180,7 +1215,9 @@ public final class Conch {
         try {
             Conch.pause();
             
-            if(paramMap == null) paramMap = Maps.newHashMap();
+            if(paramMap == null) {
+                paramMap = Maps.newHashMap();
+            }
             // delete the local db
             paramMap.put(ForceConverge.PROPERTY_MANUAL_RESET, "true");
             Conch.storePropertiesToFile(paramMap);
@@ -1208,7 +1245,9 @@ public final class Conch {
      *         1 : Conch.version > version
      */
     public static int versionCompare(String version){
-        if(StringUtils.isEmpty(version)) return -1;
+        if(StringUtils.isEmpty(version)) {
+            return -1;
+        }
         
         Integer verInt = Integer.valueOf(version.replaceAll("\\.", ""));
         Integer currentVerInt = Integer.valueOf(VERSION.replaceAll("\\.", ""));
@@ -1234,11 +1273,21 @@ public final class Conch {
                 Date currentBuild = _convertUpdateDate(ClientUpgradeTool.cosLastUpdateDate);
                 Date ossBuild = _convertUpdateDate(build);
                 
-                if(ossBuild == null) return 1;
-                if(currentBuild == null) return -1;
-                if(currentBuild.before(ossBuild)) return -1;
-                if(currentBuild.after(ossBuild)) return 1;
-                if(ossBuild.getTime() == currentBuild.getTime()) return 0;
+                if(ossBuild == null) {
+                    return 1;
+                }
+                if(currentBuild == null) {
+                    return -1;
+                }
+                if(currentBuild.before(ossBuild)) {
+                    return -1;
+                }
+                if(currentBuild.after(ossBuild)) {
+                    return 1;
+                }
+                if(ossBuild.getTime() == currentBuild.getTime()) {
+                    return 0;
+                }
             }else if(Conch.versionCompare(version) == 1) {
                 return 1;
             }
@@ -1293,8 +1342,9 @@ public final class Conch {
     public static void setHeartBeatTimer() {
         Timer timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
             public void run() {
-                Logger.logInfoMessage("[HeartBeat]:cos is working properly");
+                Logger.logDebugMessage("[HeartBeat] COS is working properly");
             }
         }, 3*60*1000, Constants.HeartBeat_Time);
     }

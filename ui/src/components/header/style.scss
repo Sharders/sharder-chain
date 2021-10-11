@@ -1,3 +1,4 @@
+@import '../../styles/css/vars.scss';
 .header {
     width: 100%;
     min-width: 1200px;
@@ -22,7 +23,7 @@
                 text-decoration: none;
 
                 &:hover {
-                    color: #493eda;
+                    color: $primary_color;
                     text-decoration: none !important;
                 }
 
@@ -43,7 +44,7 @@
                     margin-left: 6px;
                     margin-top: auto;
                     margin-bottom: auto;
-                    color: #493eda;
+                    color: $primary_color;
                     width: 150px;
 
                     span:first-child {
@@ -90,7 +91,7 @@
                     text-align: center;
                     line-height: 80px !important;
                     font-size: 14px;
-                    color: #333;
+                    color: #555;
                     padding: 0;
                     font-weight: bold;
 
@@ -102,9 +103,9 @@
                     &:hover {
                         background: #fff;
                         //font-weight: bold;
-                        border-bottom: 4px solid #493eda;
+                        border-bottom: 4px solid $primary_color;
                         cursor: pointer;
-                        color: #493eda;
+                        color: $primary_color;
                     }
                 }
 
@@ -113,8 +114,8 @@
                 }
 
                 .activeLi {
-                    border-bottom: 4px solid #493eda !important;
-                    color: #493eda !important;
+                    border-bottom: 4px solid $primary_color !important;
+                    color: $primary_color !important;
                     font-weight: bold;
                 }
             }
@@ -197,7 +198,7 @@
                     }
 
                     span.isLogin {
-                        color: #1bc98e;
+                        color: $primary_color;
 
                     }
                 }
@@ -208,7 +209,7 @@
                 }
 
                 .pilotLamp_circle {
-                    background: #1bc98e;
+                    background: $primary_color_aa;
                     display: block;
                     position: absolute;
                     width: 120px;
@@ -234,7 +235,7 @@
                     position: relative;
                     line-height: 80px;
                     font-size: 13px;
-                    color: #493eda;
+                    color: $primary_color;
                 }
 
                 .navbar_lang {
@@ -242,11 +243,11 @@
                         width: 90px;
                         height: 30px;
                         background: #fff;
-                        //border: 1px solid #493eda;
+                        //border: 1px solid $primary_color;
                         padding: 4px 15px 4px 0;
                         font-size: 13px;
                         border-radius: 20px;
-                        color: #493eda;
+                        color: $primary_color;
                         position: relative;
                         top: 25px;
                         outline: none;
@@ -257,7 +258,7 @@
                             background: transparent;
                             font-size: 13px;
                             border: none;
-                            color: #493eda;
+                            color: $primary_color;
                             position: relative;
                             outline: none;
                             line-height: 30px;
@@ -275,7 +276,7 @@
                 .navbar_refresh {
                     line-height: 80px;
                     margin: auto 10px;
-                    color: #493eda;
+                    color: $primary_color;
                 }
             }
         }
@@ -305,8 +306,8 @@
         margin-bottom: 20px;
     }
     .el-menu--horizontal>.el-menu-item.is-active {
-        border-bottom: 2px solid #493eda;
-        color: #493eda;
+        border-bottom: 2px solid $primary_color;
+        color: $primary_color;
     }
     .header {
         min-width: 300px;
@@ -334,7 +335,7 @@
             height: 60px;
             line-height: 60px;
             padding: 0 5px;
-            color: #493eda;
+            color: $primary_color;
         }
     }
     #logo_mobile {
@@ -348,7 +349,7 @@
             width: 20%;
             text-decoration: none;
             &:hover {
-                color: #493eda;
+                color: $primary_color;
                 text-decoration: none !important;
             }
 
@@ -369,7 +370,7 @@
                 margin-left: 6px;
                 margin-top: auto;
                 margin-bottom: auto;
-                color: #493eda;
+                color: $primary_color;
                 width: 80px;
 
                 span:first-child {
@@ -414,7 +415,7 @@
         //height: 100%;
         line-height: 60px;
         margin: auto 5px;
-        color: #3fb09a;
+        color: $primary_color;
     }
     .navbar_search {
         height: 100%;

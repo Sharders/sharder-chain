@@ -237,7 +237,8 @@
 <style lang="scss" type="text/scss">
     @import './style.scss';
 </style>
-<style scoped>
+<style scoped type="text/scss" lang="scss">
+@import '../../styles/css/vars.scss';
     @media (max-width: 640px) {
         .transactionsList {
             height:385px;
@@ -250,7 +251,7 @@
     }
 
     .assets .assets-info {
-        background: #3fb09a;
+        background: $primary_color;
         border-radius: 4px;
         color: #ddd;
         padding: 25px;

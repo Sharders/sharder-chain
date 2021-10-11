@@ -26,7 +26,8 @@
                 </div>
                 <div class="my-info" v-loading="loading">
                     <h1>
-                        <img src="../../assets/img/wodexingxi.png" class="head-portrait">
+                        <img src="../../assets/img/wodexingxi.png" class="head-portrait" v-if="$global.projectName === 'mw'">
+                        <img src="../../assets/img/sharder/wodexingxi.png" class="head-portrait" v-else-if="$global.projectName === 'sharder'">
                         <span>{{$t('mining.attribute.self_info')}}</span>
                     </h1>
                     <div class="my-attribute">
@@ -82,7 +83,8 @@
                 <span class="img-close" @click="miningMask('isAttribute')"></span>
                 <div class="attribute">
                     <h1>
-                        <img src="../../assets/img/pay.svg" class="attribute-img">
+                        <img src="../../assets/img/pay.svg" class="attribute-img" v-if="$global.projectName === 'mw'">
+                        <img src="../../assets/img/sharder/pay.svg" class="attribute-img" v-else-if="$global.projectName === 'sharder'">
                         <span>{{$t('mining.attribute.pool_details')}}</span>
                     </h1>
                     <div class="attribute-value">
@@ -109,7 +111,7 @@
                             </el-col>
                             <el-col :span="12">
                                 <button class="info">
-                                    {{$t('mining.attribute.pool_income')}}: {{miningInfo.income/100000000}} SS
+                                    {{$t('mining.attribute.pool_income')}}: {{miningInfo.income/100000000}} MW
                                 </button>
                             </el-col>
                             <el-col :span="12">
@@ -343,7 +345,7 @@
                     period: _this.remainBlocks(),
                     secretPhrase: SSO.secretPhrase,
                     deadline: 360,
-                    feeNQT: 100000000,// 手续费默认是 1
+                    feeNQT: 100000000,// 手续费默认是 1 MW
                     poolId: _this.mining.poolId,
                     amount: joinAmount
                 }, "joinPool").then(res => {
@@ -481,17 +483,18 @@
     }
 </script>
 <!--矿池详情-->
-<style scoped>
+<style scoped type="text/scss" lang="scss">
+@import '../../styles/css/vars.scss';
     .pool-attribute .pool-back {
         font-size: 16px;
-        color: #3fb09a;
+        color: $primary_color;
         cursor: pointer;
     }
 
     .pool-content .attribute-info {
         padding: 30px;
         background: url("../../assets/img/kuangchi_bg.png") no-repeat center 140px;
-        background-color: #3fb09a;
+        background-color: $primary_color;
         height: 300px;
         border-top-right-radius: 6px;
         border-top-left-radius: 6px;
@@ -517,7 +520,7 @@
     }
 
     .attribute-info .pool-state .number {
-        color: #1bc98e;
+        color: $primary_color_aa;
     }
 
     .attribute-info .pool-attribute-info {
@@ -566,7 +569,7 @@
     }
 
     .my-attribute .info {
-        box-shadow: 0 0 2px #3fb09aaa;
+        box-shadow: 0 0 2px $primary_color_aa;
         height: 100px;
         width: 100%;
         border: none;
@@ -601,22 +604,22 @@
     }
 
     .attribute-btn button.join {
-        background: #3fb09a;
+        background: $primary_color;
         color: #fff;
     }
 
     .attribute-btn button.exit {
-        border: 1px solid #3fb09a;
+        border: 1px solid $primary_color;
         margin-left: 20px;
-        color: #3fb09a;
+        color: $primary_color;
     }
 
     .attribute-btn button.join:hover {
-        background: #3fb09aaa;
+        background: $primary_color_aa;
     }
 
     .attribute-btn button.exit:hover {
-        background: #3fb09a33;
+        background: $primary_color_33;
     }
 </style>
 <!--矿池属性-->
@@ -657,7 +660,7 @@
         height: 60px;
         background: transparent;
         margin-top: 10px;
-        color: #3fb09a;
+        color: $primary_color;
         font-size: 14px;
     }
 
@@ -708,32 +711,32 @@
     }
 
     .btn button.cancel{
-        border: 1px solid #3fb09a;
-        color: #3fb09a;
+        border: 1px solid $primary_color;
+        color: $primary_color;
         float: left;
         background: #fff;
     }
 
     .btn button.confirm{
         float: right;
-        background: #3fb09a;
+        background: $primary_color;
         color: #fff;
         border: none;
     }
 
     button.confirm {
-        background: #3fb09a;
+        background: $primary_color;
         color: #fff;
         padding: 5px;
     }
 
     .btn button.cancel:hover {
-        background: #3fb09a11;
+        background: $primary_color_11;
     }
 
     .btn button.confirm:hover,
     button.confirm:hover {
-        background: #3fb09add;
+        background: $primary_color_dd;
     }
 
 </style>
@@ -889,7 +892,7 @@
             height: 40px;
             outline: none;
             border: none;
-            background: #3fb09a;
+            background: $primary_color;
             color: #fff;
             font-size: 15px;
             font-weight: bold;

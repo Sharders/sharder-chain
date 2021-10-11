@@ -471,19 +471,21 @@ public class FileUtil {
         }
     }
 
-    private static  boolean containDbFolder = false;
+    private static boolean containDbFolder = false;
+    private static String DB_NAME_TEST = "ss_test_db";
+    private static String DB_NAME = "ss_db";
     private static void dealDbFile(String folderName,Path appRootPath, Boolean deleteSource, File archive) throws IOException {
         //db folder 数据库目录
         //如果containDbFolder为false(初始值为false)，
         //判断文件夹的名字是否为COS的数据库名
         //是则根据deleteSource决定是删除还是备份
         if(!containDbFolder) {
-            containDbFolder = StringUtils.isNotEmpty(folderName) && ("ss_test_db".equals(folderName) || "ss_db".equals(folderName));
+            containDbFolder = StringUtils.isNotEmpty(folderName) && (DB_NAME_TEST.equals(folderName) || DB_NAME.equals(folderName));
             // delete db folder only once 只删除一次数据库文件夹
             if(containDbFolder) {
-                File dbFile = new File(appRootPath.resolve("ss_test_db").toString());
+                File dbFile = new File(appRootPath.resolve(DB_NAME_TEST).toString());
                 if(!dbFile.exists()) {
-                    dbFile = new File(appRootPath.resolve("ss_db").toString());
+                    dbFile = new File(appRootPath.resolve(DB_NAME).toString());
                 }
                 if(deleteSource){
                     Logger.logDebugMessage("found db folder in the upgrade zip[%s], delete current db folder[%s] firstly", archive.getName(), dbFile.getName());

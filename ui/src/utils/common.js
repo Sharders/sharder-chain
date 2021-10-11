@@ -1,13 +1,26 @@
 /**
  * 全局变量及方法
  */
+import vars from "../styles/css/vars.scss";
 
 export default {
+    // core config of project
+    projectName: vars.projectName,
+    displayName: "Sharder",
+    displaySymbol: "SS",
+    projectPrefixStr: "CDW",
     loginState: 'hub',
-    sharderFoundationHost: 'sharder.org',
-    sharderFoundationTestHost: 'test.sharder.org',
+    foundationHost: 'mw.run',
+    foundationTestHost: 'test.mw.run',
+    unit: " MW",
+    primaryColor: vars.primary_color,
+    primaryColor_dd: vars.primary_color_dd,
+    pattern: /CDW-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/,
+    receiverPrefixStr: "CDW-____-____-____-_____",
+    receiverEmptyStr: "___-____-____-____-_____",
+    projectReg: /^CDW\-/i,
     apiUrl: '',
-    cfg: {defaultInterval: 300000, soonInterval: 20000, slowInterval: 600000},
+    cfg: {defaultInterval: 300000, soonInterval: 60000, slowInterval: 600000, topSpeedInterval: 30000},
     epochBeginning: -1,
     newConsole: null,
     isOpenConsole: false,
@@ -18,11 +31,60 @@ export default {
     coordinatesMap: null,
     $vue: {},
     placeholder: "--",
-    unit: " SS",
+    HecoUnit: "HMW",
+    OKExUnit: "OMW",
+    ETHUnit: "EMW",
+    TronUnit: "TMW",
+    BSCUnit: "BMW",
     unitValue: 100000000,
+    HecoUnitValue: 100000000,
+    OKExUnitValue: 100000000,
+    ETHUnitValue: 100000000,
+    TronUnitValue: 100000000,
+    BSCUnitValue: 100000000,
     poolPledgeAmount: 10000000000000, // pledge amount of pool creator
     optHeight: {join: 0, quit: 0, destroy: 0, create: 0},
     validPeerPercentage: 0.7, // Less than this value filter display mode, greater than or equal to close
+    defineConf() {
+        if (this.projectName === 'mw') {
+            this.projectPrefixStr = "CDW"
+            this.receiverPrefixStr = "CDW-____-____-____-_____"
+            this.pattern = /CDW-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/
+            this.unit = " MW"
+            this.projectReg = /^CDW\-/i
+        } else if (this.projectName === 'sharder') {
+            this.projectPrefixStr = "SSA"
+            this.receiverPrefixStr = "SSA-____-____-____-_____"
+            this.pattern = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/
+            this.unit = " SS"
+            this.projectReg = /^SSA\-/i
+        }
+    },
+    updateConf(res) {
+        // Get the config and render the corresponding UI scheme
+        const projectName = res["sharder.projectName"];
+        const coinUnit = res["sharder.coinUnit"];
+        const foundationUrl = res["sharder.foundationUrl"];
+        const foundationTestUrl = res["sharder.foundationTestUrl"];
+
+        if (coinUnit != null) {
+            // Close the server to update the core configuration
+            // this.unit = " " + coinUnit;
+        }
+
+        if (projectName != null) {
+            // Close the server to update the core configuration
+            // this.defineConf(projectName);
+        }
+
+        if (foundationUrl != null) {
+            this.foundationHost = foundationUrl;
+        }
+
+        if (foundationTestUrl != null) {
+            this.foundationTestHost = foundationTestUrl;
+        }
+    },
     sendVerifyCode(url, username, fun) {
 
         $.ajax({
@@ -318,7 +380,7 @@ export default {
      */
     byIPtoCoordinates(params) {
         let xhr = new XMLHttpRequest();
-        xhr.open("POST", "https://sharder.org/api/front/coordinates/ip");
+        xhr.open("POST", "https://mw.run/api/front/coordinates/ip");
         xhr.setRequestHeader("content-type", "application/json;charset=UTF-8");
         return new Promise(function (resolve, reject) {
             xhr.onload = function () {
@@ -652,13 +714,13 @@ export default {
     useLocal() {
         return SSO.useLocal;
     },
-    getSharderFoundationHost() {
+    getFoundationHost() {
         return (this.isDevNet()) ?
-            this.sharderFoundationTestHost : this.sharderFoundationHost;
+            this.foundationTestHost : this.foundationHost;
     },
     getCommonFoundationAPI(eoLinkerUrl, path) {
         if (this.isMainNet() || this.isTestNet()) {
-            return "http://" + this.getSharderFoundationHost() + path;
+            return "http://" + this.getFoundationHost() + path;
         }
         return eoLinkerUrl;
     },
@@ -708,7 +770,7 @@ export default {
                         borderColor: "#fff"
                     },
                     emphasis: {
-                        areaColor: '#FF6C40'
+                        areaColor: this.primaryColor
                     }
                 },
                 left: 0,
@@ -770,7 +832,7 @@ export default {
                     itemStyle: {
                         normal: {
                             borderColor: "#fff",
-                            color: "#577ceb"
+                            color: this.primaryColor_dd
                         }
                     }
                 }
@@ -961,7 +1023,7 @@ export default {
         return this.placeholder
     },
     /**
-     * 格式化coin数量 + 单位
+     * 格式化MW数量 + "MW"
      * @param num
      * @param f
      * @returns {string}
@@ -1033,5 +1095,53 @@ export default {
                 resolve(reader.result)
             }
         })
+    },
+
+    /**
+     *  去除前后空格
+     * @param str
+     * @returns {*}
+     */
+    trimAll(str){
+        return this.trimRight(this.trimLeft(str));
+    },
+    /**
+     * 去掉左边的空白
+     * @param s
+     * @returns {String|string}
+     */
+    trimLeft(s){
+        if(s == null) {
+            return "";
+        }
+        var whitespace = new String(" \t\n\r");
+        var str = new String(s);
+        if (whitespace.indexOf(str.charAt(0)) != -1) {
+            var j=0, i = str.length;
+            while (j < i && whitespace.indexOf(str.charAt(j)) != -1){
+                j++;
+            }
+            str = str.substring(j, i);
+        }
+        return str;
+    },
+
+    /**
+     * 去掉右边的空白
+     * @param s
+     * @returns {String|string}
+     */
+    trimRight(s){
+        if(s == null) return "";
+        var whitespace = new String(" \t\n\r");
+        var str = new String(s);
+        if (whitespace.indexOf(str.charAt(str.length-1)) != -1){
+            var i = str.length - 1;
+            while (i >= 0 && whitespace.indexOf(str.charAt(i)) != -1){
+                i--;
+            }
+            str = str.substring(0, i+1);
+        }
+        return str;
     },
 };
