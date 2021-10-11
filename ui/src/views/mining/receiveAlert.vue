@@ -30,7 +30,8 @@
     }
 </script>
 
-<style scoped>
+<style scoped type="text/scss" lang="scss">
+@import '../../styles/css/vars.scss';
     .receive-alert:after {
         content: "";
         display: inline-block;
@@ -71,7 +72,7 @@
         outline: none;
         width: 100%;
         height: 40px;
-        background: #3fb09a;
+        background: $primary_color;
         color: #fff;
         font-size: 15px;
         border-bottom-left-radius: 4px;

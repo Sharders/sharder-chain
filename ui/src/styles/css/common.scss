@@ -1,4 +1,6 @@
 /*可复用组件样式*/
+@import "vars";
+
 #app .page-layout main {
     height: initial !important;
     transform: initial !important;
@@ -10,7 +12,7 @@
 
 .block_title {
     font-size: 14px;
-    color: #3fb09a;
+    color: $primary_color;
     margin: 2px 20px 10px 0;
 
     > img {
@@ -27,13 +29,13 @@
 }
 
 .radius_blue {
-    color: #3fb09a;
+    color: $primary_color;
     border-radius: 4px;
-    border: 1px solid #3fb09a;
+    border: 1px solid $primary_color;
 }
 
 .block_blue.radius_blue {
-    background: #3fb09a;
+    background: $primary_color;
 }
 
 .block_blue {
@@ -73,7 +75,7 @@
     .list_table {
         display: grid;
         background: #fff;
-        box-shadow: 0 0 1em #3fb09a1f;
+        box-shadow: 0 0 1em $primary_color_1f;
         margin-bottom: 80px;
 
         .list_content {
@@ -156,7 +158,7 @@
 
                 .list_button {
                     cursor: pointer;
-                    background: #3fb09a;
+                    background: $primary_color;
                     color: #fff;
                     border: none;
                     margin: 5px;
@@ -183,20 +185,20 @@
 /*element tooltip background color*/
 .el-tooltip__popper {
     color: #ffffff !important;
-    background: #3fb09a !important;
+    background: $primary_color !important;
+    border-color: $primary_color;
     z-index: 9999 !important;
 }
 
 .el-tooltip__popper.is-light .popper__arrow:after {
-    border-top-color: #3fb09a !important;
-    border-bottom-color: #3fb09a !important;
+    border-color: $primary_color !important;
     z-index: 9999 !important;
 }
 
 .common_btn {
     cursor: pointer;
     height: 40px;
-    background: #3fb09a;
+    background: $primary_color;
     border: none;
     border-radius: 4px;
     color: #fff;
@@ -223,45 +225,45 @@
 
 .imgBtn:hover {
     svg {
-        fill: #3fb09a;
+        fill: $primary_color;
         transition: .4s;
     }
 }
 
 .common_btn:hover {
     background: #fff;
-    color: #3fb09a;
-    border: 1px solid #3fb09a;
+    color: $primary_color;
+    border: 1px solid $primary_color;
     transition: .4s;
 }
 
 /*按钮样式 反色*/
 .common_btn_contrary {
     background: #fff;
-    border: 1px solid #3fb09a;
-    color: #3fb09a;
+    border: 1px solid $primary_color;
+    color: $primary_color;
 }
 
 .common_btn_contrary:hover {
-    background: #3fb09a;
+    background: $primary_color;
     color: #fff;
     transition: .4s;
 }
 
 .writeBtn {
     background: #fff;
-    color: #3fb09a;
-    border: 1px solid #3fb09a;
+    color: $primary_color;
+    border: 1px solid $primary_color;
     border-radius: 5px;
 
     svg {
-        fill: #3fb09a;
+        fill: $primary_color;
     }
 
     &:hover {
-        background: #3fb09a;
+        background: $primary_color;
         color: #fff;
-        border: 1px solid #3fb09a;
+        border: 1px solid $primary_color;
         transition: .4s;
 
         svg {
@@ -276,7 +278,7 @@
     color: #A6A9AD;
     border: 1px solid #A6A9AD;
     border-radius: 5px;
-    cursor: not-allowed;
+    //cursor: not-allowed;
     svg {
         fill: #A6A9AD;
     }
@@ -374,16 +376,16 @@
 
                             .el-checkbox__input.is-checked .el-checkbox__inner,
                             .el-checkbox__input.is-indeterminate .el-checkbox__inner {
-                                background: #3fb09a;
-                                border-color: #3fb09a;
+                                background: $primary_color;
+                                border-color: $primary_color;
                             }
 
                             .el-checkbox__inner:hover {
-                                border-color: #3fb09a;
+                                border-color: $primary_color;
                             }
 
                             .el-checkbox__input.is-focus .el-checkbox__inner {
-                                border-color: #3fb09a;
+                                border-color: $primary_color;
                             }
 
                             .el-checkbox__label {
@@ -393,7 +395,7 @@
                             }
 
                             .el-checkbox__input.is-checked + .el-checkbox__label {
-                                color: #3fb09a;
+                                color: $primary_color;
                             }
                         }
 
@@ -402,7 +404,7 @@
                         }
 
                         .el-textarea__inner:focus {
-                            border-color: #3fb09a;
+                            border-color: $primary_color;
                         }
 
                         .input-with-select {
@@ -418,7 +420,7 @@
 
                             .el-input-group__append, .el-input-group__prepend {
                                 color: #fff;
-                                background: #3fb09a;
+                                background: $primary_color;
                                 border: none;
                             }
                         }
@@ -440,7 +442,7 @@
 
                             .el-slider__bar {
                                 height: 2px;
-                                background-color: #3fb09a;
+                                background-color: $primary_color;
                             }
 
                             .el-slider__button-wrapper {
@@ -451,7 +453,7 @@
 
                                 .el-slider__button {
                                     border: none;
-                                    background-color: #3fb09a;
+                                    background-color: $primary_color;
                                 }
                             }
                         }
@@ -489,7 +491,7 @@
                 .btn {
                     width: 100%;
                     height: 40px;
-                    background: #3fb09a;
+                    background: $primary_color;
                     border: none;
                     border-radius: 4px;
                     font-size: 14px;
@@ -623,7 +625,7 @@
                 color: #555;
 
                 &:nth-child(2) {
-                    color: #3fb09a;
+                    color: $primary_color;
                     font-weight: bold;
                     padding: 0 10px;
                 }
@@ -653,16 +655,16 @@
                 .el-checkbox {
                     .el-checkbox__input.is-checked .el-checkbox__inner,
                     .el-checkbox__input.is-indeterminate .el-checkbox__inner {
-                        background: #3fb09a;
-                        border-color: #3fb09a;
+                        background: $primary_color;
+                        border-color: $primary_color;
                     }
 
                     .el-checkbox__inner:hover {
-                        border-color: #3fb09a;
+                        border-color: $primary_color;
                     }
 
                     .el-checkbox__input.is-focus .el-checkbox__inner {
-                        border-color: #3fb09a;
+                        border-color: $primary_color;
                     }
 
                     .el-checkbox__label {
@@ -696,7 +698,7 @@
 }
 
 .linker {
-    color: #3fb09a !important;
+    color: $primary_color !important;
     cursor: pointer !important;
 
     a {
@@ -709,7 +711,7 @@
     margin-top: 14px;
 
     button:hover {
-        color: #3fb09a;
+        color: $primary_color;
     }
 
     button:disabled {
@@ -717,13 +719,13 @@
     }
 
     .el-pager li.active {
-        background: #3fb09a;
-        border-color: #3fb09a;
+        background: $primary_color;
+        border-color: $primary_color;
         color: #fff;
     }
 
     .el-pager li:hover {
-        color: #3fb09a;
+        color: $primary_color;
     }
 
     .el-pager li.active:hover {
@@ -833,17 +835,112 @@
 
 }
 
+.transaction-img-sharder {
+    span.bg {
+        display: inline-block;
+        width: 16px !important;
+        height: 16px !important;
+        vertical-align: text-bottom;
+    }
+
+    span.type0 {
+        background-image: url("../../assets/img/sharder/pay.svg");
+    }
+
+    span.type00 {
+        background-image: url("../../assets/img/sharder/pay.svg");
+    }
+
+    span.type10 {
+        background-image: url("../../assets/img/sharder/infomation.svg");
+    }
+
+    span.type15 {
+        background-image: url("../../assets/img/sharder/rename.svg");
+    }
+
+    span.type60 {
+        background-image: url("../../assets/img/sharder/storage.svg");
+    }
+
+    //SUBTYPE_SHARDER_POOL_CREATE
+    span.type80 {
+        background-image: url("../../assets/img/sharder/forge_pool.svg");
+    }
+
+    //SUBTYPE_SHARDER_POOL_DESTROY
+    span.type81 {
+        background-image: url("../../assets/img/sharder/forge_pool.svg");
+    }
+
+    //SUBTYPE_SHARDER_POOL_JOIN
+    span.type82 {
+        background-image: url("../../assets/img/sharder/forge_pool.svg");
+    }
+
+    //SUBTYPE_SHARDER_POOL_QUIT
+    span.type83 {
+        background-image: url("../../assets/img/sharder/forge_pool.svg");
+    }
+
+    span.type90 {
+        background-image: url("../../assets/img/sharder/coinBase.svg");
+    }
+
+    span.type110 {
+        background-image: url("../../assets/img/sharder/storage.svg");
+    }
+
+    // node type
+    span.type120 {
+        background-image: url("../../assets/img/sharder/POC.svg");
+    }
+
+    // node config
+    span.type121 {
+        background-image: url("../../assets/img/sharder/POC.svg");
+    }
+
+    // weight table
+    span.type122 {
+        background-image: url("../../assets/img/sharder/POC.svg");
+    }
+
+    // online rate
+    span.type123 {
+        background-image: url("../../assets/img/sharder/POC.svg");
+    }
+
+    // block missing
+    span.type124 {
+        background-image: url("../../assets/img/sharder/POC.svg");
+    }
+
+    // bc speed
+    span.type125 {
+        background-image: url("../../assets/img/sharder/POC.svg");
+    }
+
+    // burn
+    span.type180 {
+        background-image: url("../../assets/img/sharder/destroy.svg");
+        background-size: 16px;
+    }
+
+}
+
 .left-txt {
     text-align: left !important;
 }
 
 .el-radio-button__orig-radio:checked + .el-radio-button__inner {
-    background: #3fb09a !important;
+    background: $primary_color !important;
+    border-color: $primary_color;
 }
 
 .el-button--primary {
-    background: #3fb09a !important;
-    border-color: #3fb09a !important;
+    background: $primary_color !important;
+    border-color: $primary_color !important;
 }
 
 #blocks_table, #peers_table {
@@ -871,7 +968,7 @@
 }
 
 input:focus {
-    border-color: #3fb09a !important;
+    border-color: $primary_color !important;
 }
 
 @media only screen and (max-width: 780px) {
@@ -903,7 +1000,7 @@ input:focus {
         padding: 8px 10px;
     }
     .el-radio-button__orig-radio:checked + .el-radio-button__inner {
-        background: #3fb09a !important;
-        border-color: #3fb09a;
+        background: $primary_color !important;
+        border-color: $primary_color;
     }
 }

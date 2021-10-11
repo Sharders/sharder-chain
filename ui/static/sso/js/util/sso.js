@@ -1,10 +1,10 @@
-/******************************************************************************
- * Copyright © 2017 sharder.org.                                              *
+  /******************************************************************************
+ * Copyright © 2017 mwfs.io.                                              *
  *                                                                            *
  * See the LICENSE.txt file at the top-level directory of this distribution   *
  * for licensing information.                                                 *
  *                                                                            *
- * Unless otherwise agreed in a custom licensing agreement with sharder.org,  *
+ * Unless otherwise agreed in a custom licensing agreement with mwfs.io,  *
  * no part of the COS software, including this file, may be copied, modified, *
  * propagated, or distributed except according to the terms contained in the  *
  * LICENSE.txt file.                                                          *
@@ -32,6 +32,8 @@
  * @depends {util/converters.js}
  * @depends {util/extensions.js}
  */
+
+import globalVar from "../../../../src/utils/common";
 var Sso = (function (NRS, $, undefined) {
     "use strict";
 
@@ -60,7 +62,7 @@ var Sso = (function (NRS, $, undefined) {
         is_store_remembered_passphrase: (window["cordova"] !== undefined), // too early to use feature detection
         is_simulate_app: false,
         is_testnet: false,
-        remote_node_address: "node.sharder.org",
+        remote_node_address: "testboot.mw.run",
         remote_node_port: 8215,
         is_remote_node_ssl: false,
         validators_count: 3,
@@ -453,7 +455,7 @@ var Sso = (function (NRS, $, undefined) {
                 if (!savedPassphrase) {
                     NRS.showLockscreen();
                 }
-                NRS.setStateInterval(60);
+                // NRS.setStateInterval(60);
 
                 // setInterval(NRS.checkAliasVersions, 1000 * 60 * 60);
 
@@ -481,7 +483,7 @@ var Sso = (function (NRS, $, undefined) {
                 // has to be enabled by activating this code on the specific widget
                 /*$("[data-toggle='tooltip']").tooltip();
 
-                $("#dgs_search_account_center").mask("SSA-****-****-****-*****");
+                $("#dgs_search_account_center").mask("CDW-****-****-****-*****");
                 NRS.logConsole("done initialization");
                 if (NRS.getUrlParameter("account")) {
                     NRS.login(false, NRS.getUrlParameter("account"));
@@ -640,6 +642,7 @@ var Sso = (function (NRS, $, undefined) {
     };
 
     NRS.getState = function (callback, msg) {
+        console.log("NRS.getState: " + Date.parse(new Date()).toString())
         if (msg) {
             // NRS.logConsole("getState event " + msg);
             console.warn("getState event " + msg);
@@ -1805,44 +1808,44 @@ var Sso = (function (NRS, $, undefined) {
             // downloadingBlockchain.find(".db_active").show();
             // downloadingBlockchain.find(".db_light").hide();
         // if(!NRS.state.isLightClient && NRS.serverConnect && NRS.peerConnect){
-            NRS.percentageTotal = 0;    //进度百分比
-            NRS.blocksLeft = null;      //剩余区块数量
-            NRS.percentageLast = 0;     //
-            if (NRS.state.lastBlockchainFeederHeight && NRS.state.numberOfBlocks <= NRS.state.lastBlockchainFeederHeight) {
-                NRS.percentageTotal = parseInt(Math.round((NRS.state.numberOfBlocks / NRS.state.lastBlockchainFeederHeight) * 100), 10);
-                NRS.blocksLeft = NRS.state.lastBlockchainFeederHeight - NRS.state.numberOfBlocks;
-                if (NRS.blocksLeft <= lastNumBlocks && NRS.state.lastBlockchainFeederHeight > lastNumBlocks) {
-                    NRS.percentageLast = parseInt(Math.round(((lastNumBlocks - NRS.blocksLeft) / lastNumBlocks) * 100), 10);
-                }
-            }
-            if (!NRS.blocksLeft || NRS.blocksLeft < parseInt(lastNumBlocks / 2)) {
-                // downloadingBlockchain.find(".db_progress_total").hide();
-                NRS.isProgressTotalShow = false;
-
-            } else {
-                NRS.isProgressTotalShow = true;
-                // downloadingBlockchain.find(".db_progress_total").show();
-                // downloadingBlockchain.find(".db_progress_total .progress-bar").css("width", NRS.percentageTotal + "%");
-                // downloadingBlockchain.find(".db_progress_total .sr-only").html($.t("sso.percent_complete", {
-                //     "percent": NRS.percentageTotal
-                // }));
-            }
-            if (!NRS.blocksLeft || NRS.blocksLeft >= (lastNumBlocks * 2) || NRS.state.lastBlockchainFeederHeight <= lastNumBlocks) {
-                // downloadingBlockchain.find(".db_progress_last").hide();
-                NRS.isProgressLastShow = false;
-            } else {
-                NRS.isProgressLastShow = true;
-                // downloadingBlockchain.find(".db_progress_last").show();
-                // downloadingBlockchain.find(".db_progress_last .progress-bar").css("width", NRS.percentageLast + "%");
-                // downloadingBlockchain.find(".db_progress_last .sr-only").html($.t("sso.percent_complete", {
-                //     "percent": NRS.percentageLast
-                // }));
-            }
-            if (NRS.blocksLeft) {
-                NRS.isBlockOutLeft = true;
-                // downloadingBlockchain.find(".blocks_left_outer").show();
-                // downloadingBlockchain.find(".blocks_left").html($.t("sso.blocks_left", {"numBlocks": NRS.blocksLeft}));
-            }
+        //     NRS.percentageTotal = 0;    // 进度百分比
+        //     NRS.blocksLeft = null;      // 剩余区块数量
+        //     NRS.percentageLast = 0;     //
+        //     if (NRS.state.lastBlockchainFeederHeight && NRS.state.numberOfBlocks <= NRS.state.lastBlockchainFeederHeight) {
+        //         NRS.percentageTotal = parseInt(Math.round((NRS.state.numberOfBlocks / NRS.state.lastBlockchainFeederHeight) * 100), 10);
+        //         NRS.blocksLeft = NRS.state.lastBlockchainFeederHeight - NRS.state.numberOfBlocks;
+        //         if (NRS.blocksLeft <= lastNumBlocks && NRS.state.lastBlockchainFeederHeight > lastNumBlocks) {
+        //             NRS.percentageLast = parseInt(Math.round(((lastNumBlocks - NRS.blocksLeft) / lastNumBlocks) * 100), 10);
+        //         }
+        //     }
+        //     if (!NRS.blocksLeft || NRS.blocksLeft < parseInt(lastNumBlocks / 2)) {
+        //         // downloadingBlockchain.find(".db_progress_total").hide();
+        //         NRS.isProgressTotalShow = false;
+        //
+        //     } else {
+        //         NRS.isProgressTotalShow = true;
+        //         // downloadingBlockchain.find(".db_progress_total").show();
+        //         // downloadingBlockchain.find(".db_progress_total .progress-bar").css("width", NRS.percentageTotal + "%");
+        //         // downloadingBlockchain.find(".db_progress_total .sr-only").html($.t("sso.percent_complete", {
+        //         //     "percent": NRS.percentageTotal
+        //         // }));
+        //     }
+        //     if (!NRS.blocksLeft || NRS.blocksLeft >= (lastNumBlocks * 2) || NRS.state.lastBlockchainFeederHeight <= lastNumBlocks) {
+        //         // downloadingBlockchain.find(".db_progress_last").hide();
+        //         NRS.isProgressLastShow = false;
+        //     } else {
+        //         NRS.isProgressLastShow = true;
+        //         // downloadingBlockchain.find(".db_progress_last").show();
+        //         // downloadingBlockchain.find(".db_progress_last .progress-bar").css("width", NRS.percentageLast + "%");
+        //         // downloadingBlockchain.find(".db_progress_last .sr-only").html($.t("sso.percent_complete", {
+        //         //     "percent": NRS.percentageLast
+        //         // }));
+        //     }
+        //     if (NRS.blocksLeft) {
+        //         NRS.isBlockOutLeft = true;
+        //         // downloadingBlockchain.find(".blocks_left_outer").show();
+        //         // downloadingBlockchain.find(".blocks_left").html($.t("sso.blocks_left", {"numBlocks": NRS.blocksLeft}));
+        //     }
         }
     };
 
@@ -1905,7 +1908,7 @@ var Sso = (function (NRS, $, undefined) {
         var id = $.trim($("#id_search").find("input[name=q]").val());
 
         // if (/NXT\-/i.test(id)) {
-        if (/SSA\-/i.test(id)) {
+        if (globalVar.projectReg.test(id)) {
             NRS.sendRequest("getAccount", {
                 "account": id
             }, function (response, input) {

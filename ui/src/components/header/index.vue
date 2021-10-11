@@ -2,8 +2,17 @@
     <header class="header">
         <div class="header_content pc">
             <div id="logo">
-                <a href="#" class="logo">
+                <a href="#" class="logo"  v-if="this.$global.projectName === 'mw'">
                     <img src="../../assets/img/logo.svg"/>
+                    <div @click="openCosUpgradeDialog()">
+                        <span v-if="isUpdate" title="Update" class="update"></span>
+                        <span v-if="openApiProxy">MW·<span style="color: #ccc;font-size: smaller;">Light</span></span>
+                        <span v-else>MW</span>
+                        <span>{{blockchainStatus.application}}{{$t('header.version')}}{{blockchainStatus.fullVersion}}</span>
+                    </div>
+                </a>
+                <a href="#" class="logo" v-else-if="this.$global.projectName === 'sharder'">
+                    <img src="../../assets/img/sharder/sharder-logo.svg"/>
                     <div @click="openCosUpgradeDialog()">
                         <span v-if="isUpdate" title="Update" class="update"></span>
                         <span v-if="openApiProxy">Sharder·<span style="color: #ccc;font-size: smaller;">Light</span></span>
@@ -25,11 +34,11 @@
 <!--                        {{$t('header.mining')}}-->
 <!--                    </el-menu-item>-->
                 </el-menu>
-<!--                <div class="navbar_console">-->
-<!--                    <el-button type="text" @click="goConsole">-->
-<!--                        <span class="console"></span>-->
-<!--                    </el-button>-->
-<!--                </div>-->
+                <div class="navbar_console" v-if="this.$global.projectName === 'sharder'">
+                    <el-button type="text" @click="goConsole">
+                        <span class="console"></span>
+                    </el-button>
+                </div>
                 <div class="navbar_search">
                     <div>
                         <input class="navbar_search_input" :class="activeSearch ? 'navbar_search_input_active' : ''"
@@ -107,7 +116,7 @@
 <!--                        <img src="../../assets/img/logo.svg"/>-->
                         <div @click="openCosUpgradeDialog()">
                             <span v-if="isUpdate" title="Update" class="update"></span>
-                            <span>Sharder</span>
+                            <span>MW</span>
                             <span>{{blockchainStatus.fullVersion}}</span>
                         </div>
                     </a>
@@ -189,7 +198,7 @@
                     <p v-if="lastBlockHeight">{{$t("account.the_latest_block")}} : {{lastBlockHeight}}</p>
                 </div>
                 <div class="download_block_progress">
-                    <el-progress color="rgba(73, 62, 218)" :text-inside="true" :stroke-width="18"
+                    <el-progress color="rgba(27,201,142)" :text-inside="true" :stroke-width="18"
                                  :percentage="percentageTotal"></el-progress>
                 </div>
             </div>
@@ -299,15 +308,15 @@
                 _this.selectLan = _this.language[value === 'cn'].label;
                 _this.selectLanValue = _this.language[value === 'cn'].value;
             }
-
-            this.getData();
-            this.getAccountInfo();
+            _this.getState();
+            _this.getData();
+            _this.getAccountInfo();
             _this.$global.getUserConfig(_this).then(res => {
                 _this.userConfig = res;
             });
 
-            let formData = new FormData();
-            formData.append("secretPhrase", _this.secretPhrase);
+            // let formData = new FormData();
+            // formData.append("secretPhrase", _this.secretPhrase);
             let config = {
                 headers: {
                     'Content-Type': 'multipart/form-data'
@@ -316,7 +325,7 @@
 
             if(SSO.accountInfo.balanceNQT/ 100000000 + SSO.accountInfo.frozenBalanceNQT / 100000000 < 20000){
 
-                _this.$http.post('/sharder?requestType=stopMining', formData, config).then(res => {
+                _this.$http.post('/sharder?requestType=stopMining', _this.signInfo(_this.secretPhrase), config).then(res => {
                     _this.forging = res.data;
                     // console.log("forging",_this.forging);
                 }).catch(err => {
@@ -324,7 +333,7 @@
                 });
             }
 
-            _this.$http.post('/sharder?requestType=getForging', formData, config).then(res => {
+            _this.$http.post('/sharder?requestType=getForging', _this.signInfo(_this.secretPhrase), config).then(res => {
                 _this.forging = res.data;
                 // console.log("forging",_this.forging);
             }).catch(err => {
@@ -333,6 +342,9 @@
         },
         mounted() {
             let _this = this;
+            setInterval(() => {
+                _this.getState();
+            }, SSO.downloadingBlockchain ? this.$global.cfg.topSpeedInterval : (this.$global.isOpenApiProxy() ? this.$global.cfg.slowInterval : this.$global.cfg.defaultInterval));
             setInterval(() => {
                 _this.getData();
             }, SSO.downloadingBlockchain ? this.$global.cfg.soonInterval : (this.$global.isOpenApiProxy() ? this.$global.cfg.slowInterval : this.$global.cfg.defaultInterval));
@@ -363,10 +375,13 @@
                 _this.$global.setBlockchainState(_this).then(res => {
                     _this.blockchainStatus = res.data;
 
-                    console.log('res.data',res.data)
+                    // console.log('res.data',res.data)
                     _this.blocksLeft = res.data.lastBlockchainFeederHeight - res.data.lastBlockHeight;
                     _this.percentageTotal =  parseInt(res.data.lastBlockHeight/res.data.lastBlockchainFeederHeight *10000)/100;
                     _this.lastBlockHeight = res.data.lastBlockchainFeederHeight;
+                    _this.isDownLoadingBlockchain = res.data.isDownloading;
+                    SSO.downloadingBlockchain = res.data.isDownloading;
+
                     _this.getLatestHubVersion();
                     /*if(_this.$global.isOpenConsole){
                         _this.$global.addToConsole("/sharder?requestType=getBlockchainStatus",'GET',res);
@@ -387,23 +402,35 @@
                     }*/
                     // SSO.addToConsole("/sharder?requestType=getPeers", 'GET', res.data, res);
                 });
-                // }
-                // _this.getLatestHubVersion();
-                _this.downloadingBlockChain();
             },
-            downloadingBlockChain(){
+            getState: function () {
                 const _this = this;
-                SSO.updateBlockchainDownloadProgress();
-                SSO.downloadingBlockchain = SSO.state.isDownloading;
-                _this.isDownLoadingBlockchain = SSO.state.isDownloading;
-                _this.isDownloadingState = SSO.isDownloadingState;
-                _this.percentageTotal = SSO.percentageTotal;
-                _this.blocksLeft = SSO.blocksLeft;
-                _this.lastBlockHeight = SSO.state.lastBlockchainFeederHeight;
+                _this.$global.setBlockchainState(_this).then(res => {
+                    _this.blockchainStatus = res.data;
+                    SSO.updateBlockchainDownloadProgress();
+                    SSO.downloadingBlockchain = _this.blockchainStatus.isDownloading;
+                    _this.isDownLoadingBlockchain = _this.blockchainStatus.isDownloading;
+                    _this.isDownloadingState = SSO.isDownloadingState;
+                    _this.blocksLeft = res.data.lastBlockchainFeederHeight - res.data.lastBlockHeight;
+                    _this.percentageTotal =  parseInt(res.data.lastBlockHeight/res.data.lastBlockchainFeederHeight *10000)/100;
+                    _this.lastBlockHeight = res.data.lastBlockchainFeederHeight;
+                    _this.getLatestHubVersion();
+                    /*if(_this.$global.isOpenConsole){
+                        _this.$global.addToConsole("/sharder?requestType=getBlockchainStatus",'GET',res);
+                    }*/
+                    // SSO.addToConsole("/sharder?requestType=getBlockchainStatus", 'GET', res.data, res);
+                });
+            },
+            signInfo: function (secret) {
+                let formData = new FormData();
+                let timestamp = Date.parse(new Date()).toString();
+                let signature = SSO.signBytes(converters.stringToHexString(timestamp), converters.stringToHexString(secret));
+                formData.append("signature", signature);
+                formData.append("message", timestamp);
+                return formData;
             },
             startForging: function (b, pwd) {
                 const _this = this;
-                let formData = new FormData();
                 let config = {
                     headers: {
                         'Content-Type': 'multipart/form-data'
@@ -416,11 +443,9 @@
                     if(SSO.accountInfo.balanceNQT/ _this.$global.unitValue + SSO.accountInfo.frozenBalanceNQT / _this.$global.unitValue < 133){
                         return _this.$message.error(_this.$t('notification.ss_not_enough'));
                     }
-
-                    formData.append("secretPhrase", SSO.secretPhrase);
-                    _this.$http.post("/sharder?requestType=startForging", formData, config).then(res => {
+                    _this.$http.post("/sharder?requestType=startForging", _this.signInfo(SSO.secretPhrase), config).then(res => {
                         if (!res.data.errorDescription) {
-                            _this.$http.post('/sharder?requestType=getForging', formData, config).then(res => {
+                            _this.$http.post('/sharder?requestType=getForging', _this.signInfo(SSO.secretPhrase), config).then(res => {
                                 _this.forging = res.data;
                                 // console.log("forging",_this.forging);
                             }).catch(err => {
@@ -438,10 +463,9 @@
                     _this.startForgingDialog = true;
                     _this.$store.state.mask = true;
                 } else {
-                    formData.append("secretPhrase", pwd);
-                    _this.$http.post("/sharder?requestType=startForging", formData, config).then(res => {
+                    _this.$http.post("/sharder?requestType=startForging", _this.signInfo(pwd), config).then(res => {
                         if (!res.data.errorDescription) {
-                            _this.$http.post('/sharder?requestType=getForging', formData, config).then(res => {
+                            _this.$http.post('/sharder?requestType=getForging', _this.signInfo(pwd), config).then(res => {
                                 _this.forging = res.data;
                                 // console.log("forging",_this.forging);
                             }).catch(err => {
@@ -637,21 +661,22 @@
     @import './style.scss';
 </style>
 <style scoped lang="scss" type="text/scss">
+@import '../../styles/css/vars.scss';
      @media only screen and (max-width: 780px) {
         .navbar_left /deep/ .el-menu--horizontal .el-menu-item:not(.is-disabled):focus, .el-menu--horizontal .el-menu-item:not(.is-disabled):hover {
-            border-bottom: 2px solid #3fb09a!important;
-            color: #3fb09a!important;
+            border-bottom: 2px solid $primary_color !important;
+            color: $primary_color !important;
         }
     }
 
     .el-select-dropdown {
         .el-select-dropdown__item.selected {
-            background-color: #493eda !important;
+            background-color: $primary_color !important;
             color: #fff !important;
         }
 
         .el-select-dropdown__item.selected.hover {
-            background-color: #493eda !important;
+            background-color: $primary_color !important;
             color: #fff !important;
         }
     }
@@ -664,7 +689,8 @@
 
     .download_blocks_loading {
         position: fixed;
-        z-index: 9;
+        z-index: 8888;
+
         right: 20px;
         top: 80px;
         width: 320px;
@@ -693,13 +719,13 @@
         left: 0;
         right: 0;
         z-index: 9999;
-        box-shadow: 1px 1px 10px #493eda;
+        box-shadow: 1px 1px 10px $primary_color;
 
         .modal-header {
             .modal-title {
                 text-align: center;
                 font-size: 16px;
-                color: #333;
+                color: #555;
                 font-weight: bold;
                 line-height: 60px;
             }
@@ -716,7 +742,7 @@
                 }
 
                 .found-new-version {
-                    color: #493eda;
+                    color: $primary_color;
                     font-weight: bold;
                 }
 

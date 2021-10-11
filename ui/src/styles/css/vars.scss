@@ -3,3 +3,49 @@ $sidebar-size: 260px;
 $grey: #dbe2e8;
 $white: #fff;
 $header-height: 60px;
+
+/**
+    projectName config
+    options:
+    - mw;
+    - sharder;
+ */
+$projectName: mw;
+
+$colors:(
+    // mw primary color
+    mw: #3fb09a,
+    mw_1f: #3fb09a1f,
+    mw_aa: #3fb09aaa,
+    mw_33: #3fb09a33,
+    mw_11: #3fb09a11,
+    mw_dd: #3fb09add,
+    mw_10: #3fb09a10,
+    // sharder primary color
+    sharder: #493EDA,
+    sharder_1f: #493EDA1f,
+    sharder_aa: #493EDAaa,
+    sharder_33: #493EDA33,
+    sharder_11: #493EDA11,
+    sharder_dd: #493EDAdd,
+    sharder_10: #493EDA10,
+);
+
+$primary_color: map-get($colors, $projectName);
+$primary_color_1f: map-get($colors, $projectName#{_1f});
+$primary_color_aa: map-get($colors, $projectName#{_aa});
+$primary_color_33: map-get($colors, $projectName#{_33});
+$primary_color_11: map-get($colors, $projectName#{_11});
+$primary_color_dd: map-get($colors, $projectName#{_dd});
+$primary_color_10: map-get($colors, $projectName#{_10});
+
+:export {
+    primary_color: $primary_color;
+    primary_color_1f: $primary_color_1f;
+    primary_color_aa: $primary_color_aa;
+    primary_color_33: $primary_color_33;
+    primary_color_11: $primary_color_11;
+    primary_color_dd: $primary_color_dd;
+    primary_color_10: $primary_color_10;
+    projectName: $projectName;
+}

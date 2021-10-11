@@ -1,6 +1,6 @@
 <template>
     <div class="container_login">
-        <div class="content">
+        <div class="content" v-if="this.$global.projectName === 'mw'">
             <div class="content_message">
                 <div><a>{{$t('login.login_tip0')}}</a><br/></div>
                 <div><a>{{$t('login.login_tip1')}}</a><br/></div>
@@ -12,7 +12,8 @@
             <el-col :span="24">
                 <el-dropdown trigger="click"  @command="languageChange">
                         <span  class="el-dropdown-link" >
-                            <a>{{$t('login.language')}}</a><img src="../../assets/img/arrow.svg"/>
+                            <a>{{$t('login.language')}}</a>
+                            <img src="../../assets/img/arrow.svg"/>
                         </span>
                     <el-dropdown-menu slot="dropdown">
                         <el-dropdown-item command="cn">中文</el-dropdown-item>
@@ -32,6 +33,38 @@
            </div>
         </div>
 
+        <div class="content-sharder" v-else-if="this.$global.projectName === 'sharder'">
+            <div class="content_message">
+                <div><a>{{$t('login.login_tip0')}}</a><br/></div>
+                <div><a>{{$t('login.login_tip1')}}</a><br/></div>
+                <div><a>{{$t('login.login_tip2')}}</a><br/></div>
+                <div><a>{{$t('login.login_tip3')}}</a><br/></div>
+                <div><a>{{$t('login.login_tip4')}}</a></div>
+            </div>
+
+            <el-col :span="24">
+                <el-dropdown trigger="click"  @command="languageChange">
+                        <span  class="el-dropdown-link" >
+                            <a>{{$t('login.language')}}</a>
+                            <img src="../../assets/img/sharder/arrow.svg" />
+                        </span>
+                    <el-dropdown-menu slot="dropdown">
+                        <el-dropdown-item command="cn">中文</el-dropdown-item>
+                        <el-dropdown-item command="en">English</el-dropdown-item>
+                    </el-dropdown-menu>
+                </el-dropdown>
+            </el-col>
+
+            <el-col :span="24" class="sharder_style">
+                <img src="../../assets/img/sharder/sharder-logo.svg"/>
+            </el-col>
+
+           <div class="content_operation">
+               <div class="content_container">
+                   <router-view />
+               </div>
+           </div>
+        </div>
 
     </div>
 </template>

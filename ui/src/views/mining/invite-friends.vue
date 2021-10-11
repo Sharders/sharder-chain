@@ -27,7 +27,8 @@
                 </div>
             </div>
             <div class="qr">
-                <img src="../../assets/img/account.svg" class="img-qr">
+                <img src="../../assets/img/account.svg" class="img-qr" v-if="$global.projectName === 'mw'">
+                <img src="../../assets/img/sharder/account.svg" class="img-qr" v-else-if="$global.projectName === 'sharder'">
                 <p>{{$t('mining.invite_friends.qr_tip1')}}</p>
             </div>
             <p class="about">
@@ -69,7 +70,8 @@
     }
 </script>
 
-<style scoped>
+<style scoped type="text/scss" lang="scss">
+@import '../../styles/css/vars.scss';
     .invite-friends {
         background: #fff;
         text-align: center;
@@ -85,11 +87,11 @@
         font-size: 27px;
         font-weight: bold;
         padding: 20px 0 15px;
-        color: #3fb09a;
+        color: $primary_color;
     }
 
     .invite .info {
-        color: #3fb09a;
+        color: $primary_color;
         font-size: 12px;
         margin: 0 0 5px 0;
         text-align: left;
@@ -99,7 +101,7 @@
     .invite .code, .invite .qr {
         width: calc(100% - 50px);
         margin: auto;
-        background: #3fb09a;
+        background: $primary_color;
         color: #fff;
         border-radius: 4px;
     }
@@ -125,7 +127,7 @@
         width: 140px;
         border-radius: 20px;
         background: #fff;
-        color: #3fb09a;
+        color: $primary_color;
         font-size: 15px;
         font-weight: bold;
         margin: 25px 0;
@@ -180,7 +182,7 @@
 
     .invite .about {
         font-size: 11px;
-        color: #3fb09a;
+        color: $primary_color;
         padding: 0 0 30px 0;
     }
 

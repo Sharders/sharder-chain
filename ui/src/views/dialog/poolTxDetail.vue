@@ -76,9 +76,9 @@
                amountNQT =new BigNumber(amountNQT).dividedBy("100000000").toFixed();
 
                if (subtype===2 || subtype===0) {
-                   return "-"+amountNQT + " SS";
+                   return "-"+amountNQT + " MW";
                } else if (subtype===1 || subtype===3){
-                   return "+" + amountNQT + " SS";
+                   return "+" + amountNQT + " MW";
                }
            },
             parseSubTypePool(subtype) {
@@ -101,7 +101,8 @@
     }
 </script>
 
-<style scoped>
+<style scoped type="text/scss" lang="scss">
+@import '../../styles/css/vars.scss';
     .poolTxDetail {
         padding: 10px;
     }
@@ -123,7 +124,7 @@
     }
 
     .poolTxDetail .template .content {
-        box-shadow: 1px 1px 10px #3fb09a;
+        box-shadow: 1px 1px 10px $primary_color;
         border-radius: 4px;
     }
 </style>

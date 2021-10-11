@@ -1,3 +1,5 @@
+import {projectName,pattern} from "./common";
+
 /**
  * must required field
  * @param message tips
@@ -69,8 +71,8 @@ function integer(message) {
 }
 
 /**
- * 校验SS地址 validate SS address
- * @param m1 SS Address Format Error
+ * 校验MW/Sharder地址 validate MW/Sharder address
+ * @param m1 MW/Sharder Address Format Error
  * @param m2 Required
  * @returns {{validator: validator, required: boolean}}
  */
@@ -78,12 +80,11 @@ function ssAddress(m1, m2) {
     return {
         required: true,
         validator: (rule, value, callback) => {
-            const reg = /SSA-([A-Z0-9]{4}-){3}[A-Z0-9]{5}/;
             if (value) {
-                if (reg.test(value)) {
+                if (pattern.test(value)) {
                     callback();
                 } else {
-                    callback(new Error(m1 ? m1 : 'SS Address Format Error'));
+                    callback(new Error(m1 ? m1 : 'Address Format Error'));
                 }
             } else {
                 callback(new Error(m2 ? m2 :'Required'));

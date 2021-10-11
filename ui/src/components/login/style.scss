@@ -1,3 +1,4 @@
+@import '../../styles/css/vars.scss';
 .container_login{
     position: absolute;
     top: 0;
@@ -8,7 +9,7 @@
     background: url("../../../static/sso/img/background-login.svg") ;
     a{
         font-family: "Microsoft YaHei";
-        color: #493eda;
+        color: $primary_color;
         text-align: center;
     }
     .content{
@@ -19,6 +20,65 @@
         .content_operation{
             background: url("../../assets/img/logo-lan.png") no-repeat 20px 20px;
             height: 530px;
+            background-color: #fff;
+            box-shadow: 0.5px 0.5px 5px 2px #e7e7e7;
+            border-radius:3px;
+            .content_container{
+                margin: 0 auto;
+                width: 510px;
+            }
+        }
+        .el-dropdown-link {
+            cursor: pointer;
+            font-size: 14px;
+            outline: none;
+            img{
+                margin-left: 10px;
+                vertical-align: middle;
+            }
+        }
+        .el-dropdown{
+            float: right;
+            margin: 30px 30px;
+        }
+        .sharder_style{
+            margin: 30px auto;
+            font-size: 16px;
+            text-align: center;
+            img{
+                width:150px;
+            }
+        }
+        .content_message{
+            background-color: #fff;
+            box-shadow: 0.5px 0.5px 5px 2px #e7e7e7;
+            border-radius:4px;
+            height: 150px;
+            margin-bottom: 20px;
+            text-align:center;
+            overflow:auto;
+            > div:first-child{
+                margin-top: 2%;
+                margin-bottom: 1%;
+            }
+            > div{
+                margin-bottom: 3px;
+                a{
+                    color: #ff0f0f;
+                    font-size: 15px;
+                }
+            }
+        }
+    }
+
+    .content-sharder{
+        width: 600px;
+        height: 640px;
+        margin:auto;
+        padding-top: 40px;
+        .content_operation{
+            background: url("../../assets/img/sharder/logo-lan.png") no-repeat 20px 20px;
+            height: 580px;
             background-color: #fff;
             box-shadow: 0.5px 0.5px 5px 2px #e7e7e7;
             border-radius:3px;

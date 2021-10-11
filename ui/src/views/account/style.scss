@@ -1,3 +1,4 @@
+@import '../../styles/css/vars.scss';
 .block_account {
     .w {
         background: #fff;
@@ -7,7 +8,7 @@
 
         .account_address {
             //margin-left: 112px;
-            color: #493eda;
+            color: $primary_color;
             font: {
                 size: 18px;
                 family: "Microsoft YaHei UI";
@@ -35,12 +36,12 @@
             cursor:pointer;
             padding-top: 20px;
             font-weight: bold;
-            color: #493eda;
+            color: $primary_color;
             font-size: 14px;
         }
         .account_asset {
             margin-top: 20px;
-            color: #333;
+            color: #555;
             font: {
                 size: 24px;
                 family: "Microsoft YaHei UI";
@@ -88,8 +89,8 @@
                 height: 28.5px;
                 //margin-left: 20px;
                 background: transparent;
-                border: 1px solid #493eda;
-                padding: 0 15px 0 0;
+                border: 1px solid $primary_color;
+                padding: 5px 15px 5px 5px;
                 text-align: center;
             }
         }
@@ -104,14 +105,14 @@
             cursor: pointer;
             font-size: 13px;
             padding: 5px 10px;
-            border: 0.5px solid #493eda;
+            border: 0.5px solid $primary_color;
             border-radius: 4px;
             margin-right: 10px;
             height: 28px;
         }
 
         .active {
-            background: #493eda;
+            background: $primary_color;
             color: #fff;
         }
     }
@@ -217,7 +218,7 @@
                         }
 
                         .el-input__inner:focus {
-                            border-color: #493eda;
+                            border-color: $primary_color;
                         }
                     }
 
@@ -263,6 +264,155 @@
 
         }
     }
+    .pocScore-detail {
+        .primary-color-address {
+            color: $primary_color;
+        }
+    }
+}
+
+#assets_across_chains_modal{
+    width: 750px;
+
+    ul {
+        list-style-type: none;
+    }
+    .tab {
+        width:500px;
+        margin: 10px auto
+    }
+    a {
+        text-decoration: none;
+    }
+    a:link{text-decoration: none;color: gray}
+
+    a:active{text-decoration:blink}
+
+    a:hover{color:#3fb09a}
+
+    a:visited{text-decoration: none;color:#000}
+
+    .title li{
+        display: inline-block;
+        // border: 1px solid rgb(158, 158, 158);
+        background:  #ffffff;
+        text-align: center;
+        width: 80px;
+        height: 30px;
+        line-height: 30px;
+        margin-right: -5px;
+        color: #000;
+        cursor:pointer;
+        border: 1px solid #DCDFE6;
+        border-radius: 4px 0 0 4px;
+    }
+    .title .active{
+        background:  #3fb09a;
+        a:hover{color :#ffffff};
+        color :#ffffff;
+    }
+    #content{
+        margin-top: 20px;
+        width: 100%;
+        height: 340px;
+    }
+
+    .modal-footer{
+        font-size: 14px;
+        line-height: 20px;
+    }
+
+    .input__rate{
+        width: 40%;
+        height: 40px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        line-height: 40px;
+        outline: 0;
+        padding: 0 15px;
+        margin-top: 0;
+        background-color: #FFF;
+        background-image: none;
+        box-sizing: border-box;
+        color: #606266;
+        display: inline-block;
+        font-size: inherit;
+    }
+
+    .input__mw{
+        width: 30%;
+        height: 40px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        line-height: 40px;
+        outline: 0;
+        padding: 0 15px;
+        margin-top: 0;
+        background-color: #FFF;
+        background-image: none;
+        box-sizing: border-box;
+        color: #606266;
+        display: inline-block;
+        font-size: inherit;
+    }
+
+    .input__heco{
+        width: 30%;
+        height: 40px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        line-height: 40px;
+        padding: 0 15px;
+        background-color: #FFF;
+        background-image: none;
+        box-sizing: border-box;
+        color: #606266;
+        display: inline-block;
+        font-size: inherit;
+        position: absolute;
+        right: 137px;
+    }
+
+    .input_unit{
+        position: absolute;
+        left: 193px;
+        color: #555;
+        line-height: 40px;
+        background: none;
+        border: none;
+        font-size: 14px;
+    }
+
+    .input_hecoUnit{
+        position: absolute;
+        right: 152px;
+        color: #555;
+        line-height: 40px;
+        background: none;
+        border: none;
+        font-size: 14px;
+    }
+
+    .input__equals{
+        position: absolute;
+        margin:0px 65px;
+        font-size: 30px;
+        line-height: 40px;
+    }
+
+    .input_exchange{
+        position: absolute;
+        right: 40px;
+        width: 100px;
+        background: #3fb09a;
+        color:#000;
+    }
+}
+
+.modal-hidden{
+    background: #efefef;
+    -moz-opacity:0.9;
+    opacity:0.9;
 }
 
 #send_message_modal {
@@ -285,4 +435,84 @@
         margin: 0 15px;
         height: 400px;
     }
+
+    .exchange {
+        display: none;
+    }
 }
+
+// .st0{fill:#FFFFFF;}
+.st0{fill:#3FB09A;}
+
+.writeBtn:hover{
+    .st0{
+        fill:#FFFFFF;
+    }
+}
+
+.st1{fill:none;}
+
+#showChain{
+    top:100px;
+    z-index: 10000;
+    height: 210px;
+    width: 600px;
+    color: #000;
+
+    .content{
+        text-align: center;
+        margin-top: 80px;
+        margin-bottom: 50px;
+    }
+
+    .modal-footer{
+        position: relative;
+    }
+
+    .sureButton{
+        position:absolute;
+        left: 100px;
+    }
+
+    .cancelButton{
+        position:absolute;
+        right: 100px;
+    }
+
+}
+
+.address{
+    a {
+        text-decoration: none;
+    }
+    a:link{text-decoration: none;color: gray}
+
+    a:active{text-decoration:blink}
+
+    a:hover{color:#3fb09a}
+
+    a:visited{text-decoration: none;color:#000}
+}
+
+#acrossChains_rate_mw{
+    width: 50%;
+}
+
+#acrossChains_rate_heco{
+    width: 50%;
+}
+
+#transfer_accounts_modal{
+    z-index: 100000;
+}
+
+#exchangeSelectType{
+    min-width: 80px;
+    margin-left: 8px;
+}
+
+.disabledExchangeBtn{
+    display: none;
+}
+
+

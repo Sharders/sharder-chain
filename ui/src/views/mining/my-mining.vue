@@ -20,18 +20,21 @@
                             </div>
                             <div class="tag">
                                 <p>
-                                    <img src="../../assets/img/kuangchisouyi.png">
+                                    <img src="../../assets/img/kuangchisouyi.png" v-if="$global.projectName === 'mw'">
+                                    <img src="../../assets/img/sharder/kuangchisouyi.png" v-else-if="$global.projectName === 'sharder'">
                                     <span>{{$t('mining.index.pool_income') + $global.getAmountFormat(mining.earnings)}}</span>
                                 </p>
                                 <p>
-                                    <img src="../../assets/img/kuagnchifhenpei.png">
+                                    <img src="../../assets/img/kuagnchifhenpei.png" v-if="$global.projectName === 'mw'">
+                                    <img src="../../assets/img/sharder/kuagnchifhenpei.png" v-else-if="$global.projectName === 'sharder'">
                                     <span>
                                         {{$t('mining.index.Income_distribution')}}
                                         {{(1 - mining.distribution)*100}}%
                                     </span>
                                 </p>
                                 <p>
-                                    <img src="../../assets/img/kuangchishenyu.png">
+                                    <img src="../../assets/img/kuangchishenyu.png" v-if="$global.projectName === 'mw'">
+                                    <img src="../../assets/img/sharder/kuangchishenyu.png" v-else-if="$global.projectName === 'sharder'">
                                     <span>{{$t('mining.index.remaining_mining')}}{{mining.remaining}}</span>
                                 </p>
                             </div>
@@ -53,18 +56,21 @@
                             </div>
                             <div class="tag">
                                 <p>
-                                    <img src="../../assets/img/kuangchisouyi.png">
+                                    <img src="../../assets/img/kuangchisouyi.png" v-if="$global.projectName === 'mw'">
+                                    <img src="../../assets/img/sharder/kuangchisouyi.png" v-else-if="$global.projectName === 'sharder'">
                                     <span>{{$t('mining.index.pool_income') + $global.getAmountFormat(mining.earnings)}}</span>
                                 </p>
                                 <p>
-                                    <img src="../../assets/img/kuagnchifhenpei.png">
+                                    <img src="../../assets/img/kuagnchifhenpei.png" v-if="$global.projectName === 'mw'">
+                                    <img src="../../assets/img/sharder/kuagnchifhenpei.png" v-else-if="$global.projectName === 'sharder'">
                                     <span>
                                         {{$t('mining.index.Income_distribution')}}
                                         {{(1 - mining.distribution)*100}}%
                                     </span>
                                 </p>
                                 <p>
-                                    <img src="../../assets/img/kuangchishenyu.png">
+                                    <img src="../../assets/img/kuangchishenyu.png" v-if="$global.projectName === 'mw'">
+                                    <img src="../../assets/img/sharder/kuangchishenyu.png" v-else-if="$global.projectName === 'sharder'">
                                     <span>{{$t('mining.index.remaining_mining')}}{{mining.remaining}}</span>
                                 </p>
                             </div>
@@ -143,7 +149,8 @@
         }
     }
 </script>
-<style>
+<style scoped type="text/scss" lang="scss">
+@import '../../styles/css/vars.scss';
     .my-mining .tabs .el-radio-button__inner {
         width: 100%;
         border: none;
@@ -155,14 +162,14 @@
     }
 
     .my-mining .tabs .is-active .el-radio-button__inner {
-        color: #3fb09a;
+        color: $primary_color;
     }
 
     .my-mining .tabs .btn.is-active:after {
         content: "";
         display: inline-block;
         position: absolute;
-        background: #3fb09a;
+        background: $primary_color;
         top: 30px;
         width: 60px;
         height: 4px;
@@ -207,7 +214,7 @@
         width: 33%;
         display: inline-block;
         text-align: center;
-        background: #3fb09a;
+        background: $primary_color;
         color: #fff;
         border-bottom-left-radius: 6px;
         border-top-left-radius: 6px;
@@ -241,7 +248,7 @@
     }
 
     .mining-list.create + .history {
-        color: #3fb09a;
+        color: $primary_color;
         cursor: pointer;
     }
 

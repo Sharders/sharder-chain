@@ -2,7 +2,9 @@
     <div class="content_enter">
 
         <el-col :span="24" class="tip">
-            <a>{{$t('enter.enter_tip')}}</a>
+            <a class="text">{{$t('enter.enter_tip')}}</a>
+            <a v-if="address!=null" class="address">{{ address }}</a>
+            <a v-if="address==null" class="warning">{{$t('enter.address_is_null')}}</a>
         </el-col>
 
         <el-col :span="24" class="input">
@@ -28,6 +30,7 @@
                     maxRows: 4
                 },
                 passphrase: this.$route.params.passPhrase,
+                address: this.$route.params.address,
                 confirmPassphrase: ''
             };
         },
@@ -39,10 +42,11 @@
             },
             enter: function () {
                 let _this = this;
+                _this.confirmPassphrase = _this.$global.trimAll(_this.confirmPassphrase);
                 if (_this.confirmPassphrase === "") {
                     return _this.$message.info(_this.$t('notification.login_no_input_error'));
                 }
-                if (_this.confirmPassphrase !== _this.passphrase) {
+                if (_this.confirmPassphrase != _this.passphrase) {
                     return _this.$message.error(_this.$t('login.incorrect_key'));
                 }
                 SSO.secretPhrase = _this.passphrase;

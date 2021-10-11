@@ -118,7 +118,8 @@
     }
 </script>
 
-<style scoped>
+<style scoped type="text/scss" lang="scss">
+@import '../../styles/css/vars.scss';
     .mining-back {
         z-index: 9;
     }
@@ -167,7 +168,7 @@
     }
 
     .input-div .resend {
-        color: #3fb09a;
+        color: $primary_color;
         cursor: pointer;
         display: inline-block;
     }
@@ -185,8 +186,8 @@
         outline: none;
         font-size: 22px;
         font-weight: bold;
-        color: #3fb09a;
-        border-bottom: 1px solid #3fb09a;
+        color: $primary_color;
+        border-bottom: 1px solid $primary_color;
     }
 
     .binding .btn button {
@@ -194,7 +195,7 @@
         border-radius: 4px;
         border: none;
         outline: none;
-        background: #3fb09a;
+        background: $primary_color;
         color: #fff;
         height: 45px;
         width: 100%;
@@ -203,7 +204,7 @@
     }
 
     .binding .btn button:active {
-        background: #3fb09aaa;
+        background: $primary_color_aa;
     }
 
     .validation {
