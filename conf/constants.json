@@ -1,0 +1,83 @@
+{
+  "height": {
+    "BURN_OPENING_HEIGHT_IS_MAINNET": 10,
+    "BURN_OPENING_HEIGHT_NOT_MAINNET": -1,
+    "MIN_EXISTENCE_HEIGHT": 100,
+    "POC_BLOCK_HEIGHT": 0,
+    "POC_LEDGER_RESET_HEIGHT_IS_TESTNET": -1,
+    "POC_LEDGER_RESET_HEIGHT_NOT_TESTNET": -1,
+    "POC_SCORE_CHANGE_HEIGHT": -1,
+    "SHUFFLING_BLOCK_HEIGHT": 0,
+    "POOL_OPENING_HEIGHT_IS_MAINNET": -1,
+    "POOL_OPENING_HEIGHT_NOT_MAINNET": -1,
+    "SHARDER_POOL_JOIN_TX_VALIDATION_HEIGHT_IS_DEVNET": 1,
+    "SHARDER_POOL_JOIN_TX_VALIDATION_HEIGHT_IS_TESTNET": 300,
+    "SHARDER_POOL_JOIN_TX_VALIDATION_HEIGHT_IS_MAINNET": 1,
+    "COINBASE_CROWD_MINER_OPEN_HEIGHT_IS_MAINNET": 0,
+    "COINBASE_CROWD_MINER_OPEN_HEIGHT_NOT_MAINNET": 0,
+    "PHASING_BLOCK_HEIGHT": 2147483647,
+    "NETWORK_STABLE_PHASE_IS_DEVNET": 5,
+    "NETWORK_STABLE_PHASE_IS_TESTNET": 2008,
+    "NETWORK_STABLE_PHASE_IS_MAINNET": 2008,
+    "NETWORK_ROBUST_PHASE_IS_DEVNET": 10,
+    "NETWORK_ROBUST_PHASE_IS_TESTNET": 11111,
+    "NETWORK_ROBUST_PHASE_IS_MAINNET": 15000,
+    "LAST_KNOWN_BLOCK_NOT_MAINNET": 3,
+    "LAST_KNOWN_BLOCK_IS_MAINNET": 2,
+    "NONE_PUBLICKEY_ACTIVE_HEIGHT": 17200,
+    "BLOCK_REWARD_VERIFY_HEIGHT_IS_DEVNET": 10,
+    "BLOCK_REWARD_VERIFY_HEIGHT_ID_TESTNET": 18000,
+    "MINER_REMOVE_HEIGHT": 16200,
+    "HECO_HEIGHT": 19500
+  },
+  "basic": {
+    "COIN_UNIT": "SS",
+    "PROJECT_NAME": "ss",
+    "APPLICATION": "COS",
+    "FOUNDATION_URL": "sharder.org",
+    "FOUNDATION_TEST_URL": "test.sharder.org",
+    "SERIAL_NUM": "",
+    "PERMISSION_MODE": true
+  },
+  "feature": {
+    "OPEN_HOLDINGS_COIN_API": true
+  },
+  "port": {
+    "DEFAULT_PEER_PORT": 3218,
+    "DEFAULT_API_PORT": 8215,
+    "DEFAULT_API_SSL_PORT": 8217,
+    "DEVNET_PEER": 9219,
+    "DEVNET_API": 9216,
+    "DEVNET_API_SSL": 9218,
+    "TESTNET_PEER": 7219,
+    "TESTNET_API": 7216,
+    "TESTNET_API_SSL": 7218,
+    "MAINNET_PEER": 3219,
+    "MAINNET_API": 3216,
+    "MAINNET_API_SSL": 3218
+  },
+  "networkType": {
+    "DEVNET": "dev",
+    "TESTNET": "alpha",
+    "MAINNET": "beta"
+  },
+  "bootNodeHost": {
+    "MAIN": [
+      "boot.sharder.io"
+    ],
+    "TEST": [
+      "testboot.sharder.io",
+      "testna.sharder.io",
+      "testnb.sharder.io"
+    ],
+    "DEV": [
+      "devboot.sharder.io"
+    ]
+  },
+  "acrossChains": {
+    "EXCHANGE_HEIGHT": 10000,
+    "OPEN_BUTTON": true,
+    "MGR_URL_DEV": "http://127.0.0.1:8080/api/front/acrossChain/",
+    "MGR_URL": "https://sharder.org/api/front/acrossChain/"
+  }
+}
