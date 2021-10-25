@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="14" height="14" viewBox="0 0 14 14">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #493eda;
+      }
+
+      .cls-1, .cls-3 {
+        stroke: #fff;
+        stroke-width: 0.4px;
+      }
+
+      .cls-2 {
+        clip-path: url(#clip-path);
+      }
+
+      .cls-3 {
+        fill: none;
+      }
+    </style>
+    <clipPath id="clip-path">
+      <rect id="矩形_8001" data-name="矩形 8001" class="cls-1" width="14" height="14" transform="translate(967 227)"/>
+    </clipPath>
+  </defs>
+  <g id="蒙版组_1166" data-name="蒙版组 1166" class="cls-2" transform="translate(-967 -227)">
+    <g id="add-box-line" transform="translate(967 227)">
+      <path id="路径_14476" data-name="路径 14476" class="cls-3" d="M0,0H14V14H0Z"/>
+      <path id="路径_14477" data-name="路径 14477" class="cls-1" d="M2.333,1.75h9.333a.583.583,0,0,1,.583.583v9.333a.583.583,0,0,1-.583.583H2.333a.583.583,0,0,1-.583-.583V2.333A.583.583,0,0,1,2.333,1.75Zm.583,1.167v8.167h8.167V2.917Zm3.5,3.5V4.083H7.583V6.417H9.917V7.583H7.583V9.917H6.417V7.583H4.083V6.417Z"/>
+    </g>
+  </g>
+</svg>

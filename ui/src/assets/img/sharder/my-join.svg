@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="14" height="14" viewBox="0 0 14 14">
+  <defs>
+    <style>
+      .cls-1, .cls-4 {
+        fill: #493eda;
+      }
+
+      .cls-1 {
+        stroke: #707070;
+      }
+
+      .cls-2 {
+        clip-path: url(#clip-path);
+      }
+
+      .cls-3 {
+        fill: none;
+      }
+    </style>
+    <clipPath id="clip-path">
+      <rect id="矩形_7722" data-name="矩形 7722" class="cls-1" width="14" height="14" transform="translate(224 639)"/>
+    </clipPath>
+  </defs>
+  <g id="蒙版组_1078" data-name="蒙版组 1078" class="cls-2" transform="translate(-224 -639)">
+    <g id="account-circle-fill" transform="translate(224 639)">
+      <path id="路径_45" data-name="路径 45" class="cls-3" d="M0,0H14V14H0Z"/>
+      <path id="路径_46" data-name="路径 46" class="cls-4" d="M7,1.167A5.833,5.833,0,1,1,1.167,7,5.835,5.835,0,0,1,7,1.167ZM3.513,8.993a4.362,4.362,0,0,0,3.58,2.091,4.36,4.36,0,0,0,3.579-2.091,5.251,5.251,0,0,0-7.159,0ZM7,6.417a1.75,1.75,0,1,0-1.75-1.75A1.75,1.75,0,0,0,7,6.417Z"/>
+    </g>
+  </g>
+</svg>
