@@ -33,6 +33,7 @@ DestroyedPools
 logs
 sharder_db
 sharder_test_db
+sharder_test_db*
 bak/
 ARCHIVE/
 archive/
