@@ -43,8 +43,8 @@ public class BaseTest {
         final byte[] publicKey = Crypto.getPublicKey(secretPhrase);
         long accountId = Account.getId(secretPhrase);
         System.out.println("account summary >>");
-        System.out.println("accountId=" + accountId);
-        System.out.println("rsAccount=" + Account.rsAccount(accountId));
+        System.out.println("Id=" + accountId);
+        System.out.println("Addr=" + Account.rsAccount(accountId));
         System.out.println("publicKey[byte]=" + Arrays.toString(publicKey));
         System.out.println("publicKey[hex]=" + Convert.toHexString(publicKey));
 

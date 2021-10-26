@@ -16,8 +16,8 @@ public class RewardCalculatorDefault extends RewardCalculator {
      * NOTE: Mining Reward = Block Reward - Crowd Miner Reward
      */
     private enum RewardDef {
-        BLOCK_REWARD(1333 * Constants.ONE_SS),
-        CROWD_MINERS_REWARD(667 * Constants.ONE_SS),
+        BLOCK_REWARD(180*Constants.ONE_SS),
+        CROWD_MINERS_REWARD(1 * Constants.ONE_SS),
         STABLE_PHASE_BLOCK_REWARD(1 * Constants.ONE_SS),
         STABLE_PHASE_CROWD_MINERS_REWARD(1 * Constants.ONE_SS / 2);
 

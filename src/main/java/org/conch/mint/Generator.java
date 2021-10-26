@@ -1080,7 +1080,7 @@ public class Generator implements Comparable<Generator> {
                 //Logger.logDebugMessage("\n\rTotal Bad Hardware Score detail is \n\r" + badHardwareScoreStr);
             }
 
-            if(lastBlock.getHeight() >= Constants.MINER_REMOVE_HIGHT){
+            if(lastBlock.getHeight() >= Constants.MINER_REMOVE_HEIGHT){
                 for(Iterator<ActiveGenerator> it = generatorList.iterator(); it.hasNext();){
                     ActiveGenerator activeGenerator = it.next();
                     boolean isInTx = Db.db.isInTransaction();
