@@ -1995,7 +1995,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         try {
             isProcessingBlock = true;
 
-            if(block.getHeight() >= Constants.MINER_REMOVE_HIGHT){
+            if(block.getHeight() >= Constants.MINER_REMOVE_HEIGHT){
                 checkMiner(block);
             }
 
