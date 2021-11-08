@@ -756,9 +756,9 @@ public abstract class RewardCalculator {
 
     public static String getMiningPhase(int height){
         if(height <= NETWORK_STABLE_HEIGHT) {
-            return MiningPhase.MINER_JOIN_PHASE.name();
+            return MiningPhase.MINER_JOIN_PHASE.name() + "(less than " + NETWORK_STABLE_HEIGHT + ")";
         }
-        return MiningPhase.PUBLIC_MINING_PHASE.name();
+        return MiningPhase.PUBLIC_MINING_PHASE.name() + "(bigger than " + NETWORK_STABLE_HEIGHT + ")";
     }
 
     public static boolean applyUnconfirmedReward(TransactionImpl transaction) {
