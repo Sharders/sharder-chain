@@ -61,14 +61,15 @@ public abstract class RewardCalculator {
         RewardDef(long amount) {
             this.amount = amount;
         }
+
     }
 
     /**
      * Mining phases
      */
     private enum MiningPhase {
-        MINER_JOIN,
-        PUBLIC_MINING;
+        MINER_JOIN_PHASE,
+        PUBLIC_MINING_PHASE;
     }
 
     public static RewardCalculator newInstance () {
@@ -755,9 +756,9 @@ public abstract class RewardCalculator {
 
     public static String getMiningPhase(int height){
         if(height <= NETWORK_STABLE_HEIGHT) {
-            return MiningPhase.MINER_JOIN.name();
+            return MiningPhase.MINER_JOIN_PHASE.name();
         }
-        return MiningPhase.PUBLIC_MINING.name();
+        return MiningPhase.PUBLIC_MINING_PHASE.name();
     }
 
     public static boolean applyUnconfirmedReward(TransactionImpl transaction) {
