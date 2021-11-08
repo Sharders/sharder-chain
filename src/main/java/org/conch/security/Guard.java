@@ -192,7 +192,10 @@ public class Guard {
         if (ip == null) {
             return false;
         }
-          byte[] addr = IPAddressUtil.textToNumericFormatV4(ip);
+        byte[] addr = IPAddressUtil.textToNumericFormatV4(ip);
+        if(addr == null || addr.length == 0){
+            return false;
+        }
         return internalIp(addr);
     }
 
@@ -321,7 +324,8 @@ public class Guard {
 
     public static void viciousAccess(String host) {
         if ("127.0.0.1".equals(host)
-                || "localhost".equals(host) || internalIp(host)) {
+            || "localhost".equals(host)
+            || internalIp(host)) {
             // don't guard the local request
             return;
         }
