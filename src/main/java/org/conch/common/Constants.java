@@ -304,10 +304,11 @@ public final class Constants {
 
     public static final String MW_CHAIN = "mw";
     public static final String SHARDER_CHAIN = "sharder";
+    public static final String SS_CHAIN = "ss";
     public static String ACCOUNT_PREFIX = "SSA-"; //account prefix
-    //OSS
+    // OSS: be set in the 'Constants#static'
     public static String OSS_PREFIX = "none";
-    // airdrop
+    // Airdrop
     public static final JSONObject airdropJsonObj = loadAirdropSettings() == null ? new JSONObject() :
             loadAirdropSettings();
 
@@ -332,6 +333,7 @@ public final class Constants {
                 ACCOUNT_PREFIX = "CDW-";
                 break;
             case SHARDER_CHAIN:
+            case SS_CHAIN:
                 rewardCalculatorInstance = new RewardCalculatorDefault();
                 ACCOUNT_PREFIX = "SSA-";
                 OSS_PREFIX = "https://ss-cn.oss-cn-zhangjiakou.aliyuncs.com/";
