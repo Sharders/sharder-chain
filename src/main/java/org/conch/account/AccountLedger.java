@@ -884,7 +884,7 @@ public class AccountLedger {
             boolean insertNew = true;
             if(Constants.updateHistoryRecord()){
                 PreparedStatement pstmt = con.prepareStatement("SELECT db_id, height FROM account_ledger"
-                        + " WHERE account_id=? AND latest = TRUE ORDER BY height DESC LIMIT 1");
+                        + " WHERE account_id=? ORDER BY height DESC LIMIT 1");
                 pstmt.setLong(1, this.accountId);
 
                 ResultSet queryRS = pstmt.executeQuery();

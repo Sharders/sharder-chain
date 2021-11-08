@@ -2195,7 +2195,7 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
         return previousBlock;
     }
 
-    private static long QUALIFIED_CROWD_MINER_HOLDING_AMOUNT_MIN = 32*133L; // 1T-133MW
+    private static long QUALIFIED_CROWD_MINER_HOLDING_AMOUNT_MIN = 32*133L; // 1T-133 SS
 
     /**
      * 条件检查的时间点： 在区块确认时，针对转账交易进行检查
@@ -2623,10 +2623,10 @@ public final class BlockchainProcessorImpl implements BlockchainProcessor {
             pushBlock(block);
             blockListeners.notify(block, Event.BLOCK_GENERATED);
             PocScore generatorScore = Conch.getPocProcessor().calPocScore(creator, previousBlock.getHeight());
-            Logger.logInfoMessage("[Mint-%d] Miner[id=%d, RS=%s, PoC=%d] generated block[id=%d, timestamp=%s, crowd miner size=%d] at height %d fee %f",
+            Logger.logInfoMessage("[Mint-At-Height-%d] Miner[id=%d, RS=%s, PoC=%d] generated block[id=%d, timestamp=%s, crowd miner size=%d] fee %f at %s",
                     block.getHeight(), creator.getId(), creator.getRsAddress(), generatorScore.total(),
                     block.getId(), Convert.dateFromEpochTime(block.getTimestamp()), RewardCalculator.crowdMinerCount(coinBaseTx.getAttachment()),
-                    block.getHeight(), (float) block.getTotalFeeNQT() / Constants.ONE_SS);
+                    (float) block.getTotalFeeNQT() / Constants.ONE_SS, RewardCalculator.getMiningPhase(block.getHeight()));
             Peers.checkAndUpdateBlockchainState(null);
         } catch (TransactionNotAcceptedException e) {
             Logger.logDebugMessage("Generate block failed: " + e.getMessage());

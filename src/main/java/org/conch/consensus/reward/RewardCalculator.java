@@ -64,6 +64,14 @@ public abstract class RewardCalculator {
 
     }
 
+    /**
+     * Mining phases
+     */
+    private enum MiningPhase {
+        MINER_JOIN_PHASE,
+        PUBLIC_MINING_PHASE;
+    }
+
     public static RewardCalculator newInstance () {
         if (Conch.PROJECT_NAME == "mw") {
             if (Constants.isMainnet()) {
@@ -82,7 +90,10 @@ public abstract class RewardCalculator {
     /**
      * Estimated stable height after network reset
      */
-    public static final int NETWORK_STABLE_PHASE = Constants.isDevnet() ? Constants.heightConf.getIntValue("NETWORK_STABLE_PHASE_IS_DEVNET") : Constants.heightConf.getIntValue("NETWORK_STABLE_PHASE_IS_TESTNET");
+    public static final int NETWORK_STABLE_HEIGHT = Constants.isDevnet() ?
+            Constants.heightConf.getIntValue("NETWORK_STABLE_PHASE_IS_DEVNET")
+            : (Constants.isTestnet() ? Constants.heightConf.getIntValue("NETWORK_STABLE_PHASE_IS_TESTNET")
+            : Constants.heightConf.getIntValue("NETWORK_STABLE_PHASE_IS_MAINNET"));
     /**
      * how much one block reward
      * @return
@@ -741,6 +752,13 @@ public abstract class RewardCalculator {
             Logger.logErrorMessage("calculate the size of crowd miners failed", e);
         }
         return 0;
+    }
+
+    public static String getMiningPhase(int height){
+        if(height <= NETWORK_STABLE_HEIGHT) {
+            return MiningPhase.MINER_JOIN_PHASE.name() + "(less than " + NETWORK_STABLE_HEIGHT + ")";
+        }
+        return MiningPhase.PUBLIC_MINING_PHASE.name() + "(bigger than " + NETWORK_STABLE_HEIGHT + ")";
     }
 
     public static boolean applyUnconfirmedReward(TransactionImpl transaction) {

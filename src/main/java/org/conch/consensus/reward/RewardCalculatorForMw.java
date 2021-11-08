@@ -57,7 +57,7 @@ public class RewardCalculatorForMw extends RewardCalculator {
         }
 
         // No block rewards in the miner joining phase
-        if(height <= NETWORK_STABLE_PHASE) {
+        if(height <= NETWORK_STABLE_HEIGHT) {
             return RewardDef.STABLE_PHASE_BLOCK_REWARD.getAmount();
         } else if (height <= NETWORK_ROBUST_PHASE) {
             return RewardDef.BLOCK_REWARD.getAmount();
@@ -70,7 +70,7 @@ public class RewardCalculatorForMw extends RewardCalculator {
     public long crowdMinerReward(int height){
         if(height >= Constants.COINBASE_CROWD_MINER_OPEN_HEIGHT
         || LocalDebugTool.isLocalDebugAndBootNodeMode){
-            if(height <= NETWORK_STABLE_PHASE) {
+            if(height <= NETWORK_STABLE_HEIGHT) {
                 return RewardDef.STABLE_PHASE_CROWD_MINERS_REWARD.getAmount();
             } else if (height <= NETWORK_ROBUST_PHASE) {
                 return RewardDef.CROWD_MINERS_REWARD.getAmount();

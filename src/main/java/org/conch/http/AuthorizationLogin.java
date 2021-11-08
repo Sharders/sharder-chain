@@ -131,6 +131,10 @@ public final class AuthorizationLogin extends APIServlet.APIRequestHandler {
         serverNameList.add("testboot.sharder.io");
         serverNameList.add("testna.sharder.io");
         serverNameList.add("testnb.sharder.io");
+        serverNameList.add("devboot.sharder.org");
+        serverNameList.add("testboot.sharder.org");
+        serverNameList.add("testna.sharder.org");
+        serverNameList.add("testnb.sharder.org");
         return serverNameList.contains(serverName);
     }
 

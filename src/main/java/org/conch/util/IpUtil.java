@@ -121,6 +121,7 @@ public class IpUtil {
         }
 
         if (host.endsWith("sharder.io")
+                || host.endsWith("sharder.org")
                 || host.endsWith("mwfs.io")
                 || host.endsWith("mw.run")
                 || host.endsWith("sharder.network")) {

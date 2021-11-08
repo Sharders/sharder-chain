@@ -26,18 +26,25 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
-import org.conch.Conch;
-import org.json.simple.JSONAware;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
-
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.Reader;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.json.simple.JSONAware;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONStreamAware;
 
 public final class JSON {
 
@@ -296,9 +303,7 @@ public final class JSON {
             jsonStr = sb.toString();
             return jsonStr;
         } catch (IOException e) {
-//            e.printStackTrace();
-            Logger.logErrorMessage("Cannot read file " + fileName + " error " + e.getMessage());
-
+            Logger.logErrorMessage("Cannot read file " + fileName + ", caused by: " + e.getMessage());
             throw new IllegalArgumentException(String.format("Error loading file %s", fileName));
         }
     }

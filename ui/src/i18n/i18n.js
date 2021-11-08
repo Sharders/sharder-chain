@@ -5,7 +5,6 @@ import locale from 'element-ui/lib/locale';
 import store from '../store/index';
 // import Util from '../utils/common';
 
-
 /*Vue.use(VueI18n);*/
 Vue.use(VueI18n, {
     i18n: function(path, options) {

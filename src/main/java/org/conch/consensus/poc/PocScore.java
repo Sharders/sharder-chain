@@ -3,7 +3,6 @@ package org.conch.consensus.poc;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.conch.Conch;
 import org.conch.account.Account;
 import org.conch.common.Constants;
 import org.conch.consensus.genesis.SharderGenesis;
@@ -51,7 +50,7 @@ public class PocScore implements Serializable {
             if(LocalDebugTool.isLocalDebugAndBootNodeMode){
                 return new BigInteger("100000");
             }
-            if(height < RewardCalculator.NETWORK_STABLE_PHASE){
+            if(height < RewardCalculator.NETWORK_STABLE_HEIGHT){
                 mag = new BigInteger("10000");
             }
         }catch(Exception e){

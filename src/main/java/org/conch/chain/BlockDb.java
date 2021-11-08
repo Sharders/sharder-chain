@@ -453,6 +453,9 @@ public final class BlockDb {
                 if (rs.next()) {
                     int rewardDistributionHeightDifference = height - rs.getInt("REWARD_DISTRIBUTION_HEIGHT");
                     int rewardSettlementHeight = Constants.rewardCalculatorInstance.getRewardSettlementHeight(height);
+                    if(rewardSettlementHeight <= 0){
+                        return false;
+                    }
 
                     if (rewardDistributionHeightDifference == rewardSettlementHeight) {
                         return true;
