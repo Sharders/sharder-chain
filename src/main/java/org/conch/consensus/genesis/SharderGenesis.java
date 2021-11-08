@@ -134,7 +134,9 @@ public class SharderGenesis {
 
     public static boolean isGenesisPeerAccount(long accountId){
         for(GenesisPeer genesisPeer : GenesisPeer.getAll()){
-            if(genesisPeer.accountId == accountId) return true;
+            if(genesisPeer.accountId == accountId) {
+                return true;
+            }
         }
         return false;
     }
