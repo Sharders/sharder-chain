@@ -30,41 +30,45 @@ import static org.conch.util.JSON.readJsonFile;
  * @date 01/19/2019
  */
 public class SharderGenesis {
-    public static final long GENESIS_BLOCK_ID = 6840612405442242020L;
-    public static final long CREATOR_ID = 1492434941236553746L;
-    public static final long KEEPER_ID = 1868021154578573726L;
+    public static final long GENESIS_BLOCK_ID = 6840612405410082021L;
+    public static final long CREATOR_ID = -8742759381699971609L;
+    public static final long KEEPER_ID = 4634189266717835639L;
     public static final byte[] CREATOR_PUBLIC_KEY = {
-            -31, -17, -44, -121, 32, -95, -97, 40, -38, 117, -114, 80, -94, 25, -96,
-            -102, 1, 109, 125, -99, 125, -16, 56, 109, 4, 48, -46, -41, 12, -81, 111, 10
+            63, -65, 19, -10, 0, 53, 6, 125, -11, -59, 84, -8, 4, -65, -75, -8, 10,
+            23, -83, -52, -49, -110, -29, -49, -107, -14, 124, -126, -94, -107, 1, 125
     };
     public static final byte[] CREATOR_SIGNATURES = {
-            18, 40, -55, -6, -85, 49, -74, 20, -81, -20, -16, -120, -97, -92, -119,
-            -77, -71, 0, 105, 12, -69, -72, -109, 45, -3, 55, -22, -6, 67, 52, -91, -3
+            -25, 53, 15, -39, -87, 122, -85, -122, 76, 31, -107, 19, 51, -23, 117,
+            -90, 53, 60, -26, 91, 46, 104, -103, 3, -32, 92, -127, 57, -81, 58, -56, 39
     };
 
     public static final byte[] GENESIS_BLOCK_SIGNATURE = new byte[]{
-            24, -119, -8, -17, -14, 105, -64, -7, -17, -31, 94, -111, 30, 18, -84, 15, -96, 84, 1, -35, 77, -44, 89,
-            -36, 77, 76, 118, 61, -82, -112, 19, -34
-    };
-    public static final byte[] GENESIS_PAYLOAD_HASH = new byte[]{
-            -80, -59, -99, 2, -10, -128, -43, 20, -70, 55, -55, 63, 15, 33, -26, -50, -90, 77, 104, 109, 6, 57, -99,
-            -3, 111, 84, -5, -78, -10, -5, -84, -11
+            -127, 25, -93, -78, -9, -126, 50, 72, -4, 56, 42, -84, -18, 26, 94, -60,
+            -83, 29, 15, 2, -35, -52, -77, -3, -48, 55, -51, -31, 73, -5, 69, 89
     };
 
-    private static boolean enableGenesisAccount = false;
+//    public static final byte[] GENESIS_BLOCK_SIGNATURE = new byte[]{
+//            24, -119, -8, -17, -14, 105, -64, -7, -17, -31, 94, -111, 30, 18, -84, 15, -96, 84, 1, -35, 77, -44, 89,
+//            -36, 77, 76, 118, 61, -82, -112, 19, -34
+//    };
+
+    public static final byte[] GENESIS_PAYLOAD_HASH = new byte[]{
+            -80, -59, -99, 2, -10, -128, -43, 20, -70, 55, -55, 63, 15, 33, -26, -50,
+            -90, 77, 104, 109, 6, 57, -99, -3, 111, 84, -5, -78, -10, -5, -84, -11
+    };
+
+    private static boolean genesisAccountsEnabled = false;
     public static final void enableGenesisAccount(){
-        if(enableGenesisAccount) {
+        if(genesisAccountsEnabled) {
             return;
         }
-
         Logger.logDebugMessage("Enable genesis account[size=" + (GenesisRecipient.getAll().size() + 1) + "]");
 
         Account.addOrGetAccount(CREATOR_ID).apply(CREATOR_PUBLIC_KEY);
-        
         for(GenesisRecipient genesisRecipient : GenesisRecipient.getAll()){
             Account.addOrGetAccount(genesisRecipient.id).apply(genesisRecipient.publicKey);
         }
-        enableGenesisAccount = true;
+        genesisAccountsEnabled = true;
     }
 
     protected static final JSONObject genesisJsonObj = loadGenesisSettings();
