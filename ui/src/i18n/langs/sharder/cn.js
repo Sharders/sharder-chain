@@ -22,7 +22,7 @@ const cnSharder = {
         'init_hub': "初始化",
         'use_nat_server': "穿透服务",
         'config_nat_server': "穿透服务",
-        'login_binding_hub_account_tip':"此Hub已绑定TSS地址 ",
+        'login_binding_hub_account_tip':"此节点已绑定TSS地址 ",
     },
     hubsetting: {
         'register_nat_server': "申请穿透服务",
