@@ -73,7 +73,7 @@ const cnSharder = {
         'create_account': "创建账户",
         'quick_auth': "节点启动挖矿",
         'factory_num': "矿机编号",
-        'factory_des': "执行安装矿机时生成的编号",
+        'factory_des': "矿机编号或则CD-KEY",
         'sharder_account_des': "官网账户",
         'sharder_pwd_des': "官网账户的登陆密码",
     },

@@ -73,7 +73,7 @@ const cn = {
         'create_account': "创建账户",
         'quick_auth': "节点挖矿授权",
         'factory_num': "矿机编号",
-        'factory_des': "执行安装矿机时生成的矿机编号",
+        'factory_des': "矿机编号或则CD-KEY",
         'sharder_account_des': "官网注册用户名",
     },
     upgrade: {

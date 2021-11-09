@@ -73,7 +73,7 @@ const en = {
         'register_sharder_account': "Register Account",
         'quick_auth': "Node Mining Authorization",
         'factory_num': "Mining-machine Code",
-        'factory_des': "Execute the number generated when the Mining-machine is installed",
+        'factory_des': "Mining-machine code or CD-KEY",
         'sharder_account_des': "Official website registration user name",
     },
     upgrade: {
