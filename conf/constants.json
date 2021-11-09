@@ -36,7 +36,6 @@
     "APPLICATION": "COS",
     "FOUNDATION_URL": "sharder.org",
     "FOUNDATION_TEST_URL": "test.sharder.org",
-    "SERIAL_NUM": "",
     "PERMISSION_MODE": true
   },
   "feature": {

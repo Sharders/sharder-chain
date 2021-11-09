@@ -1346,14 +1346,14 @@
           <!-- quick auth                   -->
           <el-form-item
             :label="$t('hubsetting.quick_auth')"
-            v-if="userConfig.permissionModeDisplay"
+            v-if="userConfig.permissionModeEnable"
           >
-            <el-switch
-              v-model="userConfig.permissionMode"
-              active-color="#13ce66"
-              inactive-color="#ff4949"
-            >
-            </el-switch>
+        <el-switch
+          v-model="userConfig.permissionMode"
+          active-color="#13ce66"
+          inactive-color="#ff4949"
+        >
+        </el-switch>
           </el-form-item>
           <el-divider v-if="userConfig.permissionMode"
             ><i class="el-icon-caret-top"></i
@@ -1372,6 +1372,7 @@
           <el-form-item
             :label="$t('hubsetting.sharder_account_password')"
             prop="sharderPwd"
+            :placeholder="$t('hubsetting.sharder_pwd_des')"
             v-if="!hubsetting.registerSiteAccount && userConfig.permissionMode"
           >
             <el-input
@@ -1383,16 +1384,15 @@
           <el-form-item
             :label="$t('hubsetting.factory_num')"
             prop="factoryNum"
-            v-if="userConfig.permissionMode"
-          >
+            v-if="userConfig.permissionMode">
             <el-input
               v-model="userConfig.factoryNum"
-              :placeholder="$t('hubsetting.factory_des')"
-            ></el-input>
+              :placeholder="$t('hubsetting.factory_des')">
+            </el-input>
           </el-form-item>
-          <el-divider v-if="userConfig.permissionMode"
-            ><i class="el-icon-caret-bottom"></i
-          ></el-divider>
+          <el-divider v-if="userConfig.permissionMode">
+              <i class="el-icon-caret-bottom"></i>
+          </el-divider>
 
           <!-- NAT Seeting by site account -->
           <!--                    <el-form-item :label="$t('hubsetting.nat_traversal_address')" v-if="hubsetting.openPunchthrough"-->
@@ -1518,7 +1518,7 @@
             :label="$t('hubsetting.sharder_account')"
             prop="sharderAccount"
             v-if="
-              userConfig.permissionModeDisplay &&
+              userConfig.permissionModeEnable &&
               userConfig.nodeType != 'Normal'
             "
           >
@@ -1528,7 +1528,7 @@
             :label="$t('hubsetting.sharder_account_password')"
             prop="sharderPwd"
             v-if="
-              userConfig.permissionModeDisplay &&
+              userConfig.permissionModeEnable &&
               userConfig.nodeType != 'Normal'
             "
           >
@@ -2765,7 +2765,7 @@ export default {
         siteAccount: this.$store.state.userConfig['sharder.siteAccount'],
         factoryNum: this.$store.state.userConfig['sharder.factoryNum'],
         permissionMode: this.$store.state.userConfig['sharder.permissionMode'],
-        permissionModeDisplay: this.$store.state.userConfig['sharder.permissionMode'],
+        permissionModeEnable: this.$store.state.userConfig['sharder.permissionMode'],
       },
       registerSharderSiteUser: {
         sharderAccountPhoneOrEmail: '',

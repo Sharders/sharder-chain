@@ -50,7 +50,7 @@ const enSharder = {
         'serial_no': "Serial No",
         'disk_capacity': "Disk Capacity",
         'enable_auto_mining': "Enable Mining",
-        'set_mnemonic_phrase': "Mnemonic Phrase",
+        'set_mnemonic_phrase': "Miner Addr's Mnemonic Phrase",
         'set_password': "Set Node Admin Password",
         'confirm_password': "Confirm Password",
         'confirm_restart': "Confirm",
@@ -75,6 +75,7 @@ const enSharder = {
         'factory_num': "Mining-machine Code",
         'factory_des': "Execute the number generated when the Mining-machine is installed",
         'sharder_account_des': "Official website registration user name",
+        'sharder_pwd_des': "Official website password",
     },
     upgrade: {
         'title': "COS Upgrade",

@@ -51,7 +51,7 @@ const cn = {
         'serial_no': "硬件编号",
         'disk_capacity': "磁盘容量",
         'enable_auto_mining': "是否开启挖矿",
-        'set_mnemonic_phrase': "绑定密钥",
+        'set_mnemonic_phrase': "绑定地址的密钥",
         'set_password': "设置节点管理密码",
         'confirm_password': "确认节点管理密码",
         'confirm_restart': "确认后重启",

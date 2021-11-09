@@ -101,7 +101,9 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
             response.put("sharder.phase", Conch.STAGE);
             response.put("sharder.xxx", serialNum);
 
-            if(Conch.systemInfo == null) GetNodeHardware.readSystemInfo();
+            if(Conch.systemInfo == null) {
+                GetNodeHardware.readSystemInfo();
+            }
             response.put("sharder.diskCapacity", Conch.systemInfo.getHardDiskSize());
 
             // Supplementary configuration, UI theme depends on this
