@@ -1525,7 +1525,7 @@ var NRS = (function (NRS, $, undefined) {
 
     NRS.generateToken = function (message, secretPhrase) {
         var messageBytes = NRS.getUtf8Bytes(message);
-        var pubKeyBytes = converters.hexStringToByteArray(NRS.getPublicKey(converters.stringToHexString(secretPhrase)));
+        var pubKeyBytes = converters.hexStringToByteArray(NRS.getPublicKey(secretPhrase));
         var token = pubKeyBytes;
 
         var tsb = [];
@@ -1538,7 +1538,7 @@ var NRS = (function (NRS, $, undefined) {
         messageBytes = messageBytes.concat(pubKeyBytes, tsb);
         token = token.concat(tsb, converters.hexStringToByteArray(
             NRS.signBytes(converters.byteArrayToHexString(messageBytes),
-                secretPhrase !== undefined ? converters.stringToHexString(secretPhrase) : undefined)));
+                secretPhrase !== undefined ? secretPhrase : undefined)));
 
         var buf = "";
         for (var ptr = 0; ptr < 100; ptr += 5) {

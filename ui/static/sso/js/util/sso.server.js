@@ -412,7 +412,7 @@ var NRS = (function (NRS, $, undefined) {
             // }
             if (secretPhrase && response.unsignedTransactionBytes && !data.doNotSign && !response.errorCode && !response.error) {
                 var publicKey = NRS.generatePublicKey(secretPhrase);
-                var signature = NRS.signBytes(response.unsignedTransactionBytes, converters.stringToHexString(secretPhrase));
+                var signature = NRS.signBytes(response.unsignedTransactionBytes, secretPhrase);
 
                 if (!NRS.verifySignature(signature, response.unsignedTransactionBytes, publicKey, callback)) {
                     return;

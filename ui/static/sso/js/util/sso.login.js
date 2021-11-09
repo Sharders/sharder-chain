@@ -338,7 +338,7 @@ var NRS = (function (NRS, $, undefined) {
                     NRS.account = NRS.escapeRespStr(response.account);
                     NRS.accountRS = NRS.escapeRespStr(response.accountRS);
                     if (isPassphraseLogin) {
-                        NRS.publicKey = NRS.getPublicKey(converters.stringToHexString(id));
+                        NRS.publicKey = NRS.getPublicKey(id);
                     } else {
                         NRS.publicKey = NRS.escapeRespStr(response.publicKey);
                     }
