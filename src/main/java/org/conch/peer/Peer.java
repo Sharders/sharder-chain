@@ -42,8 +42,8 @@ public interface Peer extends Comparable<Peer> {
      */
     @JSONType(deserializer = PeerTypeEnumDeserializer.class)
     enum Type {
-        CENTER(5, "Center Node", 1, "Center"),
-        SOUL(4, "Soul Node", 0,"Soul"),
+        CENTER(5, "Center Node", 1, "Machine"),
+        SOUL(4, "Soul Node", 0,"Hub"),
         NORMAL(3, "Normal Node", 2,"Normal"),
         COMMUNITY(2, "Community Node", 3, "Community"),
         FOUNDATION(1, "Community Node",4, "Foundation");

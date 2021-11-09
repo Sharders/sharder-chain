@@ -86,7 +86,7 @@ const cnSharder = {
     },
     register: {
         'register_title': "您的账户密钥如下",
-        'register_tip1': "请写下或记住密语/密钥的其中一种，该密钥用于访问您的SHARDER账户。",
+        'register_tip1': "请写下密语/密钥的其中一种，该密钥用于访问您的SHARDER账户。",
         'register_tip2': "注意：永远不要透露您的密钥，如果丢失您将无法访问您的账户！",
         'cancel': "取消",
         'next_step': "下一步",

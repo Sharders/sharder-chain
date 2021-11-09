@@ -86,7 +86,7 @@ const en = {
     },
     register: {
         'register_title': "Your mnemonic phrase has been generated",
-        'register_tip1': "Please write down or remember the phrase or key used to access your SS account.",
+        'register_tip1': "Please write down the phrase or key used to access your SS account.",
         'register_tip2': "Attention: Store carefully and Do not disclose your mnemonic phrase. Once lost, you will lose access to your account!",
         'cancel': "Cancel",
         'next_step': "Next",

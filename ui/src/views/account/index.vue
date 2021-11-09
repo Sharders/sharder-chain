@@ -5624,6 +5624,14 @@ export default {
         return this.$t('hubsetting.register_status_pending');
       }
     },
+    isMiningNode() {
+       return this.userConfig.nodeType === 'Hub'
+           || this.userConfig.nodeType === 'Soul'
+           || this.userConfig.nodeType === 'Center'
+           || this.userConfig.nodeType === 'Box'
+           || this.userConfig.nodeType === 'Machine'
+           || this.userConfig.nodeType === 'Normal';
+    },
     whetherShowSendMsgBtn() {
       return true;
     },
@@ -5642,13 +5650,13 @@ export default {
       1. sharder.HubBindAddress has value;
       2. using secretPhrase to login;
       3. NodeType is Hub;
-      4. Hub bind MW address must equals to user account address;
+      4. Hub bind cos address must equals to user account address;
       5. Not a light client;
       */
       // return true;
       return this.secretPhrase
         && !this.initHUb
-        && (this.userConfig.nodeType === 'Hub' || this.userConfig.nodeType === 'Soul' || this.userConfig.nodeType === 'Center' || this.userConfig.nodeType === 'Normal')
+        && this.isMiningNode()
         && this.userConfig.ssAddress === this.accountInfo.accountRS
         && !this.$global.isOpenApiProxy();
     },
@@ -5663,7 +5671,7 @@ export default {
       // return true;
       return this.secretPhrase
         && this.initHUb
-        && (this.userConfig.nodeType === 'Hub' || this.userConfig.nodeType === 'Soul' || this.userConfig.nodeType === 'Center' || this.userConfig.nodeType === 'Normal')
+        && this.isMiningNode()
         && !this.$global.isOpenApiProxy();
     },
     whetherShowUseNATServiceBtn() {
@@ -5700,7 +5708,7 @@ export default {
       return false;
     },
     whetherShowAssetsAcrossChainsBtn() {
-      return true;
+      return this.$global.acrossChainExchangeEnable;
     },
     getAccountRsBySecret() {
       let publicKey = global.SSO.getPublicKey(this.hubsetting.modifyMnemonicWord, false);
