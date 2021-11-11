@@ -74,9 +74,17 @@
     ]
   },
   "acrossChains": {
-    "EXCHANGE_HEIGHT": 10000,
-    "OPEN_BUTTON": true,
+    "ENABLE_HEIGHT": 10000,
+    "ENABLE": false,
     "MGR_URL_DEV": "http://127.0.0.1:8080/api/front/acrossChain/",
-    "MGR_URL": "https://sharder.org/api/front/acrossChain/"
+    "MGR_URL": "https://sharder.org/api/front/acrossChain/",
+    "SUPPORT_CHAINS" :
+    [
+      {"id":"1","name":"Heco"},
+      {"id":"2","name":"OKEx"},
+      {"id":"3","name":"ETH"},
+      {"id":"4","name":"Tron"},
+      {"id":"5","name":"BSC"}
+    ]
   }
 }
