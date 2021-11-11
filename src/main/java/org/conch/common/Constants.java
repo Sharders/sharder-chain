@@ -315,6 +315,7 @@ public final class Constants {
     public static final Boolean ACROSS_CHAIN_EXCHANGE_ENABLE = acrossChainsConf.getBoolean("ENABLE");
     public static final Map<String, String> SUPPORT_ACROSS_CHAINS = loadAcrossChainDefinition();
 
+    public static Boolean DISPLAY_BIND_ADDRESS_ON_UI = Conch.getBooleanProperty("sharder.displayBindAddress", true);
     /**
      * The configuration is updated when the different networks are started
      */

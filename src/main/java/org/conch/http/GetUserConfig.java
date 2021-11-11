@@ -111,6 +111,7 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
             response.put("sharder.coinUnit", Conch.COIN_UNIT);
             response.put("sharder.foundationUrl", Conch.FOUNDATION_URL);
             response.put("sharder.foundationTestUrl", Conch.FOUNDATION_TEST_URL);
+            response.put("sharder.displayBindAddress", Constants.DISPLAY_BIND_ADDRESS_ON_UI);
 
             // airdrop
             response.put("sharder.airdrop.accounts", Constants.airdropJsonObj.getJSONArray("accounts"));

@@ -78,13 +78,10 @@
         methods: {
             checkAndSetDisplayBindAddr(){
                 const _this = this;
-                if(_this.$store.state.userConfig["sharder.myAddress"]) {
-                    if(_this.$store.state.userConfig["sharder.myAddress"].indexOf("mw.run") != -1
-                    || _this.$store.state.userConfig["sharder.myAddress"].indexOf("mwfs.io") != -1) {
-                        return false;
-                    }
+                if(_this.$store.state.userConfig["sharder.displayBindAddress"]) {
+                        return true;
                 }
-                return true
+                return false
             },
             autoLogin(val) {
                 if (val["sharder.login.mode"] !== "auto" || sessionStorage.getItem("sharder.login.mode") === "manual") return;
