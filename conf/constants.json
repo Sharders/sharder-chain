@@ -65,12 +65,12 @@
       "boot.sharder.io"
     ],
     "TEST": [
-      "testboot.sharder.io",
-      "testna.sharder.io",
-      "testnb.sharder.io"
+      "testboot.sharder.org",
+      "testna.sharder.org",
+      "testnb.sharder.org"
     ],
     "DEV": [
-      "devboot.sharder.io"
+      "devboot.sharder.org"
     ]
   },
   "acrossChains": {
