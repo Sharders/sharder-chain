@@ -82,8 +82,8 @@ public class PocCalculator implements Serializable {
             typeScore = typeWeight.multiply(predefineNodeTypeLevel(Peer.Type.FOUNDATION)).multiply(SCORE_MULTIPLIER).divide(PERCENT_DIVISOR);
         } else if (nodeType.getType().equals(Peer.Type.COMMUNITY)) {
             typeScore = typeWeight.multiply(predefineNodeTypeLevel(Peer.Type.COMMUNITY)).multiply(SCORE_MULTIPLIER).divide(PERCENT_DIVISOR);
-        } else if (nodeType.getType().equals(Peer.Type.SOUL)) {
-            typeScore = typeWeight.multiply(predefineNodeTypeLevel(Peer.Type.SOUL)).multiply(SCORE_MULTIPLIER).divide(PERCENT_DIVISOR);
+        } else if (nodeType.getType().equals(Peer.Type.HUB)) {
+            typeScore = typeWeight.multiply(predefineNodeTypeLevel(Peer.Type.HUB)).multiply(SCORE_MULTIPLIER).divide(PERCENT_DIVISOR);
         } else if (nodeType.getType().equals(Peer.Type.CENTER)) {
             typeScore = typeWeight.multiply(predefineNodeTypeLevel(Peer.Type.CENTER)).multiply(SCORE_MULTIPLIER).divide(PERCENT_DIVISOR);
         } else if (nodeType.getType().equals(Peer.Type.NORMAL)) {
@@ -216,13 +216,13 @@ public class PocCalculator implements Serializable {
             } else if (onlineRate.getNetworkRate() < 9000) {
                 onlineRateScore = predefineOnlineRateLevel(Peer.Type.COMMUNITY,PocTxBody.OnlineStatusDef.FROM_00_00_TO_90_00);
             }
-        } else if (nodeType.equals(Peer.Type.SOUL) || nodeType.equals(Peer.Type.CENTER)) {
+        } else if (nodeType.equals(Peer.Type.HUB) || nodeType.equals(Peer.Type.CENTER)) {
             if (onlineRate.getNetworkRate() >= 9900) {
-                onlineRateScore = predefineOnlineRateLevel(Peer.Type.SOUL,PocTxBody.OnlineStatusDef.FROM_99_00_TO_100);
+                onlineRateScore = predefineOnlineRateLevel(Peer.Type.HUB,PocTxBody.OnlineStatusDef.FROM_99_00_TO_100);
             } else if (onlineRate.getNetworkRate() >= 9700) {
-                onlineRateScore = predefineOnlineRateLevel(Peer.Type.SOUL,PocTxBody.OnlineStatusDef.FROM_97_00_TO_100);
+                onlineRateScore = predefineOnlineRateLevel(Peer.Type.HUB,PocTxBody.OnlineStatusDef.FROM_97_00_TO_100);
             } else if (onlineRate.getNetworkRate() < 9000) {
-                onlineRateScore = predefineOnlineRateLevel(Peer.Type.SOUL,PocTxBody.OnlineStatusDef.FROM_00_00_TO_90_00);
+                onlineRateScore = predefineOnlineRateLevel(Peer.Type.HUB,PocTxBody.OnlineStatusDef.FROM_00_00_TO_90_00);
             }
         } else if (nodeType.equals(Peer.Type.NORMAL)) {
             if (onlineRate.getNetworkRate() >= 9700) {

@@ -217,7 +217,7 @@ public final class Conch {
                 .request();
         com.alibaba.fastjson.JSONObject result = JSON.parseObject(response.getContent());
 
-        Integer nodeTypeCode = Peer.Type.SOUL.getSimpleCode();
+        Integer nodeTypeCode = Peer.Type.HUB.getSimpleCode();
         if (result.getBoolean(Constants.SUCCESS)) {
             com.alibaba.fastjson.JSONObject data = result.getJSONObject("data");
             if (data == null || data.getInteger("type") == null) {

@@ -344,7 +344,7 @@ public interface PocTxBody {
             Map<Integer, Integer> nodeTypeTP = new HashMap<>();
             nodeTypeTP.put(Peer.Type.FOUNDATION.getCode(), pocTemplate.getFoundationNodeScore().intValue());
             //nodeTypeTP.put(Peer.Type.COMMUNITY.getCode(), pocTemplate.getCommunityNodeScore().intValue());
-            nodeTypeTP.put(Peer.Type.SOUL.getCode(), pocTemplate.getHubNodeScore().intValue());
+            nodeTypeTP.put(Peer.Type.HUB.getCode(), pocTemplate.getHubNodeScore().intValue());
             nodeTypeTP.put(Peer.Type.CENTER.getCode(), pocTemplate.getBoxNodeScore().intValue());
             nodeTypeTP.put(Peer.Type.NORMAL.getCode(), pocTemplate.getNormalNodeScore().intValue());
 
@@ -398,7 +398,7 @@ public interface PocTxBody {
             Map<Peer.Type, Map<Integer, Integer>> onlineRateMap = new HashMap<>();
             onlineRateMap.put(Peer.Type.FOUNDATION, Maps.newHashMap());
             onlineRateMap.put(Peer.Type.COMMUNITY, Maps.newHashMap());
-            onlineRateMap.put(Peer.Type.SOUL, Maps.newHashMap());
+            onlineRateMap.put(Peer.Type.HUB, Maps.newHashMap());
             onlineRateMap.put(Peer.Type.CENTER, Maps.newHashMap());
             onlineRateMap.put(Peer.Type.NORMAL, Maps.newHashMap());
 
