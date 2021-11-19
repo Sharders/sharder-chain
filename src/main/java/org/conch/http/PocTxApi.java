@@ -159,6 +159,7 @@ public abstract class PocTxApi {
          */
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
+            JSONStreamAware txJson = null;
             try {
                 Account account = Optional.ofNullable(ParameterParser.getSenderAccount(request))
                         .orElseThrow(() -> new ConchException.AccountControlException("account info can not be null!"));;
@@ -220,8 +221,8 @@ public abstract class PocTxApi {
 
                 long recipientId = (accountId == -1) ? 0 : accountId;
 
-                JSONStreamAware txJson = createTransaction(request, account, recipientId, 0, pocNodeType);
-                Logger.logInfoMessage("success to create node type tx " + txJson.toString());
+                txJson = createTransaction(request, account, recipientId, 0, pocNodeType);
+                Logger.logInfoMessage("success to create node type tx: " + txJson.toString());
             } catch(ConchException.AccountControlException e){
                 Logger.logErrorMessage(e.getMessage());
                 return ResultUtil.failed(HttpStatus.INTERNAL_SERVER_ERROR_500, e.getMessage());
@@ -229,7 +230,7 @@ public abstract class PocTxApi {
                 Logger.logErrorMessage(ExceptionUtils.getStackTrace(e));
                 return ResultUtil.failed(HttpStatus.INTERNAL_SERVER_ERROR_500, e.getMessage());
             }
-            return ResultUtil.ok(Constants.SUCCESS);
+            return ResultUtil.success(txJson);
         }
     }
 
