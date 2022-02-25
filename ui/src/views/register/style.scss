@@ -11,14 +11,14 @@
         min-height: 60px;
         margin: 10px auto;
         padding: 10px;
-        overflow:auto;
+        overflow: auto;
+        word-break: break-word;
         .phrase{
             font-size: 16px;
             font-weight: bold;
             line-height: 28px;
         }
     }
-
     .tip{
         //height: 60px;
         //margin: 5px auto;

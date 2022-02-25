@@ -106,7 +106,6 @@ Vue.prototype.$global = global;
 Vue.prototype.$echarts = echarts;
 Vue.prototype.url = "http://localhost:8215/sharder?requestType=";
 Vue.prototype.$qs = querystring;
-// Vue.prototype.url = "http://47.107.188.3:8215/sharder?requestType=";
 
 const app = new Vue({
     router,

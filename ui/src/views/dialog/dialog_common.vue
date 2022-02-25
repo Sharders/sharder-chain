@@ -751,7 +751,7 @@
             if (/(iPhone|iPad|iPod|iOS|Android)/i.test(navigator.userAgent)) { //移动端
                 this.isMobile = true
             }
-            this.getAddress();
+            this.getAcrossAddress();
         },
         methods: {
             handleSizeChange(val) {
@@ -1184,10 +1184,12 @@
                 img.crossOrigin = 'anonymous';
                 img.src = window.api.apiUrl + this.$global.urlPrefix() + "?requestType=downloadStoredData&ssid="+row.fileInfo.ssid+"&filename="+row.fileInfo.name;
             },
-
-            getAddress(){
+            getAcrossAddress(){
                 const _this = this;
-                _this.$http.get(window.api.getAddress).then(function (res1) {
+                if(!this.$global.acrossChainExchangeEnable){
+                    return;
+                }
+                _this.$http.get(window.api.getAcrossAddress).then(function (res1) {
                     var result = res1.data.body;
                     if (result) {
                         _this.acrossChains.Heco.CosExchangeAddress = result.Heco.CosExchangeAddress;
@@ -1198,7 +1200,6 @@
                     }
                 });
             },
-
             findTXInHecoChain(fullHash){
                 const _this = this;
                 _this.$http.get(window.api.getRecordUrl,{params:{fullSource:fullHash,recordType:_this.recordType}}).then(function (res1) {

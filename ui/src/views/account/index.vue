@@ -1346,14 +1346,14 @@
           <!-- quick auth                   -->
           <el-form-item
             :label="$t('hubsetting.quick_auth')"
-            v-if="userConfig.permissionModeDisplay"
+            v-if="userConfig.permissionModeEnable"
           >
-            <el-switch
-              v-model="userConfig.permissionMode"
-              active-color="#13ce66"
-              inactive-color="#ff4949"
-            >
-            </el-switch>
+        <el-switch
+          v-model="userConfig.permissionMode"
+          active-color="#13ce66"
+          inactive-color="#ff4949"
+        >
+        </el-switch>
           </el-form-item>
           <el-divider v-if="userConfig.permissionMode"
             ><i class="el-icon-caret-top"></i
@@ -1372,6 +1372,7 @@
           <el-form-item
             :label="$t('hubsetting.sharder_account_password')"
             prop="sharderPwd"
+            :placeholder="$t('hubsetting.sharder_pwd_des')"
             v-if="!hubsetting.registerSiteAccount && userConfig.permissionMode"
           >
             <el-input
@@ -1383,16 +1384,15 @@
           <el-form-item
             :label="$t('hubsetting.factory_num')"
             prop="factoryNum"
-            v-if="userConfig.permissionMode"
-          >
+            v-if="userConfig.permissionMode">
             <el-input
               v-model="userConfig.factoryNum"
-              :placeholder="$t('hubsetting.factory_des')"
-            ></el-input>
+              :placeholder="$t('hubsetting.factory_des')">
+            </el-input>
           </el-form-item>
-          <el-divider v-if="userConfig.permissionMode"
-            ><i class="el-icon-caret-bottom"></i
-          ></el-divider>
+          <el-divider v-if="userConfig.permissionMode">
+              <i class="el-icon-caret-bottom"></i>
+          </el-divider>
 
           <!-- NAT Seeting by site account -->
           <!--                    <el-form-item :label="$t('hubsetting.nat_traversal_address')" v-if="hubsetting.openPunchthrough"-->
@@ -1518,7 +1518,7 @@
             :label="$t('hubsetting.sharder_account')"
             prop="sharderAccount"
             v-if="
-              userConfig.permissionModeDisplay &&
+              userConfig.permissionModeEnable &&
               userConfig.nodeType != 'Normal'
             "
           >
@@ -1528,7 +1528,7 @@
             :label="$t('hubsetting.sharder_account_password')"
             prop="sharderPwd"
             v-if="
-              userConfig.permissionModeDisplay &&
+              userConfig.permissionModeEnable &&
               userConfig.nodeType != 'Normal'
             "
           >
@@ -2032,7 +2032,7 @@
                     type="number"
                     disabled="disabled"
                   />
-                  <label class="input_suffix">{{ $global.HecoUnit }}</label>
+                  <label class="input_suffix">{{ $global.acrossUnit.HECO }}</label>
                 </el-form-item>
                 <el-form-item
                   :label="$t('acrossChains.Heco_convertible_balance')"
@@ -2044,7 +2044,7 @@
                     type="number"
                     disabled="disabled"
                   />
-                  <label class="input_suffix">{{ $global.HecoUnit }}</label>
+                  <label class="input_suffix">{{ $global.acrossUnit.HECO }}</label>
                 </el-form-item>
                 <el-form-item
                   :label="$t('acrossChains.Heco_rate')"
@@ -2067,7 +2067,7 @@
                     type="text"
                     disabled="disabled"
                   />
-                  <label class="input_hecoUnit">{{ $global.HecoUnit }}</label>
+                  <label class="input_hecoUnit">{{ $global.acrossUnit.HECO }}</label>
                   <el-button
                     class="input_exchange"
                     slot="append"
@@ -2109,7 +2109,7 @@
                     type="number"
                     disabled="disabled"
                   />
-                  <label class="input_suffix">{{ $global.OKExUnit }}</label>
+                  <label class="input_suffix">{{ $global.acrossUnit.OKEX }}</label>
                 </el-form-item>
                 <el-form-item
                   :label="$t('acrossChains.OKEx_convertible_balance')"
@@ -2121,7 +2121,7 @@
                     type="number"
                     disabled="disabled"
                   />
-                  <label class="input_suffix">{{ $global.OKExUnit }}</label>
+                  <label class="input_suffix">{{ $global.acrossUnit.OKEX }}</label>
                 </el-form-item>
                 <el-form-item
                   :label="$t('acrossChains.OKEx_rate')"
@@ -2144,7 +2144,7 @@
                     type="text"
                     disabled="disabled"
                   />
-                  <label class="input_hecoUnit">{{ $global.OKExUnit }}</label>
+                  <label class="input_hecoUnit">{{ $global.acrossUnit.OKEX }}</label>
                   <el-button
                     class="input_exchange"
                     slot="append"
@@ -2186,7 +2186,7 @@
                     type="number"
                     disabled="disabled"
                   />
-                  <label class="input_suffix">{{ $global.ETHUnit }}</label>
+                  <label class="input_suffix">{{ $global.acrossUnit.ETH }}</label>
                 </el-form-item>
                 <el-form-item
                   :label="$t('acrossChains.ETH_convertible_balance')"
@@ -2198,7 +2198,7 @@
                     type="number"
                     disabled="disabled"
                   />
-                  <label class="input_suffix">{{ $global.ETHUnit }}</label>
+                  <label class="input_suffix">{{ $global.acrossUnit.ETH }}</label>
                 </el-form-item>
                 <el-form-item
                   :label="$t('acrossChains.ETH_rate')"
@@ -2221,7 +2221,7 @@
                     type="text"
                     disabled="disabled"
                   />
-                  <label class="input_hecoUnit">{{ $global.ETHUnit }}</label>
+                  <label class="input_hecoUnit">{{ $global.acrossUnit.ETH }}</label>
                   <el-button
                     class="input_exchange"
                     slot="append"
@@ -2263,7 +2263,7 @@
                     type="number"
                     disabled="disabled"
                   />
-                  <label class="input_suffix">{{ $global.TronUnit }}</label>
+                  <label class="input_suffix">{{ $global.acrossUnit.Tron }}</label>
                 </el-form-item>
                 <el-form-item
                   :label="$t('acrossChains.Tron_convertible_balance')"
@@ -2275,7 +2275,7 @@
                     type="number"
                     disabled="disabled"
                   />
-                  <label class="input_suffix">{{ $global.TronUnit }}</label>
+                  <label class="input_suffix">{{ $global.acrossUnit.TRON }}</label>
                 </el-form-item>
                 <el-form-item
                   :label="$t('acrossChains.Tron_rate')"
@@ -2298,7 +2298,7 @@
                     type="text"
                     disabled="disabled"
                   />
-                  <label class="input_hecoUnit">{{ $global.TronUnit }}</label>
+                  <label class="input_hecoUnit">{{ $global.acrossUnit.TRON }}</label>
                   <el-button
                     class="input_exchange"
                     slot="append"
@@ -2341,7 +2341,7 @@
                     type="number"
                     disabled="disabled"
                   />
-                  <label class="input_suffix">{{ $global.BSCUnit }}</label>
+                  <label class="input_suffix">{{ $global.acrossUnit.BSC }}</label>
                 </el-form-item>
                 <el-form-item
                   :label="$t('acrossChains.BSC_convertible_balance')"
@@ -2353,7 +2353,7 @@
                     type="number"
                     disabled="disabled"
                   />
-                  <label class="input_suffix">{{ $global.BSCUnit }}</label>
+                  <label class="input_suffix">{{ $global.acrossUnit.BSC }}</label>
                 </el-form-item>
                 <el-form-item
                   :label="$t('acrossChains.BSC_rate')"
@@ -2376,7 +2376,7 @@
                     type="text"
                     disabled="disabled"
                   />
-                  <label class="input_hecoUnit">{{ $global.BSCUnit }}</label>
+                  <label class="input_hecoUnit">{{ $global.acrossUnit.BSC }}</label>
                   <el-button
                     class="input_exchange"
                     slot="append"
@@ -2729,7 +2729,7 @@ export default {
       isMobile: false,
       //dialog
       src: "",
-      requestUrl: "https://mw.run",
+      requestUrl: "https://sharder.org",
       sendSuccess: false, //true验证码发送 false验证码未发送
       time: 60, //时间
       AssetsAcrossChainsDialog: false,
@@ -2765,7 +2765,7 @@ export default {
         siteAccount: this.$store.state.userConfig['sharder.siteAccount'],
         factoryNum: this.$store.state.userConfig['sharder.factoryNum'],
         permissionMode: this.$store.state.userConfig['sharder.permissionMode'],
-        permissionModeDisplay: this.$store.state.userConfig['sharder.permissionMode'],
+        permissionModeEnable: this.$store.state.userConfig['sharder.permissionMode'],
       },
       registerSharderSiteUser: {
         sharderAccountPhoneOrEmail: '',
@@ -3138,7 +3138,7 @@ export default {
           convertible_balance: 0,
           rateMW: 10,
           rateHeco: 1,
-          CosExchangeAddress: "CDW-XXXX-XXXX-XXXX-Heco",
+          CosExchangeAddress: "SSA-XXXX-XXXX-XXXX-HECO",
           CosExchangeAddressPublicKey: "",
           CosExchangeRate: 10,
           ExchangeAddress: "0x0Heco",
@@ -3151,7 +3151,7 @@ export default {
           convertible_balance: 0,
           rateMW: 10,
           rateOKEx: 1,
-          CosExchangeAddress: "CDW-XXXX-XXXX-XXXX-OKEx",
+          CosExchangeAddress: "SSA-XXXX-XXXX-XXXX-OKEX",
           CosExchangeAddressPublicKey: "",
           CosExchangeRate: 10,
           ExchangeAddress: "0x0OKEx",
@@ -3164,7 +3164,7 @@ export default {
           convertible_balance: 0,
           rateMW: 10,
           rateETH: 1,
-          CosExchangeAddress: "CDW-XXXX-XXXX-XXXX-ETH",
+          CosExchangeAddress: "SSA-XXXX-XXXX-XXXX-ETH",
           CosExchangeAddressPublicKey: "",
           CosExchangeRate: 10,
           ExchangeAddress: "0x0ETH",
@@ -3177,7 +3177,7 @@ export default {
           convertible_balance: 0,
           rateMW: 10,
           rateTron: 1,
-          CosExchangeAddress: "CDW-XXXX-XXXX-XXXX-Tron",
+          CosExchangeAddress: "SSA-XXXX-XXXX-XXXX-TRON",
           CosExchangeAddressPublicKey: "",
           CosExchangeRate: 10,
           ExchangeAddress: "0x0Tron",
@@ -3190,7 +3190,7 @@ export default {
           convertible_balance: 0,
           rateMW: 10,
           rateBSC: 1,
-          CosExchangeAddress: "CDW-XXXX-XXXX-XXXX-BSC",
+          CosExchangeAddress: "SSA-XXXX-XXXX-XXXX-BSC",
           CosExchangeAddressPublicKey: "",
           CosExchangeRate: 10,
           ExchangeAddress: "0x0BSC",
@@ -3271,9 +3271,7 @@ export default {
       });
       // _this.getLatestHubVersion();
       _this.getPicVCode();
-
-      _this.getAddress();
-
+      _this.getAcrossAddress();
     },
     // menuAdapter() {
     //     document.getElementsByClassName('header')[0].style.display = 'block'
@@ -4918,9 +4916,14 @@ export default {
     /**
      * 得到系统跨链兑换地址信息
      */
-    getAddress: function () {
+    getAcrossAddress: function () {
       const _this = this;
-      _this.$http.get(window.api.getAddress).then(function (res1) {
+      if(!this.$global.acrossChainExchangeEnable){
+          _this.exchangeOpenButton = false;
+          return;
+      }
+
+      _this.$http.get(window.api.getAcrossAddress).then(function (res1) {
         var result = res1.data.body;
         if (result) {
           _this.acrossChains.Heco.CosExchangeAddress = result.Heco.CosExchangeAddress;
@@ -4993,28 +4996,28 @@ export default {
               console.log(account)
               _this.acrossChains.Heco.target_address = account.HecoAddress;
               _this.acrossChains.Heco.old_address = account.HecoAddress;
-              _this.acrossChains.Heco.target_balance = account.HecoBalance / _this.$global.HecoUnitValue;
-              _this.acrossChains.Heco.convertible_balance = account.HecoConvertibleQuantity / _this.$global.HecoUnitValue;
+              _this.acrossChains.Heco.target_balance = account.HecoBalance / _this.$global.acrossUnitVal.HECO;
+              _this.acrossChains.Heco.convertible_balance = account.HecoConvertibleQuantity / _this.$global.acrossUnitVal.HECO;
 
               _this.acrossChains.OKEx.target_address = account.OKExAddress;
               _this.acrossChains.OKEx.old_address = account.OKExAddress;
-              _this.acrossChains.OKEx.target_balance = account.OKExBalance / _this.$global.OKExUnitValue;
-              _this.acrossChains.OKEx.convertible_balance = account.OKExConvertibleQuantity / _this.$global.OKExUnitValue;
+              _this.acrossChains.OKEx.target_balance = account.OKExBalance / _this.$global.acrossUnitVal.OKEX;
+              _this.acrossChains.OKEx.convertible_balance = account.OKExConvertibleQuantity / _this.$global.acrossUnitVal.OKEX;
 
               _this.acrossChains.ETH.target_address = account.ETHAddress;
               _this.acrossChains.ETH.old_address = account.ETHAddress;
-              _this.acrossChains.ETH.target_balance = account.ETHBalance / _this.$global.ETHUnitValue;
-              _this.acrossChains.ETH.convertible_balance = account.ETHConvertibleQuantity / _this.$global.ETHUnitValue;
+              _this.acrossChains.ETH.target_balance = account.ETHBalance / _this.$global.acrossUnitVal.ETH;
+              _this.acrossChains.ETH.convertible_balance = account.ETHConvertibleQuantity / _this.$global.acrossUnitVal.ETH;
 
               _this.acrossChains.Tron.target_address = account.TronAddress;
               _this.acrossChains.Tron.old_address = account.TronAddress;
-              _this.acrossChains.Tron.target_balance = account.TronBalance / _this.$global.TronUnitValue;
-              _this.acrossChains.Tron.convertible_balance = account.TronConvertibleQuantity / _this.$global.TronUnitValue;
+              _this.acrossChains.Tron.target_balance = account.TronBalance / _this.$global.acrossUnitVal.TRON;
+              _this.acrossChains.Tron.convertible_balance = account.TronConvertibleQuantity / _this.$global.acrossUnitVal.TRON;
 
               _this.acrossChains.BSC.target_address = account.BSCAddress;
               _this.acrossChains.BSC.old_address = account.BSCAddress;
-              _this.acrossChains.BSC.target_balance = account.BSCBalance / _this.$global.BSCUnitValue;
-              _this.acrossChains.BSC.convertible_balance = account.BSCConvertibleQuantity / _this.$global.BSCUnitValue;
+              _this.acrossChains.BSC.target_balance = account.BSCBalance / _this.$global.acrossUnitVal.BSC;
+              _this.acrossChains.BSC.convertible_balance = account.BSCConvertibleQuantity / _this.$global.acrossUnitVal.BSC;
 
               _this.acrossChains.id = account.id;
 
@@ -5621,6 +5624,14 @@ export default {
         return this.$t('hubsetting.register_status_pending');
       }
     },
+    isMiningNode() {
+       return this.userConfig.nodeType === 'Hub'
+           || this.userConfig.nodeType === 'Soul'
+           || this.userConfig.nodeType === 'Center'
+           || this.userConfig.nodeType === 'Box'
+           || this.userConfig.nodeType === 'Machine'
+           || this.userConfig.nodeType === 'Normal';
+    },
     whetherShowSendMsgBtn() {
       return true;
     },
@@ -5639,13 +5650,13 @@ export default {
       1. sharder.HubBindAddress has value;
       2. using secretPhrase to login;
       3. NodeType is Hub;
-      4. Hub bind MW address must equals to user account address;
+      4. Hub bind cos address must equals to user account address;
       5. Not a light client;
       */
       // return true;
       return this.secretPhrase
         && !this.initHUb
-        && (this.userConfig.nodeType === 'Hub' || this.userConfig.nodeType === 'Soul' || this.userConfig.nodeType === 'Center' || this.userConfig.nodeType === 'Normal')
+        && this.isMiningNode()
         && this.userConfig.ssAddress === this.accountInfo.accountRS
         && !this.$global.isOpenApiProxy();
     },
@@ -5660,7 +5671,7 @@ export default {
       // return true;
       return this.secretPhrase
         && this.initHUb
-        && (this.userConfig.nodeType === 'Hub' || this.userConfig.nodeType === 'Soul' || this.userConfig.nodeType === 'Center' || this.userConfig.nodeType === 'Normal')
+        && this.isMiningNode()
         && !this.$global.isOpenApiProxy();
     },
     whetherShowUseNATServiceBtn() {
@@ -5697,7 +5708,7 @@ export default {
       return false;
     },
     whetherShowAssetsAcrossChainsBtn() {
-      return true;
+      return this.$global.acrossChainExchangeEnable;
     },
     getAccountRsBySecret() {
       let publicKey = global.SSO.getPublicKey(this.hubsetting.modifyMnemonicWord, false);

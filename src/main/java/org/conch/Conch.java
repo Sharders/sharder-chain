@@ -128,12 +128,13 @@ public final class Conch {
     public static final Peer.RunningMode runningMode;
     //TODO refactor myAddress, serialNum, nodeIp and nodeType into systemInfo
     private static final String myAddress;
-    private static String serialNum = basicConf.getString("SERIAL_NUM");
+    private static String serialNum = "";
     private static String nodeType = Peer.Type.NORMAL.getSimpleName();
     public static String nodeIp = IpUtil.getNetworkIp();
     public static Map<Integer, Boolean> airdropHeightMap = Maps.newHashMap();
 
-    public static boolean permissionMode = basicConf.getBooleanValue("PERMISSION_MODE");
+    public static boolean permissionMode = basicConf.containsKey("PERMISSION_MODE")
+            ? basicConf.getBooleanValue("PERMISSION_MODE") : false;
 
     public static boolean isPermissionMode(boolean permissionModeCondition) {
         return Conch.permissionMode && permissionModeCondition;
@@ -216,7 +217,7 @@ public final class Conch {
                 .request();
         com.alibaba.fastjson.JSONObject result = JSON.parseObject(response.getContent());
 
-        Integer nodeTypeCode = Peer.Type.SOUL.getSimpleCode();
+        Integer nodeTypeCode = Peer.Type.HUB.getSimpleCode();
         if (result.getBoolean(Constants.SUCCESS)) {
             com.alibaba.fastjson.JSONObject data = result.getJSONObject("data");
             if (data == null || data.getInteger("type") == null) {

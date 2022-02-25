@@ -159,17 +159,21 @@ public abstract class PocTxApi {
          */
         @Override
         protected JSONStreamAware processRequest(HttpServletRequest request) throws ConchException {
+            JSONStreamAware txJson = null;
             try {
                 Account account = Optional.ofNullable(ParameterParser.getSenderAccount(request))
                         .orElseThrow(() -> new ConchException.AccountControlException("account info can not be null!"));;
                 JSONObject nodeTypeJson = new JSONObject();
-                if (Conch.isPermissionMode("true".equalsIgnoreCase(request.getParameter("permissionMode")))) {
+                boolean forceFromRemote = "true".equalsIgnoreCase(request.getParameter("permissionMode"));
+                if (Conch.isPermissionMode(forceFromRemote)) {
+                    Logger.logErrorMessage("In PermissionMode: validate the remote request url and read type tx fields from json string in the request body");
                     Preconditions.checkArgument(UrlManager.validFoundationHost(request), "Not valid host! ONLY foundation domain can do this operation!");
                     Account.checkApiAutoTxAccount(Account.rsAccount(account.getId()));
                     String nodeTypeJsonStr = Https.getPostData(request);
                     nodeTypeJson = Optional.ofNullable(JSONObject.parseObject(nodeTypeJsonStr))
                             .orElseThrow(() -> new ConchException.NotValidException("node type info can not be null!"));
                 } else {
+                    Logger.logErrorMessage("Not PermissionMode: read type tx fields from request.ParameterMap");
                     Map<String, String[]> nodeTypeJsonMap = request.getParameterMap();
                     for (Map.Entry<String, String[]> entry : nodeTypeJsonMap.entrySet()) {
                         if (entry.getValue() != null) {
@@ -180,7 +184,7 @@ public abstract class PocTxApi {
 
                 if(StringUtils.isEmpty(nodeTypeJson.getString("ip"))
                 || StringUtils.isEmpty(nodeTypeJson.getString("type"))) {
-                    String errorMsg = "node ip or node type is null" + nodeTypeJson.toString();
+                    String errorMsg = "node ip or node type is null. request detail: " + nodeTypeJson.toString();
                     Logger.logErrorMessage(errorMsg);
                     throw new ConchException.NotValidException(errorMsg);
                 }
@@ -217,8 +221,8 @@ public abstract class PocTxApi {
 
                 long recipientId = (accountId == -1) ? 0 : accountId;
 
-                JSONStreamAware txJson = createTransaction(request, account, recipientId, 0, pocNodeType);
-                Logger.logInfoMessage("success to create node type tx " + txJson.toString());
+                txJson = createTransaction(request, account, recipientId, 0, pocNodeType);
+                Logger.logInfoMessage("success to create node type tx: " + txJson.toString());
             } catch(ConchException.AccountControlException e){
                 Logger.logErrorMessage(e.getMessage());
                 return ResultUtil.failed(HttpStatus.INTERNAL_SERVER_ERROR_500, e.getMessage());
@@ -226,7 +230,7 @@ public abstract class PocTxApi {
                 Logger.logErrorMessage(ExceptionUtils.getStackTrace(e));
                 return ResultUtil.failed(HttpStatus.INTERNAL_SERVER_ERROR_500, e.getMessage());
             }
-            return ResultUtil.ok(Constants.SUCCESS);
+            return ResultUtil.success(txJson);
         }
     }
 

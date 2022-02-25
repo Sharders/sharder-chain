@@ -294,24 +294,28 @@ public final class Constants {
             , true);
     public static final Boolean BLOCK_REWARD_VERIFY = Conch.getBooleanProperty("sharder.blockRewardVerify", false);
 
-    // height related
     public static int NONE_PUBLICKEY_ACTIVE_HEIGHT = 0;
-    public static int BLOCK_REWARD_VERIFY_HEIGHT = 0;
-    public static int MINER_REMOVE_HEIGHT = 0;
-    public static int EXCHANGE_HEIGHT = 0;
+    public static int BLOCK_REWARD_VERIFY_HEIGHT = -1;
+    public static int MINER_REMOVE_HEIGHT = -1;
+    public static int ACROSS_CHAIN_EXCHANGE_HEIGHT = -1;
 
     public static RewardCalculator rewardCalculatorInstance;
 
     public static final String MW_CHAIN = "mw";
     public static final String SHARDER_CHAIN = "sharder";
     public static final String SS_CHAIN = "ss";
-    public static String ACCOUNT_PREFIX = "SSA-"; //account prefix
-    // OSS: be set in the 'Constants#static'
+    //account prefix
+    public static String ACCOUNT_PREFIX = "SSA-";
+    // OSS: be set in the 'Constants#static' method
     public static String OSS_PREFIX = "none";
     // Airdrop
-    public static final JSONObject airdropJsonObj = loadAirdropSettings() == null ? new JSONObject() :
-            loadAirdropSettings();
+    public static final JSONObject airdropJsonObj = loadAirdropSettings();
+    // across chain exchange
+    public static final String ACROSS_EXCHANGE_MGR_URL = acrossChainsConf.getString("MGR_URL");
+    public static final Boolean ACROSS_CHAIN_EXCHANGE_ENABLE = acrossChainsConf.getBoolean("ENABLE");
+    public static final Map<String, String> SUPPORT_ACROSS_CHAINS = loadAcrossChainDefinition();
 
+    public static Boolean DISPLAY_BIND_ADDRESS_ON_UI = Conch.getBooleanProperty("sharder.displayBindAddress", true);
     /**
      * The configuration is updated when the different networks are started
      */
@@ -327,7 +331,7 @@ public final class Constants {
                     BLOCK_REWARD_VERIFY_HEIGHT = Constants.isDevnet() ? heightConf.getIntValue(
                             "BLOCK_REWARD_VERIFY_HEIGHT_IS_DEVNET") : heightConf.getIntValue(
                                     "BLOCK_REWARD_VERIFY_HEIGHT_IS_TESTNET");
-                    EXCHANGE_HEIGHT = acrossChainsConf.getIntValue("EXCHANGE_HEIGHT");
+                    ACROSS_CHAIN_EXCHANGE_HEIGHT = acrossChainsConf.getIntValue("ENABLE_HEIGHT");
                 }
                 OSS_PREFIX = "https://mwfs.oss-cn-shenzhen.aliyuncs.com/";
                 ACCOUNT_PREFIX = "CDW-";
@@ -341,7 +345,6 @@ public final class Constants {
             default:
                 rewardCalculatorInstance = new RewardCalculatorDefault();
         }
-
     }
 
     public static boolean updateHistoryRecord() {
@@ -358,7 +361,21 @@ public final class Constants {
         } catch (Exception e) {
             Logger.logInfoMessage("airdrop_setting file does not exist, airdrop default close");
         }
-        return JSON.parseObject(jsonString);
+        return StringUtils.isEmpty(jsonString) ? new JSONObject() : JSON.parseObject(jsonString);
+    }
+
+    public static Map<String, String> loadAcrossChainDefinition() {
+        Map<String, String> chains = new HashMap<>();
+        if(!acrossChainsConf.containsKey("SUPPORT_CHAINS")) {
+            return chains;
+        }
+
+        JSONArray chainArray = acrossChainsConf.getJSONArray("SUPPORT_CHAINS");
+        for(int i = 0; i < chainArray.size(); i++){
+            JSONObject chainObj = chainArray.getJSONObject(i);
+            chains.put(chainObj.getString("id"),chainObj.getString("name"));
+        }
+        return chains;
     }
 
     /**
@@ -534,28 +551,11 @@ public final class Constants {
     }
 
     public static final String SUCCESS = "success";
-
     public static final String DATA = "data";
-
     public static final String HTTP = "http://";
 
     public static final boolean hubLinked = Conch.getBooleanProperty("sharder.HubBind");
     public static final boolean initFromArchivedDbFile = Conch.getBooleanProperty("sharder.initFromArchivedDbFile");
 
     public static final int HeartBeat_Time = Conch.getIntProperty("sharder.heartBeatTime", 5 * 60 * 1000);
-
-    public static final String MGR_URL = acrossChainsConf.getString("MGR_URL");
-
-    public static final Boolean EXCHANGE_OPEN_BUTTON = acrossChainsConf.getBoolean("OPEN_BUTTON");
-
-    public static final Map<String, String> chainIds = new HashMap<>();
-
-    static {
-        chainIds.put("1", "Heco");
-        chainIds.put("2", "OKEx");
-        chainIds.put("3", "ETH");
-        chainIds.put("4", "Tron");
-        chainIds.put("5", "BSC");
-    }
-
 }

@@ -101,7 +101,9 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
             response.put("sharder.phase", Conch.STAGE);
             response.put("sharder.xxx", serialNum);
 
-            if(Conch.systemInfo == null) GetNodeHardware.readSystemInfo();
+            if(Conch.systemInfo == null) {
+                GetNodeHardware.readSystemInfo();
+            }
             response.put("sharder.diskCapacity", Conch.systemInfo.getHardDiskSize());
 
             // Supplementary configuration, UI theme depends on this
@@ -109,6 +111,7 @@ public final class GetUserConfig extends APIServlet.APIRequestHandler {
             response.put("sharder.coinUnit", Conch.COIN_UNIT);
             response.put("sharder.foundationUrl", Conch.FOUNDATION_URL);
             response.put("sharder.foundationTestUrl", Conch.FOUNDATION_TEST_URL);
+            response.put("sharder.displayBindAddress", Constants.DISPLAY_BIND_ADDRESS_ON_UI);
 
             // airdrop
             response.put("sharder.airdrop.accounts", Constants.airdropJsonObj.getJSONArray("accounts"));

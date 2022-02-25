@@ -480,7 +480,7 @@ var NRS = (function(NRS, $, undefined) {
 			var isOffline = $(".mobile-offline").val();
 			if (NRS.getAccountId(secretPhrase) == NRS.account || isOffline) {
 				try {
-					var signature = NRS.signBytes(data.unsignedTransactionBytes, converters.stringToHexString(secretPhrase));
+					var signature = NRS.signBytes(data.unsignedTransactionBytes, secretPhrase);
 					updateSignature(signature);
 				} catch (e) {
 					output.errorMessage = e.message;

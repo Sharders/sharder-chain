@@ -50,7 +50,7 @@ const enSharder = {
         'serial_no': "Serial No",
         'disk_capacity': "Disk Capacity",
         'enable_auto_mining': "Enable Mining",
-        'set_mnemonic_phrase': "Mnemonic Phrase",
+        'set_mnemonic_phrase': "Miner Addr's Mnemonic Phrase",
         'set_password': "Set Node Admin Password",
         'confirm_password': "Confirm Password",
         'confirm_restart': "Confirm",
@@ -73,8 +73,9 @@ const enSharder = {
         'register_sharder_account':"Register Account",
         'quick_auth': "Node Mining Authentication",
         'factory_num': "Mining-machine Code",
-        'factory_des': "Execute the number generated when the Mining-machine is installed",
+        'factory_des': "Mining-machine code or CD-KEY",
         'sharder_account_des': "Official website registration user name",
+        'sharder_pwd_des': "Official website password",
     },
     upgrade: {
         'title': "COS Upgrade",
@@ -86,7 +87,7 @@ const enSharder = {
     },
     register: {
         'register_title': "Your mnemonic phrase has been generated",
-        'register_tip1': "Please write down or remember the phrase or key used to access your SS account.",
+        'register_tip1': "Please write down the phrase or key used to access your SS account.",
         'register_tip2': "Attention: Store carefully and Do not disclose your mnemonic phrase. Once lost, you will lose access to your account!",
         'cancel': "Cancel",
         'next_step': "Next",

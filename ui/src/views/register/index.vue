@@ -1,22 +1,6 @@
 <template>
     <div class="content_register">
 
-<!--        <el-col :span="24">-->
-<!--            <a>{{$t('register.register_title')}}</a>-->
-<!--        </el-col>-->
-
-<!--        <el-col :span="24">-->
-<!--            <div class="radius_blue">-->
-<!--                <div class="phrase">{{passPhrase}}</div>-->
-<!--            </div>-->
-<!--        </el-col>-->
-
-<!--        <el-col :span="24">-->
-<!--            <div class="radius_blue">-->
-<!--                <div class="phrase">{{passDigest}}</div>-->
-<!--            </div>-->
-<!--        </el-col>-->
-
         <el-radio-group v-model="tabTitle" class="title">
             <el-radio-button label="phrase" class="btn">
                 {{$t('login.secret_phrase')}}
@@ -24,7 +8,7 @@
             <el-radio-button label="key" class="btn">{{$t('login.secret_key')}}</el-radio-button>
         </el-radio-group>
 
-        <button class="common_btn" ref="copy" data-clipboard-action="copy" :data-clipboard-target="tabTitle === 'phrase' ? '#success_form_input_phrase' : '#success_form_input_key'" @click="copy">复制</button>
+        <button class="common_btn" ref="copy" data-clipboard-action="copy" @click="copy">复制</button>
 
         <el-col :span="24" v-if="tabTitle === 'phrase'">
             <div class="radius_blue">
@@ -230,7 +214,14 @@
             };
         },
         mounted() {
-            this.copyBtn = new this.clipboard(this.$refs.copy);
+            // this.copyBtn = new this.clipboard(this.$refs.copy);
+            let _this = this;
+            this.copyBtn = new this.clipboard(this.$refs.copy, {
+                target: function() {
+                    // console.info("this.tabTitle=" + _this.tabTitle)
+                    return  document.querySelector(_this.tabTitle === 'phrase' ? '#success_form_input_phrase' : '#success_form_input_key') ;
+                }
+            });
         },
         methods: {
             cancel: function () {
@@ -241,11 +232,9 @@
                 let clipboard = _this.copyBtn;
                 clipboard.on('success', function() {
                     _this.$message.success(_this.$t("notification.copy_success"));
-                    clipboard.destroy()
                 });
                 clipboard.on('error', function() {
                     _this.$message.error(_this.$t("notification.copy_fail"));
-                    clipboard.destroy()
                 });
             },
             generatePhrase: function () {

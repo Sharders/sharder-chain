@@ -163,7 +163,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
             if ("permissionMode".equals(paraName)) {
                 continue;
             }
-//            //if it ins't initial, use the current pr get from local properties file
+//            //if it isn't initial, use the current pr get from local properties file
 //            if ("sharder.HubBindPassPhrase".equals(paraName) && needBind && !bindNew && !isInit) {
 //                map.put("sharder.HubBindPassPhrase", Conch.getStringProperty("sharder.HubBindPassPhrase"));
 //                continue;
@@ -285,9 +285,11 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
              * nonPermissionMode：node itself to create a node type tx
              */
             String myAddress = Convert.nullToEmpty(req.getParameter("sharder.myAddress"));
-            if(Conch.systemInfo == null) GetNodeHardware.readSystemInfo();
-
-            if (Conch.isPermissionMode("true".equalsIgnoreCase(req.getParameter("permissionMode")))) {
+            if(Conch.systemInfo == null) {
+                GetNodeHardware.readSystemInfo();
+            }
+            boolean forceFromUIClient = "true".equalsIgnoreCase(req.getParameter("permissionMode"));
+            if (Conch.isPermissionMode(forceFromUIClient)) {
                 RestfulHttpClient.HttpClient client = RestfulHttpClient.getClient(SF_BIND_URL)
                         .post()
                         .addPostParam("sharderAccount", req.getParameter("sharderAccount"))
@@ -302,7 +304,6 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
                         .addPostParam("from", "NodeInitialStage#Reconfig");
 
                 Logger.logInfoMessage("send binding and NodeTypeTx creation request to foundation " + SF_BIND_URL + ": " + client.getPostParams());
-
                 verifyResponse = client.request();
                 com.alibaba.fastjson.JSONObject responseObj = com.alibaba.fastjson.JSONObject.parseObject(verifyResponse.getContent());
                 if(!responseObj.getBooleanValue(Constants.SUCCESS)) {
@@ -331,7 +332,7 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
                 }
             }
         }  catch (IOException | ConchException e) {
-            Logger.logErrorMessage("[ ERROR ]Failed to update linked address to foundation.", e);
+            Logger.logErrorMessage("[ ERROR ]Failed to send peer bind request to AuthCenter.", e);
             throw new ConchException.NotValidException(e.getMessage());
         }
     }

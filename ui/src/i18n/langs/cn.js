@@ -51,7 +51,7 @@ const cn = {
         'serial_no': "硬件编号",
         'disk_capacity': "磁盘容量",
         'enable_auto_mining': "是否开启挖矿",
-        'set_mnemonic_phrase': "绑定密钥",
+        'set_mnemonic_phrase': "绑定地址的密钥",
         'set_password': "设置节点管理密码",
         'confirm_password': "确认节点管理密码",
         'confirm_restart': "确认后重启",
@@ -73,7 +73,7 @@ const cn = {
         'create_account': "创建账户",
         'quick_auth': "节点挖矿授权",
         'factory_num': "矿机编号",
-        'factory_des': "执行安装矿机时生成的矿机编号",
+        'factory_des': "矿机编号或则CD-KEY",
         'sharder_account_des': "官网注册用户名",
     },
     upgrade: {
@@ -86,7 +86,7 @@ const cn = {
     },
     register: {
         'register_title': "您的账户密钥如下",
-        'register_tip1': "请写下或记住密语/密钥的其中一种，该密钥用于访问您的SS账户。",
+        'register_tip1': "请写密语/密钥的其中一种，该密钥用于访问您的SS账户。",
         'register_tip2': "注意：请妥善保管不要透露您的密钥，如果丢失您将无法访问您的账户！",
         'cancel': "取消",
         'next_step': "下一步",
