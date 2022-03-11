@@ -307,7 +307,11 @@ public final class ReConfig extends APIServlet.APIRequestHandler {
                 verifyResponse = client.request();
                 com.alibaba.fastjson.JSONObject responseObj = com.alibaba.fastjson.JSONObject.parseObject(verifyResponse.getContent());
                 if(!responseObj.getBooleanValue(Constants.SUCCESS)) {
-                    throw new ConchException.NotValidException(responseObj.getString("data"));
+                    String errorDetail = responseObj.getString("data");
+                    if(StringUtils.isEmpty(errorDetail)){
+                        errorDetail = responseObj.getString("msg");
+                    }
+                    throw new ConchException.NotValidException(errorDetail);
                 }
             } else {
                 Map<String, String[]> paramter = Maps.newHashMap();
