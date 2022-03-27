@@ -51,11 +51,13 @@ public final class SendMoney extends CreateTransaction {
         long recipient = ParameterParser.getAccountId(req, "recipient", true);
         long amountNQT = ParameterParser.getAmountNQT(req);
         Account account = ParameterParser.getSenderAccount(req);
-        acrossChainExchangeDailyLimit(req, account, amountNQT);
+        // acrossChainExchangeDailyLimit(req, account, amountNQT);
         return createTransaction(req, account, recipient, amountNQT);
     }
 
-    // FIXME: need refactor: combine 'getExchangeAddress' and 'DailyExchangeQuantity' logic, same change in the CosMgr
+    /** FIXME: need refactor combine 'getExchangeAddress' and 'DailyExchangeQuantity' logic, same change in the CosMgr
+               Don't provide the cross-chain function in the COS client internal.
+    **/
     private static final String CODE_OK = "200";
     private void acrossChainExchangeDailyLimit(HttpServletRequest req, Account account, long amountNQT){
         if(!Constants.ACROSS_CHAIN_EXCHANGE_ENABLE){

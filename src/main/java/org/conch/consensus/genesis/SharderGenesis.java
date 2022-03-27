@@ -30,7 +30,9 @@ import static org.conch.util.JSON.readJsonFile;
  * @date 01/19/2019
  */
 public class SharderGenesis {
+    /** Should same as the field 'LAST_KNOWN_BLOCK' in the ui/static/sso/js/util/sso.constants.js **/
     public static final long GENESIS_BLOCK_ID = 6840612405410082021L;
+
     public static final long CREATOR_ID = -8742759381699971609L;
     public static final long KEEPER_ID = 4634189266717835639L;
     public static final byte[] CREATOR_PUBLIC_KEY = {
