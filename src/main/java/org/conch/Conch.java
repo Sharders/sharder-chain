@@ -1266,7 +1266,7 @@ public final class Conch {
      *          0 : Conch.version = version and build time is same with the compared version; 
      *          1 : Conch.version > version or Conch.version = version and build time is later than the compared version; 
      */
-    public static int versionCompare(String version,String build){
+    public static int versionCompare(String version, String build){
         try {
             if(versionCompare(version) == -1){
                 return -1;
@@ -1340,7 +1340,11 @@ public final class Conch {
     public static String getVersion(){ return VERSION; }
     public static String getCosUpgradeDate(){ return ClientUpgradeTool.cosLastUpdateDate; }
 
+    private static final boolean openHeartBeat = false;
     public static void setHeartBeatTimer() {
+        if(!openHeartBeat){
+            return;
+        }
         Timer timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override

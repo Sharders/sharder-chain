@@ -290,6 +290,7 @@ public class ClientUpgradeTool {
             delete = false;
         }
         if(archive != null && archive.exists()){
+            checkOrClearOldClients();
             Logger.logInfoMessage("[ UPGRADE CLIENT ] Decompressing upgrade package:" + archive.getName() + ",mode=" + mode + ",delete source=" + delete);
             FileUtil.unzipAndReplace(archive, mode, delete);
         }
@@ -303,6 +304,23 @@ public class ClientUpgradeTool {
 
         if(StringUtils.isNotEmpty(updateTime)){
             Conch.storePropertieToFile(PROPERTY_COS_UPDATE, updateTime);
+        }
+    }
+
+    /**
+     * Old version is before v2.0.0
+     */
+    private static void checkOrClearOldClients(){
+        String version = "2.0.0";
+        String updateTime = "2021-11-07 19:11:11";
+        boolean forceClear = Conch.versionCompare(version, updateTime) < 0;
+        if(forceClear){
+            Logger.logInfoMessage("[ UPGRADE CLIENT ] Clear the env of old cos clients(before v%s-%s) when the current COS version is %s %s",
+                    version, updateTime, Conch.getFullVersion(), Conch.getCosUpgradeDate());
+            Logger.logInfoMessage("[ UPGRADE CLIENT ] Force delete the db folder");
+            FileUtil.deleteDirectory(Paths.get(".","sharder_test_db"));
+            Logger.logInfoMessage("[ UPGRADE CLIENT ] Force delete the html folder");
+            FileUtil.deleteDirectory(Paths.get(".","html"));
         }
     }
 
