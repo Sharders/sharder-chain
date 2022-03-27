@@ -308,10 +308,10 @@ public class ClientUpgradeTool {
     }
 
     /**
-     * Old version is before v2.0.0
+     * Old version is before v0.2.0
      */
     private static void checkOrClearOldClients(){
-        String version = "2.0.0";
+        String version = "0.2.0";
         String updateTime = "2021-11-07 19:11:11";
         boolean forceClear = Conch.versionCompare(version, updateTime) < 0;
         if(forceClear){
